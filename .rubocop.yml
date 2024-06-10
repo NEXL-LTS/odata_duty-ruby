@@ -1,0 +1,36 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.0
+  Exclude:
+    - "vendor/**/*"
+    - "tmp/**/*"
+    - "bin/**"
+    - "coverage/**/*"
+    - "sorbet/**/*"
+    - "**/sorbet/**/*"
+
+Metrics/AbcSize:
+  Max: 30
+Metrics/ClassLength:
+  Max: 99
+Metrics/ModuleLength:
+  Max: 99
+Metrics/CyclomaticComplexity:
+  Max: 7
+Metrics/MethodLength:
+  Max: 9
+Style/FrozenStringLiteralComment:
+  Enabled: false
+Style/Documentation:
+  Enabled: false
+Layout/LineEndStringConcatenationIndentation:
+  Enabled: false
+Layout/LineLength:
+  Max: 99
+  AllowedPatterns: ['\A#']
+
+Style/AccessorGrouping:
+  Enabled: false
+
+Lint/ConstantDefinitionInBlock:
+  Enabled: false

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx"
+    edmx:schemaLocation="https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/schemas/edm.xsd https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/schemas/edmx.xsd">
+    <edmx:DataServices>
+        <Schema Namespace="SampleSpace" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+            <EnumType Name="PersonGender">
+                <Member Name="Male" />
+                <Member Name="Female" />
+                <Member Name="Unknown" />
+            </EnumType>
+            <ComplexType Name="AddressInfo">
+                <Property Name="address" Nullable="true" Type="Edm.String" />
+                <Property Name="city" Nullable="true" Type="SampleSpace.CountryCity" />
+            </ComplexType>
+            <ComplexType Name="CountryCity">
+                <Property Name="country_region" Nullable="false" Type="Edm.String"/>
+                <Property Name="name" Nullable="false" Type="Edm.String"/>
+                <Property Name="region" Nullable="false" Type="Edm.String"/>
+            </ComplexType>
+            <EntityType Name="Person">
+                <Key>
+                    <PropertyRef Name="id" />
+                </Key>
+                <Property Name="id" Nullable="false" Type="Edm.String" />
+                <Property Name="user_name" Nullable="false" Type="Edm.String" />
+                <Property Name="name" Nullable="true" Type="Edm.String" />
+                <Property Name="emails" Nullable="false" Type="Collection(Edm.String)" />
+                <Property Name="address_info" Nullable="false"
+                    Type="Collection(SampleSpace.AddressInfo)" />
+                <Property Name="gender" Nullable="false" Type="SampleSpace.PersonGender" />
+                <Property Name="concurrency" Nullable="false" Type="Edm.Int64" />
+            </EntityType>
+
+            <EntityContainer Name="Container">
+                <EntitySet Name="People" EntityType="SampleSpace.Person" />
+            </EntityContainer>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

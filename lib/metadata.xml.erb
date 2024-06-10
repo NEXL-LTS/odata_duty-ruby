@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" edmx:schemaLocation="https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/schemas/edm.xsd https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/schemas/edmx.xsd">
+    <edmx:DataServices>
+        <Schema Namespace="<%= metadata.namespace %>" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+             <% metadata.enum_types.each do |enum_type| %>
+                <EnumType Name="<%= enum_type.name %>">
+                    <% enum_type.members.each do |member| %>
+                        <Member Name="<%= member.name %>" />
+                    <% end %>
+                </EnumType>
+            <% end %>
+            <% metadata.complex_types.each do |complex_type| %>
+                <ComplexType Name="<%= complex_type.name %>">
+                    <% complex_type.properties.each do |property| %>
+                        <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>" />
+                    <% end %>
+                </ComplexType>
+            <% end %>
+            <% metadata.entity_types.each do |entity_type| %>
+                <EntityType Name="<%= entity_type.name %>">
+                    <Key>
+                        <% entity_type.property_refs.each do |property| %>
+                            <PropertyRef Name="<%= property.name %>" />
+                        <% end %>
+                    </Key>
+                    <% entity_type.properties.each do |property| %>
+                        <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>" />
+                    <% end %>
+                </EntityType>
+            <% end %>
+            <EntityContainer Name="Container">
+                <% metadata.entity_sets.each do |entity_set| %>
+                    <EntitySet Name="<%= entity_set.name %>" EntityType="<%= metadata.namespace %>.<%= entity_set.entity_type_name %>" />
+                <% end %>
+            </EntityContainer>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>
