@@ -27,7 +27,7 @@ class LargeCollectionSet < OdataDuty::EntitySet
 
   def od_skiptoken(skiptoken)
     @skiptoken = skiptoken
-    @records = @records[skiptoken..]
+    @records = @records[skiptoken.to_i..]
   end
 
   def od_filter_id_ne(value)
