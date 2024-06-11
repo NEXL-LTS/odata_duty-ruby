@@ -244,9 +244,9 @@ module OdataDuty
       erb.result b
     end
 
-    def self.index_hash(context)
+    def self.index_hash(metadata_url)
       {
-        '@odata.context': context.url_for(url: '$metadata'),
+        '@odata.context': metadata_url,
         value: __metadata.endpoints.map do |e|
           { name: e.name, kind: e.kind, url: e.url }
         end
