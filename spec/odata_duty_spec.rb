@@ -79,9 +79,9 @@ RSpec.describe OdataDuty do
 
   describe '#index_hash' do
     it do
-      expect(SampleSchema.index_hash(Context.new))
+      expect(SampleSchema.index_hash('http://localhost/$metadata'))
         .to eq({
-                 '@odata.context': '$metadata',
+                 '@odata.context': 'http://localhost/$metadata',
                  value: [{ kind: 'EntitySet', name: 'People', url: 'People' }]
                })
     end
