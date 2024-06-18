@@ -56,6 +56,10 @@ module OdataDuty
       @od_context = context
     end
 
+    def self.to_value(*args)
+      new(*args).__to_value
+    end
+
     def __to_value
       self.class.properties.each_with_object({}) do |property, result|
         result[property.name] = property.to_value(public_send(property.name), od_context)

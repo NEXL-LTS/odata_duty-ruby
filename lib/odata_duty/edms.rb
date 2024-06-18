@@ -2,6 +2,10 @@ require 'date'
 
 module OdataDuty
   class EdmBase
+    def self.to_value(*args)
+      new(*args).__to_value
+    end
+
     attr_reader :object
 
     def initialize(object, _context)

@@ -9,6 +9,8 @@ module OdataDuty
       @collection = type.is_a?(Array)
       type = type.first if type.is_a?(Array)
       @type = TYPES_MAPPING[type] || type
+      raise "Invalid type #{type.inspect} for #{name}" unless @type
+
       @nullable = nullable ? true : false
     end
 
@@ -19,7 +21,9 @@ module OdataDuty
     end
 
     def type
-      raw_type.property_type
+      return raw_type.property_type if raw_type.respond_to?(:property_type)
+
+      raw_type.name
     end
 
     def collection?
@@ -45,9 +49,9 @@ module OdataDuty
 
       if collection?
         value = value.split(',') if value.is_a?(String)
-        value.map { |v| @type.new(v, context).__to_value }
+        value.map { |v| @type.to_value(v, context) }
       else
-        @type.new(value, context).__to_value
+        @type.to_value(value, context)
       end
     end
 
