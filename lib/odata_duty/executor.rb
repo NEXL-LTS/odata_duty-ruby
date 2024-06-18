@@ -130,6 +130,7 @@ module OdataDuty
       next_query_options = query_options.merge(url: endpoint.url,
                                                :$skiptoken => set_builder.od_next_link_skiptoken)
       data[:'@odata.nextLink'] = context.url_for(**next_query_options)
+      data[:skip_token] = set_builder.od_next_link_skiptoken
     end
 
     require 'oj'

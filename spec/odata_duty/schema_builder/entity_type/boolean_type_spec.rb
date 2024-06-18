@@ -37,7 +37,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can use boolean primitive type' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', base_url: 'http://localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
         bool_entity = s.add_entity_type(name: 'BoolValues') do |et|
           et.property_ref 'id', String
           et.property 'boolean', TrueClass, nullable: false

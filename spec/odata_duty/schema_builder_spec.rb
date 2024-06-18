@@ -25,7 +25,10 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', base_url: 'http://localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', scheme: 'http', host: 'localhost',
+                          base_path: '/') do |s|
+        s.version = '1.2.3'
+        s.title = 'This is a sample OData service.'
         country_city_complex = s.add_complex_type(name: 'CountryCity') do |c|
           c.property 'country_region', String, nullable: false
           c.property 'name', String, nullable: false
@@ -70,6 +73,36 @@ module OdataDuty
         generated_xml = format_xml(EdmxSchema.metadata_xml(schema))
         expected_xml = format_xml(File.read("#{__dir__}/../metadata.xml"))
         expect(generated_xml).to eq(expected_xml)
+      end
+    end
+
+    EXPECTED_DOC = Oj.load(File.read("#{__dir__}/../oas_2.json"))
+
+    describe '#oas_2' do
+      let(:json) { OAS2.build_json(schema) }
+
+      it do
+        s = %w[swagger info host schemes basePath]
+        generated_json = json.slice(*s)
+        expect(generated_json).to eq(EXPECTED_DOC.slice(*s))
+      end
+
+      EXPECTED_DOC.fetch('paths').each do |path, value|
+        describe "paths #{path} get" do
+          it do
+            generated_json = json.dig('paths', path, 'get')
+            expect(generated_json).to eq(value['get'])
+          end
+        end
+      end
+
+      EXPECTED_DOC.fetch('definitions').each do |path, value|
+        describe "definitions #{path}" do
+          it do
+            generated_json = json.dig('definitions', path)
+            expect(generated_json).to eq(value)
+          end
+        end
       end
     end
 

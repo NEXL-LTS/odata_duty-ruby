@@ -22,6 +22,10 @@ module OdataDuty
       'Edm.Int64'
     end
 
+    def self.to_oas2
+      { 'type' => 'integer', 'format' => 'int64' }
+    end
+
     def __to_value
       object && Integer(object)
     rescue StandardError => e
@@ -32,6 +36,10 @@ module OdataDuty
   class EdmString < EdmBase
     def self.property_type
       'Edm.String'
+    end
+
+    def self.to_oas2
+      { 'type' => 'string' }
     end
 
     def __to_value
@@ -46,6 +54,10 @@ module OdataDuty
       'Edm.Date'
     end
 
+    def self.to_oas2
+      { 'type' => 'string', 'format' => 'date' }
+    end
+
     def __to_value
       object&.to_date
     rescue StandardError => e
@@ -58,6 +70,10 @@ module OdataDuty
       'Edm.DateTimeOffset'
     end
 
+    def self.to_oas2
+      { 'type' => 'string', 'format' => 'date-time' }
+    end
+
     def __to_value
       object&.to_datetime&.iso8601
     rescue StandardError => e
@@ -68,6 +84,10 @@ module OdataDuty
   class EdmBool < EdmBase
     def self.property_type
       'Edm.Boolean'
+    end
+
+    def self.to_oas2
+      { 'type' => 'boolean' }
     end
 
     VALID_VALUES = [true, false, nil].freeze

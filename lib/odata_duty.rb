@@ -5,6 +5,7 @@ require 'odata_duty/set_resolver'
 require 'odata_duty/schema_builder'
 require 'odata_duty/edmx_schema'
 require 'odata_duty/executor'
+require 'odata_duty/oas2'
 
 module OdataDuty
   require 'odata_duty/property'
@@ -124,6 +125,16 @@ module OdataDuty
       @namespace
     end
 
+    def self.version(name = nil)
+      @version = name if name
+      @version
+    end
+
+    def self.title(name = nil)
+      @title = name if name
+      @title
+    end
+
     def self.entity_sets(entity_sets = nil)
       @entity_sets = entity_sets.uniq if entity_sets
       @entity_sets
@@ -135,6 +146,9 @@ module OdataDuty
       def initialize(schema)
         @schema = schema
       end
+
+      def version = schema.version
+      def title = schema.title
 
       def namespace
         schema.namespace

@@ -49,6 +49,8 @@ end
 
 class SampleSchema < OdataDuty::Schema
   namespace 'SampleSpace'
+  version '1.2.3'
+  title 'This is a sample OData service.'
   entity_sets [PeopleSet]
 end
 

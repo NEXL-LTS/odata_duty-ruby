@@ -9,7 +9,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can setup property refs' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', base_url: 'http://localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
         string_entity = s.add_entity_type(name: 'StringRef') do |et|
           et.property_ref 'id', String
         end

@@ -2,7 +2,7 @@ module OdataDuty
   module EdmxSchema
     def self.index_hash(schema)
       {
-        '@odata.context': [schema.base_url, '$metadata'].join('/'),
+        '@odata.context': [schema.base_url.chomp('/'), '$metadata'].join('/'),
         value: schema.endpoints.map do |e|
           { name: e.name, kind: e.kind, url: e.url }
         end

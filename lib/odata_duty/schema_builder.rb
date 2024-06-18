@@ -4,11 +4,15 @@ module OdataDuty
       new(**kwargs).tap { |s| block.call(s) }
     end
 
-    attr_reader :namespace, :base_url, :all_types
+    attr_reader :namespace, :host, :scheme, :base_path, :base_url, :all_types
+    attr_accessor :version, :title
 
-    def initialize(namespace:, base_url:)
+    def initialize(namespace:, host: 'localhost', scheme: 'https', base_path: '')
       @namespace = namespace.to_str.clone.freeze
-      @base_url = base_url.to_str.clone.freeze
+      @host = host.to_str.clone.freeze
+      @scheme = scheme.to_str.clone.freeze
+      @base_path = base_path.to_str.clone.freeze
+      @base_url = [scheme, '://', host, base_path].join.freeze
       @types = {}
     end
 
@@ -83,10 +87,14 @@ module OdataDuty
       end
 
       def to_value(val, context)
-        odata_id = property_refs.first.raw_type == EdmInt64 ? val.id : "'#{val.id}'"
+        odata_id = integer_property_ref? ? val.id : "'#{val.id}'"
         super.merge(
           '@odata.id': context.url_for(url: "#{context.endpoint.url}(#{odata_id})")
         )
+      end
+
+      def integer_property_ref?
+        property_refs.first.raw_type == EdmInt64
       end
     end
 
@@ -108,6 +116,8 @@ module OdataDuty
       end
 
       def entity_type_name = entity_type.name
+
+      def resolver_class = Module.const_get(resolver)
     end
 
     def add_entity_set(**kwargs)
@@ -178,6 +188,14 @@ module OdataDuty
 
     def entity_sets
       all_types.select { |t| t.is_a?(EntitySet) }
+    end
+
+    def collection_entity_sets
+      entity_sets.select { |t| t.resolver_class.instance_methods.include?(:collection) }
+    end
+
+    def individual_entity_sets
+      entity_sets.select { |t| t.resolver_class.instance_methods.include?(:individual) }
     end
 
     require 'delegate'

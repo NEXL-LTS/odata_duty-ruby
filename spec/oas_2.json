@@ -1,0 +1,168 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "This is a sample OData service.",
+    "version": "1.2.3"
+  },
+  "host": "localhost",
+  "basePath": "/",
+  "schemes": ["http"],
+  "paths": {
+    "/People": {
+      "get": {
+        "operationId": "GetCollectionOfPeople",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "$filter",
+            "in": "query",
+            "type": "string",
+            "description": "Filter the results"
+          },
+          {
+            "name": "$top",
+            "in": "query",
+            "type": "integer",
+            "description": "Number of results to return"
+          },
+          {
+            "name": "$skip",
+            "in": "query",
+            "type": "integer",
+            "description": "Number of results to skip"
+          },
+          {
+            "name": "$count",
+            "in": "query",
+            "type": "boolean",
+            "description": "Include count of the results"
+          },
+          {
+            "name": "$skip_token",
+            "in": "query",
+            "type": "string",
+            "description": "Token for next page of results"
+          }
+        ],
+        "responses": {
+          "default": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/IndividualPeople"
+                  }
+                },
+                "@odata.count": {
+                  "description": "Total count of results, if $count set to true",
+                  "type": "integer",
+                  "x-nullable": true
+                },
+                "@odata.nextLink": {
+                  "type": "string",
+                  "description": "Url for next page of results",
+                  "x-nullable": true
+                },
+                "skip_token": {
+                  "type": "string",
+                  "description": "Token to be used for $skip_token query option to get the next page of results",
+                  "x-nullable": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/People({id})": {
+      "get": {
+        "operationId": "GetIndividualPeopleById",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "schema": {
+              "$ref": "#/definitions/IndividualPeople"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "PersonGender": {
+      "type": "string",
+      "enum": ["Male", "Female", "Unknown"]
+    },
+    "CountryCity": {
+      "type": "object",
+      "properties": {
+        "country_region": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        }
+      }
+    },
+    "AddressInfo": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string",
+          "x-nullable": true
+        },
+        "city": {
+          "$ref": "#/definitions/CountryCity",
+          "x-nullable": true
+        }
+      }
+    },
+    "Person": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "user_name": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "x-nullable": true
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "address_info": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AddressInfo"
+          }
+        },
+        "gender": {
+          "$ref": "#/definitions/PersonGender"
+        },
+        "concurrency": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    }
+  }
+}
