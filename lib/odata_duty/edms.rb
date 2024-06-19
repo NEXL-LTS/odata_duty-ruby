@@ -6,6 +6,10 @@ module OdataDuty
       new(*args).__to_value
     end
 
+    def self.scalar?
+      true
+    end
+
     attr_reader :object
 
     def initialize(object, _context)
@@ -22,8 +26,12 @@ module OdataDuty
       'Edm.Int64'
     end
 
-    def self.to_oas2
-      { 'type' => 'integer', 'format' => 'int64' }
+    OAS_TYPE = { 'type' => 'integer', 'format' => 'int64' }.freeze
+
+    def self.to_oas2(is_collection: false)
+      return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
+
+      OAS_TYPE
     end
 
     def __to_value
@@ -38,8 +46,12 @@ module OdataDuty
       'Edm.String'
     end
 
-    def self.to_oas2
-      { 'type' => 'string' }
+    OAS_TYPE = { 'type' => 'string' }.freeze
+
+    def self.to_oas2(is_collection: false)
+      return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
+
+      OAS_TYPE
     end
 
     def __to_value
@@ -54,8 +66,12 @@ module OdataDuty
       'Edm.Date'
     end
 
-    def self.to_oas2
-      { 'type' => 'string', 'format' => 'date' }
+    OAS_TYPE = { 'type' => 'string', 'format' => 'date' }.freeze
+
+    def self.to_oas2(is_collection: false)
+      return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
+
+      OAS_TYPE
     end
 
     def __to_value
@@ -70,8 +86,12 @@ module OdataDuty
       'Edm.DateTimeOffset'
     end
 
-    def self.to_oas2
-      { 'type' => 'string', 'format' => 'date-time' }
+    OAS_TYPE = { 'type' => 'string', 'format' => 'date-time' }.freeze
+
+    def self.to_oas2(is_collection: false)
+      return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
+
+      OAS_TYPE
     end
 
     def __to_value
@@ -86,8 +106,12 @@ module OdataDuty
       'Edm.Boolean'
     end
 
-    def self.to_oas2
-      { 'type' => 'boolean' }
+    OAS_TYPE = { 'type' => 'boolean' }.freeze
+
+    def self.to_oas2(is_collection: false)
+      return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
+
+      OAS_TYPE
     end
 
     VALID_VALUES = [true, false, nil].freeze

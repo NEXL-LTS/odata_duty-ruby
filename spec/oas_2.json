@@ -67,7 +67,7 @@
                 },
                 "skip_token": {
                   "type": "string",
-                  "description": "Token to be used for $skip_token query option to get the next page of results",
+                  "description": "Token to be used for $skip_token query option to get the next page",
                   "x-nullable": true
                 }
               }

@@ -60,5 +60,21 @@ module OdataDuty
     rescue OdataDuty::InvalidValue
       raise InvalidFilterValue, "Invalid value #{value} for #{name}"
     end
+
+    def to_oas2
+      result =
+        if raw_type.scalar?
+          raw_type.to_oas2(is_collection: collection?)
+        else
+          collection? ? { 'type' => 'array', 'items' => ref_oas2 } : ref_oas2
+        end
+      nullable ? result.merge('x-nullable' => true) : result
+    end
+
+    private
+
+    def ref_oas2
+      { '$ref' => "#/definitions/#{raw_type.name}" }
+    end
   end
 end
