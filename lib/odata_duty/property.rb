@@ -2,12 +2,14 @@ require 'odata_duty/edms'
 
 module OdataDuty
   class Property
-    attr_reader :name, :nullable
+    attr_reader :name, :nullable, :calling_method, :line__defined__at
 
-    def initialize(name, type, nullable: true)
+    def initialize(name, type = String, line__defined__at: nil, nullable: true, method: nil)
+      @line__defined__at = line__defined__at
       @name = name.to_str.to_sym
+      @calling_method = method.respond_to?(:call) ? method : method&.to_sym || @name
       @collection = type.is_a?(Array)
-      type = type.first if type.is_a?(Array)
+      type = Array(type).first
       @type = TYPES_MAPPING[type] || type
       raise "Invalid type #{type.inspect} for #{name}" unless @type
 
@@ -28,6 +30,14 @@ module OdataDuty
 
     def collection?
       @collection
+    end
+
+    def value_from_object(obj, context)
+      if calling_method.is_a?(Symbol)
+        to_value(obj.public_send(calling_method), context)
+      else
+        to_value(calling_method.call(obj), context)
+      end
     end
 
     def to_value(value, context)

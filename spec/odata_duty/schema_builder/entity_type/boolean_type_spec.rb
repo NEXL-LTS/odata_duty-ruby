@@ -35,7 +35,7 @@ class BoolWithInvalidResolver < OdataDuty::SetResolver
 end
 
 module OdataDuty
-  RSpec.describe SchemaBuilder::EntitySet, 'Can use boolean primitive type' do
+  RSpec.describe SchemaBuilder::EntityType, 'Can use boolean primitive type' do
     subject(:schema) do
       SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
         bool_entity = s.add_entity_type(name: 'BoolValues') do |et|

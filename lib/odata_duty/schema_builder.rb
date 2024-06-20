@@ -11,7 +11,7 @@ module OdataDuty
     end
 
     class Schema
-      attr_reader :namespace, :host, :scheme, :base_path, :base_url
+      attr_reader :namespace, :host, :scheme, :base_path, :base_url, :types
       attr_accessor :version, :title
 
       def initialize(namespace:, host: 'localhost', scheme: 'https', base_path: '')
@@ -92,7 +92,7 @@ module OdataDuty
       def all_types = @types.values.sort_by(&:name)
 
       def add_container(type)
-        raise "Duplicate #{type.name} Container" if @types.key?(type.name)
+        raise "Duplicate #{type.name} Container" if @containers.key?(type.name)
 
         @containers[type.name] = type
       end
