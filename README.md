@@ -1,7 +1,6 @@
 # OdataDuty
 
-Easily expose you ruby application or rails models as a OData service.
-
+Write OData compatible APIs in Ruby with the goal of easily connection your application to Microsoft PowerBI and PowerAutomate.
 
 ## Installation
 

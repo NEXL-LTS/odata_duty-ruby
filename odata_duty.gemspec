@@ -6,8 +6,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Grant Petersen-Speelman']
   spec.email         = ['grant@nexl.io']
 
-  spec.summary       = 'Odata service'
-  spec.description   = 'Easily expose you ruby application or rails models as a OData service.'
+  spec.summary       = 'Write OData compatible APIs'
+  spec.description   =
+    'Write OData compatible APIs to easier connection to Microsoft PowerBI and PowerAutomate.'
   # spec.homepage      = "TODO: Put your gem's website or public repo URL here."
   spec.required_ruby_version = Gem::Requirement.new('>= 3.0.0')
 
