@@ -2,6 +2,9 @@
 <edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" edmx:schemaLocation="https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/schemas/edm.xsd https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/schemas/edmx.xsd">
     <edmx:DataServices>
         <Schema Namespace="<%= metadata.namespace %>" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+             <% if metadata.version %><Annotation Term="<%= metadata.namespace %>.Version" String="<%= metadata.version %>" /><% end %>
+             <% if metadata.title %><Annotation Term="<%= metadata.namespace %>.Title" String="<%= metadata.title %>" /><% end %>
+
              <% metadata.enum_types.each do |enum_type| %>
                 <EnumType Name="<%= enum_type.name %>">
                     <% enum_type.members.each do |member| %>

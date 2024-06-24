@@ -1,27 +1,5 @@
 require 'spec_helper'
 
-CountryCity = Struct.new(:country_region, :name, :region) do
-  def self.all
-    [CountryCity.new('country_region', 'name', 'region')]
-  end
-end
-
-AddressInfo = Struct.new(:address, :city) do
-  def self.all
-    [AddressInfo.new('address', CountryCity.new('country', 'name', 'region'))]
-  end
-end
-
-Person = Struct.new(:id, :user_name, :name, :emails, :address_info, :gender, :concurrency) do
-  def self.all
-    [
-      Person.new('1', 'user1', 'User', ['user@email.com'],
-                 [AddressInfo.new('address', CountryCity.new('country', 'name', 'region'))],
-                 'Male', 11)
-    ]
-  end
-end
-
 class CountryCityComplex < OdataDuty::ComplexType
   property 'country_region', String, nullable: false
   property 'name', String, nullable: false
@@ -71,6 +49,8 @@ end
 
 class SampleSchema < OdataDuty::Schema
   namespace 'SampleSpace'
+  version '1.2.3'
+  title 'This is a sample OData service.'
   entity_sets [PeopleSet]
 end
 

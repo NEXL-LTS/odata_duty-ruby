@@ -67,6 +67,28 @@ Context = Struct.new(:endpoint) do
   end
 end
 
+CountryCity = Struct.new(:country_region, :name, :region) do
+  def self.all
+    [CountryCity.new('country_region', 'name', 'region')]
+  end
+end
+
+AddressInfo = Struct.new(:address, :city) do
+  def self.all
+    [AddressInfo.new('address', CountryCity.new('country', 'name', 'region'))]
+  end
+end
+
+Person = Struct.new(:id, :user_name, :name, :emails, :address_info, :gender, :concurrency) do
+  def self.all
+    [
+      Person.new('1', 'user1', 'User', ['user@email.com'],
+                 [AddressInfo.new('address', CountryCity.new('country', 'name', 'region'))],
+                 'Male', 11)
+    ]
+  end
+end
+
 RSpec.configure do |config|
   config.include TestHelpers
   # Enable flags like --only-failures and --next-failure
@@ -77,5 +99,12 @@ RSpec.configure do |config|
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
+  end
+
+  if config.files_to_run.one?
+    # Use the documentation formatter for detailed output,
+    # unless a formatter has already been configured
+    # (e.g. via a command-line flag).
+    config.default_formatter = 'doc'
   end
 end

@@ -64,6 +64,10 @@ module OdataDuty
       @object = object
     end
 
+    def self.to_value(*args)
+      new(*args).__to_value
+    end
+
     def __to_value
       return object if object.nil? || __member_names.include?(object)
 

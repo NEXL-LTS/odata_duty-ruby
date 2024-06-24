@@ -1,7 +1,6 @@
 # OdataDuty
 
-Easily expose you ruby application or rails models as a OData service.
-
+Write OData compatible APIs in Ruby with the goal of easily connection your application to Microsoft PowerBI and PowerAutomate.
 
 ## Installation
 
@@ -76,6 +75,55 @@ end
 schema = SampleSchema.new
 puts schema.execute('People')
 puts schema.execute("People('1')")
+```
+
+#### Quick Dynamic Example with Rails
+
+```ruby
+# add to routes.rb
+
+scope '/api' do
+  root 'api#index'
+  get '$metadata' => 'api#metadata', as: 'metadata'
+  get '$oas2' => 'api#oas2', as: 'oas2'
+  get '*url' => 'api#show', as: 'show'
+end
+```
+
+```ruby
+# add to api_controller.rb
+def index # OData Service Index
+  render json: OdataDuty::EdmxSchema.index_hash(schema)
+end
+
+def metadata # OData metadata
+  render xml: OdataDuty::EdmxSchema.metadata_xml(schema)
+end
+
+def oas2 # OpenAPI 2.0 (Swagger) schema
+  render xml: OdataDuty::OAS2.build_json(schema)
+end
+
+def show
+  query_options = params.to_unsafe_hash.except('url', 'action', 'controller', 'format')
+  render json: schema.execute(params[:url], context: self, query_options: query_options)
+end
+
+private
+
+def schema
+  @schema ||= OdataDuty::SchemaBuilder.build(namespace: 'MySpace', host: request.host_with_port,
+                                          scheme: request.scheme, base_path: api_index_path) do |s|
+    s.title = "My Dynamic API"
+    s.version = '0.0.1'
+    person_entity = s.add_entity_type(name: 'Person') do |et|
+      et.property_ref 'id', String
+      et.property 'user_name', String, nullable: false
+    end
+    s.add_entity_set(url: 'People', entity_type: person_entity,
+                      resolver: 'PeopleResolver')
+  end
+end
 ```
 
 ## TODO
