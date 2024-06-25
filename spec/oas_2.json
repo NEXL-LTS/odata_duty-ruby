@@ -38,7 +38,7 @@
             "description": "Include count of the results"
           },
           {
-            "name": "$skip_token",
+            "name": "$skiptoken",
             "in": "query",
             "type": "string",
             "description": "Token for next page of results"
@@ -63,11 +63,6 @@
                 "@odata.nextLink": {
                   "type": "string",
                   "description": "Url for next page of results",
-                  "x-nullable": true
-                },
-                "skip_token": {
-                  "type": "string",
-                  "description": "Token to be used for $skip_token query option to get the next page",
                   "x-nullable": true
                 }
               }
