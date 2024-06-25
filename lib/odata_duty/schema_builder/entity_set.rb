@@ -48,7 +48,7 @@ module OdataDuty
             'description' => 'Include count of the results'
           },
           {
-            'name' => '$skip_token',
+            'name' => '$skiptoken',
             'in' => 'query',
             'type' => 'string',
             'description' => 'Token for next page of results'
@@ -64,11 +64,6 @@ module OdataDuty
           '@odata.count' => {
             'type' => 'integer',
             'description' => 'Total count of results, if $count set to true',
-            'x-nullable' => true
-          },
-          'skip_token' => {
-            'type' => 'string',
-            'description' => 'Token to be used for $skip_token query option to get the next page',
             'x-nullable' => true
           }
         }.freeze
