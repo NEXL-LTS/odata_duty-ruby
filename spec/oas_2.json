@@ -52,7 +52,7 @@
                 "value": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/IndividualPeople"
+                    "$ref": "#/definitions/Person"
                   }
                 },
                 "@odata.count": {
@@ -86,7 +86,7 @@
         "responses": {
           "default": {
             "schema": {
-              "$ref": "#/definitions/IndividualPeople"
+              "$ref": "#/definitions/Person"
             }
           }
         }

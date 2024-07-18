@@ -83,7 +83,7 @@ module OdataDuty
             'properties' => {
               'value' => {
                 'type' => 'array',
-                'items' => { '$ref' => "#/definitions/Individual#{name}" }
+                'items' => { '$ref' => "#/definitions/#{entity_type_name}" }
               }
             }.merge(COLLECTION_RESPONSE_DEFAULTS)
           } }
@@ -115,7 +115,7 @@ module OdataDuty
           {
             'default' => {
               'schema' => {
-                '$ref' => "#/definitions/Individual#{name}"
+                '$ref' => "#/definitions/#{entity_type_name}"
               }
             }
           }
