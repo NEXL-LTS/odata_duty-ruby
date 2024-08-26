@@ -4,6 +4,10 @@ module OdataDuty
       new(**kwargs).execute
     end
 
+    def self.create(**kwargs)
+      new(**kwargs).create
+    end
+
     attr_reader :schema, :url, :context, :query_options
 
     def initialize(schema:, url:, context:, query_options:)
@@ -27,12 +31,6 @@ module OdataDuty
     end
 
     def execute
-      endpoint = points.find { |e| url.split('/$count').first.split('(').first == e.url }
-      raise UnknownPropertyError, "No endpoint #{url} found in #{urls}" unless endpoint
-
-      wrapped_context = ContextWrapper.new(context, endpoint: endpoint,
-                                                    query_options: query_options)
-
       entity_id = extract_value_from_brackets(url)
       return individual(endpoint, entity_id, wrapped_context) if url.include?('(')
 
@@ -40,6 +38,18 @@ module OdataDuty
       return set_builder.count if url.include?('/$count')
 
       collection(set_builder, endpoint, wrapped_context, query_options)
+    end
+
+    def create
+      Oj.dump(endpoint
+          .create(context: wrapped_context)
+          .merge(
+            '@odata.context': wrapped_context.url_for(url: '$metadata',
+                                                      anchor: "#{endpoint.name}/$entity")
+          ),
+              mode: :compat)
+    rescue NoMethodError
+      raise NoImplementionError, "create not implemented for #{endpoint.url}"
     end
 
     def prepare_builder(endpoint, context, query_options)
@@ -52,7 +62,20 @@ module OdataDuty
 
     private
 
-    def urls = endpoints.map(&:url)
+    def wrapped_context
+      @wrapped_context ||= ContextWrapper.new(context, endpoint: endpoint,
+                                                       query_options: query_options)
+    end
+
+    def endpoint
+      @endpoint ||= points
+                    .find { |e| url.split('/$count').first.split('(').first == e.url }
+                    .tap do |result|
+        raise UnknownPropertyError, "No endpoint #{url} found in #{urls}" unless result
+      end
+    end
+
+    def urls = points.map(&:url)
 
     def apply_filter(endpoint, set_builder, filter_string)
       Filter.parse(filter_string).each do |filter|

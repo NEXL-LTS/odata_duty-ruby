@@ -29,11 +29,7 @@ module OdataDuty
         enum_type.members
       end
 
-      def complex?
-        false
-      end
-
-      def enum?
+      def scalar?
         true
       end
 

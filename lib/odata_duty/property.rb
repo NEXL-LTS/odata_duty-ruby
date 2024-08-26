@@ -58,7 +58,8 @@ module OdataDuty
       return value if value.nil?
 
       if collection?
-        value = value.split(',') if value.is_a?(String)
+        raise InvalidValue, "Invalid value #{value} for #{name}" unless value.is_a?(Array)
+
         value.map { |v| @type.to_value(v, context) }
       else
         @type.to_value(value, context)
