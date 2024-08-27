@@ -15,10 +15,6 @@ module OdataDuty
     def initialize(object, _context)
       @object = object
     end
-
-    def metadata_type?
-      false
-    end
   end
 
   class EdmInt64 < EdmBase
@@ -75,7 +71,10 @@ module OdataDuty
     end
 
     def __to_value
-      object&.to_date
+      return object if object.nil?
+      return object.to_date&.iso8601 if object.respond_to?(:to_date)
+
+      Date.parse(object)&.iso8601
     rescue StandardError => e
       raise InvalidValue, e.message
     end
@@ -95,7 +94,10 @@ module OdataDuty
     end
 
     def __to_value
-      object&.to_datetime&.iso8601
+      return object if object.nil?
+      return object.to_datetime&.iso8601 if object.respond_to?(:to_datetime)
+
+      DateTime.parse(object)&.iso8601
     rescue StandardError => e
       raise InvalidValue, e.message
     end

@@ -45,6 +45,17 @@ class PeopleSet < OdataDuty::EntitySet
   def individual(id)
     @records.find { |record| record.id == id }
   end
+
+  def create(params)
+    address_info = params.address_info.map do |address|
+      AddressInfo.new(address.address,
+                      CountryCity.new(address.city.country_region,
+                                      address.city.name,
+                                      address.city.region))
+    end
+    Person.new('111', params.user_name, params.name, params.emails, address_info, params.gender,
+               params.concurrency)
+  end
 end
 
 class SampleSchema < OdataDuty::Schema
@@ -127,6 +138,43 @@ RSpec.describe OdataDuty do
             'concurrency' => 11 }
         )
       end
+    end
+  end
+
+  describe '#create' do
+    it do
+      attributes = {
+        'user_name' => 'user2',
+        'name' => 'User2',
+        'emails' => ['user2@email.com'],
+        'address_info' => [{
+          'address' => 'address2',
+          'city' => { 'country_region' => 'country2',
+                      'name' => 'name2',
+                      'region' => 'region2' }
+        }],
+        'gender' => 'Female',
+        'concurrency' => 22
+      }
+      json_string = SampleSchema.create('People', context: Context.new,
+                                                  query_options: attributes)
+      response = Oj.load(json_string)
+      expect(response).to eq(
+        { '@odata.context' => '$metadata#People/$entity',
+          '@odata.id' => 'People(\'111\')',
+          'id' => '111',
+          'user_name' => 'user2',
+          'name' => 'User2',
+          'emails' => ['user2@email.com'],
+          'address_info' => [{
+            'address' => 'address2',
+            'city' => { 'country_region' => 'country2',
+                        'name' => 'name2',
+                        'region' => 'region2' }
+          }],
+          'gender' => 'Female',
+          'concurrency' => 22 }
+      )
     end
   end
 end

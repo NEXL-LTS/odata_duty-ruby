@@ -40,6 +40,12 @@ module OdataDuty
         entity_type.to_value(result, context)
       end
 
+      def create(context:)
+        wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context)
+        result = new_entity_set(context: context).create(wrapper)
+        entity_type.to_value(result, context)
+      end
+
       private
 
       def converted_id(id, context)

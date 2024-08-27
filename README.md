@@ -63,6 +63,12 @@ class PeopleSet < OdataDuty::EntitySet
   def individual(id)
     @records.find { |record| record.id == id }
   end
+
+  def create(data)
+    record = OpenStruct.new(id: ALL_RECORDS.size + 1, username: data.user_name, name: data.name, emails: data.emails)
+    ALL_RECORDS << record
+    record
+  end
 end
 
 # Define the schema
@@ -87,6 +93,7 @@ scope '/api' do
   get '$metadata' => 'api#metadata', as: 'metadata'
   get '$oas2' => 'api#oas2', as: 'oas2'
   get '*url' => 'api#show', as: 'show'
+  post '*url' => 'api#create', as: 'create'
 end
 ```
 
@@ -105,11 +112,18 @@ def oas2 # OpenAPI 2.0 (Swagger) schema
 end
 
 def show
-  query_options = params.to_unsafe_hash.except('url', 'action', 'controller', 'format')
+  render json: schema.execute(params[:url], context: self, query_options: query_options)
+end
+
+def create
   render json: schema.execute(params[:url], context: self, query_options: query_options)
 end
 
 private
+
+def query_options
+  params.to_unsafe_hash.except('url', 'action', 'controller', 'format')
+end
 
 def schema
   @schema ||= OdataDuty::SchemaBuilder.build(namespace: 'MySpace', host: request.host_with_port,
@@ -122,6 +136,58 @@ def schema
     end
     s.add_entity_set(url: 'People', entity_type: person_entity,
                       resolver: 'PeopleResolver')
+  end
+end
+```
+
+```ruby
+# add to people_resolver.rb
+class PeopleResolver < OdataDuty::SetResolver
+  def od_after_init
+    @records = Person.all
+  end
+
+  # eq: Test whether a field is equal to
+  def od_filter_eq(property_name, value)
+    @records = @records.where(property_name.to_sym => value)
+  end
+
+  # ne: Test whether a field is not equal to
+  def od_filter_ne(property_name, value)
+    @records = @records.where.not(property_name.to_sym => value)
+  end
+
+  # gt: Test whether a field is greater than
+  def od_filter_gt(property_name, value)
+    @records = @records.where("#{@records.table_name}.#{property_name} > ?", value)
+  end
+
+  # ge: Test whether a field is greater than or equal
+  def od_filter_ge(property_name, value)
+    @records = @records.where(property_name.to_sym => value..)
+  end
+
+  # lt: Test whether a field is less than
+  def od_filter_lt(property_name, value)
+    @records = @records.where(property_name.to_sym => ...value)
+  end
+
+  # le: Test whether a field is less than or equal to
+  def od_filter_le(property_name, value)
+    assert_filterable_property(property_name)
+    @records = @records.where(property_name.to_sym => ..value)
+  end
+
+  def count
+    @records.count
+  end
+
+  def collection
+    @records
+  end
+
+  def individual(id)
+    @records.find { |record| record.id == id }
   end
 end
 ```

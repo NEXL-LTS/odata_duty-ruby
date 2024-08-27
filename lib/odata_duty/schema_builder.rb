@@ -24,6 +24,11 @@ module OdataDuty
         @containers = {}
       end
 
+      def inspect
+        "#<#{self.class} @namespace=#{@namespace} @base_path=#{@base_path} \
+ containers=#{@containers.keys} types=#{@types.keys}>"
+      end
+
       def add_complex_type(**kwargs, &block)
         ComplexType.new(**kwargs).tap do |complex_type|
           add_type complex_type
@@ -79,6 +84,10 @@ module OdataDuty
 
       def execute(url, context:, query_options: {})
         Executor.execute(url: url, context: context, query_options: query_options, schema: self)
+      end
+
+      def create(url, context:, query_options: {})
+        Executor.create(url: url, context: context, query_options: query_options, schema: self)
       end
 
       private

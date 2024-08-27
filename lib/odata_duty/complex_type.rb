@@ -4,8 +4,12 @@ module OdataDuty
       @properties ||= []
     end
 
-    def self.property(*args, **kwargs)
-      Property.new(*args, **kwargs).tap do |property|
+    def self.property(name, *args, **kwargs)
+      if properties.any? { |p| p.name == name.to_sym }
+        raise PropertyAlreadyDefinedError, "#{name} is already defined"
+      end
+
+      Property.new(name, *args, **kwargs).tap do |property|
         properties << property
       end
     end
@@ -42,6 +46,10 @@ module OdataDuty
            complex_types +
           raw_types.select { |r| r.is_a?(EnumType::Metadata) }.map(&:enum_type)).uniq
       end
+
+      def scalar?
+        false
+      end
     end
 
     def self.__metadata
@@ -64,7 +72,7 @@ module OdataDuty
       self.class.properties.each_with_object({}) do |property, result|
         result[property.name] = property.to_value(public_send(property.calling_method), od_context)
       rescue NoMethodError
-        raise NoMethodError,
+        raise NoImplementionError,
               "#{self.class} or #{object.class} do not respond to #{property.calling_method}"
       end
     end

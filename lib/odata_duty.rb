@@ -6,14 +6,14 @@ require 'odata_duty/schema_builder'
 require 'odata_duty/edmx_schema'
 require 'odata_duty/executor'
 require 'odata_duty/oas2'
+require 'odata_duty/property'
+require 'odata_duty/enum_type'
+require 'odata_duty/complex_type'
+require 'odata_duty/entity_type'
+require 'odata_duty/filter'
+require 'odata_duty/create_complex_type_hash_wrapper'
 
 module OdataDuty
-  require 'odata_duty/property'
-  require 'odata_duty/enum_type'
-  require 'odata_duty/complex_type'
-  require 'odata_duty/entity_type'
-  require 'odata_duty/filter'
-
   class EntitySet
     def self.entity_type(entity_type = nil)
       @entity_type = entity_type if entity_type
@@ -88,6 +88,13 @@ module OdataDuty
 
         raise ResourceNotFoundError, "No such entity #{id}" unless result
 
+        entity_type.new(result, context).__to_value
+      end
+
+      def create(context:)
+        wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context)
+        result = entity_set.new(context: context)
+                           .create(wrapper)
         entity_type.new(result, context).__to_value
       end
 
@@ -228,6 +235,10 @@ module OdataDuty
 
     def self.execute(url, context:, query_options: {})
       Executor.execute(url: url, context: context, query_options: query_options, schema: self)
+    end
+
+    def self.create(url, context:, query_options: {})
+      Executor.create(url: url, context: context, query_options: query_options, schema: self)
     end
   end
 end
