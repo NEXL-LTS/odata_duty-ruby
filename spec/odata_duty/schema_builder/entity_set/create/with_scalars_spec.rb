@@ -238,7 +238,7 @@ module OdataDuty
           expect do
             schema.create('DoesNotSupportCreate', context: Context.new,
                                                   query_options: { 'id' => '1' })
-          end.to raise_error(OdataDuty::NoImplementionError)
+          end.to raise_error(OdataDuty::NoImplementationError)
         end
       end
     end

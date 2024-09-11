@@ -8,13 +8,13 @@ module OdataDuty
     def self.validate(str)
       %w[add sub mul div mod].each do |operator|
         if str.include?(" #{operator} ")
-          raise NoImplementionError,
+          raise NoImplementationError,
                 'filtering with arithmetic operators not supported'
         end
       end
       return unless str.include?('(')
 
-      raise NoImplementionError,
+      raise NoImplementationError,
             'filtering does not support functions or Grouping Operators'
     end
 
@@ -35,7 +35,10 @@ module OdataDuty
 
     def property_name
       @components.first.tap do |name|
-        raise NoImplementionError, 'nested property filtering not supported' if name.include?('/')
+        if name.include?('/')
+          raise NoImplementationError,
+                'nested property filtering not supported'
+        end
       end.to_sym
     end
 

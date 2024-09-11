@@ -72,7 +72,7 @@ module OdataDuty
       self.class.properties.each_with_object({}) do |property, result|
         result[property.name] = property.to_value(public_send(property.calling_method), od_context)
       rescue NoMethodError
-        raise NoImplementionError,
+        raise NoImplementationError,
               "#{self.class} or #{object.class} do not respond to #{property.calling_method}"
       end
     end
