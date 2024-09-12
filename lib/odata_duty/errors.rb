@@ -5,7 +5,7 @@ module OdataDuty
 
   class ServerError < Error; end
   class NoImplementationError < ServerError; end
-  class NoYetSupportedError < NoImplementationError; end
+  class NotYetSupportedError < NoImplementationError; end
   class InvalidValue < ServerError; end
 
   class ClientError < Error; end

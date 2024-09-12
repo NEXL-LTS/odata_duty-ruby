@@ -92,7 +92,7 @@ module OdataDuty
           expect do
             schema.execute('Bool', context: Context.new,
                                    query_options: { '$filter' => 'booleans/any(t: t eq true)' })
-          end.to raise_error(OdataDuty::NoYetSupportedError)
+          end.to raise_error(OdataDuty::NotYetSupportedError)
         end
       end
 
