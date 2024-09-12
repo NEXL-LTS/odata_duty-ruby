@@ -80,12 +80,21 @@ module OdataDuty
     def apply_filter(endpoint, set_builder, filter_string)
       Filter.parse(filter_string).each do |filter|
         property = endpoint.entity_type.properties.find { |p| p.name == filter.property_name }
-        raise UnknownPropertyError, "No such property #{filter.property_name}" unless property
+        assert_filter_valid_for_property(filter, property)
 
         value = property.filter_convert(filter.value, set_builder.context)
 
         _filter(filter, set_builder, value)
       end
+    end
+
+    def assert_filter_valid_for_property(filter, property)
+      raise UnknownPropertyError, "No such property #{filter.property_name}" unless property
+
+      return unless property.collection? && !filter.collection_operation?
+
+      raise InvalidQueryOptionError,
+            "Cannot apply '#{filter.operation}' to a collection property '#{property.name}'."
     end
 
     def _filter(filter, set_builder, value)
