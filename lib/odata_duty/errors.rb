@@ -5,6 +5,7 @@ module OdataDuty
 
   class ServerError < Error; end
   class NoImplementationError < ServerError; end
+  class NoYetSupportedError < NoImplementationError; end
   class InvalidValue < ServerError; end
 
   class ClientError < Error; end
@@ -16,4 +17,5 @@ module OdataDuty
   class InvalidPropertyReferenceValue < ClientError; end
   class InvalidType < ClientError; end
   class NoSuchPropertyError < ClientError; end
+  class InvalidQueryOptionError < ClientError; end
 end
