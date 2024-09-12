@@ -98,6 +98,21 @@ end
 ```
 
 ```ruby
+rescue_from OdataDuty::RequestError do |error|
+  render json: { error: { code: error.code, error: error.message, target: error.target } }, 
+         status: error.status
+end
+
+rescue_from ActiveRecord::StatementInvalid do |error|
+  render json: { error: { code: 'StatementInvalid', error: error.message } }, 
+         status: :bad_request
+end
+
+rescue_from ActiveRecord::RecordNotFound do |error|
+  render json: { error: { code: 'RecordNotFound', error: error.message } }, 
+         status: :not_found
+end
+
 # add to api_controller.rb
 def index # OData Service Index
   render json: OdataDuty::EdmxSchema.index_hash(schema)
@@ -116,7 +131,7 @@ def show
 end
 
 def create
-  render json: schema.execute(params[:url], context: self, query_options: query_options)
+  render json: schema.create(params[:url], context: self, query_options: query_options)
 end
 
 private

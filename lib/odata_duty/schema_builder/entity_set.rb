@@ -21,6 +21,13 @@ module OdataDuty
       def collection = Collection.new(self)
       def individual = Individual.new(self)
 
+      DEFAULT_ERROR_RESPONSE = {
+        'description' => 'Unexpected error',
+        'schema' => {
+          '$ref' => '#/definitions/Error'
+        }
+      }.freeze
+
       class Collection < SimpleDelegator
         COLLECTION_PARAMETERS = [
           {
@@ -73,20 +80,19 @@ module OdataDuty
             'operationId' => "GetCollectionOf#{name}",
             'produces' => ['application/json'],
             'parameters' => COLLECTION_PARAMETERS,
-            'responses' => { 'default' => oas2_default_response }
+            'responses' => { '200' => oas2_success_response, 'default' => DEFAULT_ERROR_RESPONSE }
           }
         end
 
-        def oas2_default_response
-          { 'schema' => {
-            'type' => 'object',
-            'properties' => {
-              'value' => {
+        def oas2_success_response
+          { 'description' => 'Collection Response',
+            'schema' => {
+              'type' => 'object',
+              'properties' => { 'value' => {
                 'type' => 'array',
                 'items' => { '$ref' => "#/definitions/#{entity_type_name}" }
-              }
-            }.merge(COLLECTION_RESPONSE_DEFAULTS)
-          } }
+              } }.merge(COLLECTION_RESPONSE_DEFAULTS)
+            } }
         end
       end
 
@@ -113,11 +119,13 @@ module OdataDuty
 
         def oas2_responses
           {
-            'default' => {
+            '200' => {
+              'description' => 'Individual Response',
               'schema' => {
                 '$ref' => "#/definitions/#{entity_type_name}"
               }
-            }
+            },
+            'default' => DEFAULT_ERROR_RESPONSE
           }
         end
       end
