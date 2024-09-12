@@ -4,7 +4,7 @@ module OdataDuty
   class PropertyAlreadyDefinedError < ArgumentError; end
 
   class ServerError < Error; end
-  class NoImplementionError < ServerError; end
+  class NoImplementationError < ServerError; end
   class InvalidValue < ServerError; end
 
   class ClientError < Error; end

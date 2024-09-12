@@ -21,7 +21,7 @@ module OdataDuty
         begin
           values = set_builder.collection
         rescue NoMethodError
-          raise NoImplementionError, "collection not implemented for #{entity_set}"
+          raise NoImplementationError, "collection not implemented for #{entity_set}"
         end
 
         new_values = values.map { |v| entity_type.to_value(v, context) }
@@ -32,7 +32,7 @@ module OdataDuty
         begin
           result = new_entity_set(context: context).individual(converted_id(id, context))
         rescue NoMethodError
-          raise NoImplementionError, "individual not implemented for #{entity_set}"
+          raise NoImplementationError, "individual not implemented for #{entity_set}"
         end
 
         raise ResourceNotFoundError, "No such entity #{id}" unless result

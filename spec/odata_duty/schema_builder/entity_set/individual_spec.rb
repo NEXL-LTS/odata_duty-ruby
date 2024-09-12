@@ -61,7 +61,7 @@ module OdataDuty
         it do
           expect do
             schema.execute("DoesNotSupportIndividual('1')", context: Context.new)
-          end.to raise_error(OdataDuty::NoImplementionError)
+          end.to raise_error(OdataDuty::NoImplementationError)
         end
       end
     end
