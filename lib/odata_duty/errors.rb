@@ -4,7 +4,7 @@ module OdataDuty
   class PropertyAlreadyDefinedError < ArgumentError; end
 
   class RequestError < Error
-    def initialize(message, code: nil, target: nil)
+    def initialize(message = "Request Error", code: nil, target: nil)
       super(message)
       @code = code
       @target = target
