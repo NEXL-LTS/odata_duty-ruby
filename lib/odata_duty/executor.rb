@@ -20,10 +20,11 @@ module OdataDuty
     def points = schema.endpoints
 
     require 'delegate'
-    class ContextWrapper
+    class ContextWrapper < SimpleDelegator
       attr_reader :url_builder, :endpoint, :query_options
 
       def initialize(url_builder, endpoint:, query_options: nil)
+        super(url_builder)
         @url_builder = url_builder
         @endpoint = endpoint
         @query_options = (query_options || {}).to_h
