@@ -19,14 +19,16 @@ module OdataDuty
       end
 
       def to_value(val, context)
-        odata_id = integer_property_ref? ? val.id : "'#{val.id}'"
-        super.merge(
-          '@odata.id': context.url_for(url: "#{context.endpoint.url}(#{odata_id})")
-        )
+        super.tap do |result|
+          odata_id = integer_property_ref? ? val.id : "'#{val.id}'"
+          context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
+          result['@odata.id'] = "#{context.current['odata_url_base']}(#{odata_id})"
+        end
       end
 
       def integer_property_ref?
-        property_refs.first.raw_type == EdmInt64
+        @property_ref_raw_type ||= property_refs.first.raw_type
+        @property_ref_raw_type == EdmInt64
       end
     end
   end
