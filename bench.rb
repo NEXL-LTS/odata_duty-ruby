@@ -2,10 +2,10 @@ require 'bundler/setup'
 require 'odata_duty'
 require 'benchmark/ips'
 
-SampleData = Data.define(:id)
+SampleData = Data.define(:id, :int_val, :string_val, :date_val, :datetime_val, :bool_val)
 
 DATA = 1000.times.map do |i|
-  SampleData.new("string_val_#{i}")
+  SampleData.new("string_val_#{i}", i, "string_val_#{i}", Date.today, DateTime.now, i.even?)
 end
 
 class SampleResolver < OdataDuty::SetResolver
@@ -32,6 +32,11 @@ schema = OdataDuty::SchemaBuilder.build(namespace: 'SampleData', scheme: 'http',
   s.title = 'This is a sample OData service.'
   sample_entity = s.add_entity_type(name: 'SampleEntity') do |et|
     et.property_ref 'id', String
+    et.property 'int_val', Integer
+    et.property 'string_val', String
+    et.property 'date_val', Date
+    et.property 'datetime_val', DateTime
+    et.property 'bool_val', TrueClass
   end
 
   s.add_entity_set(name: 'Samples', url: 'Samples', entity_type: sample_entity,
@@ -51,6 +56,11 @@ Benchmark.ips do |x|
     result = DATA.each do |data|
       {
         id: data.id,
+        int_val: data.int_val,
+        string_val: data.string_val,
+        date_val: data.date_val.iso8601,
+        datetime_val: data.datetime_val.iso8601,
+        bool_val: data.bool_val,
         '@odata.id': context.url_for(url: 'Samples', id: data.id)
       }
     end
