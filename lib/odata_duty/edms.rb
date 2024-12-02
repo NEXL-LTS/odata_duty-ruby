@@ -2,18 +2,8 @@ require 'date'
 
 module OdataDuty
   class EdmBase
-    def self.to_value(*args)
-      new(*args).__to_value
-    end
-
     def self.scalar?
       true
-    end
-
-    attr_reader :object
-
-    def initialize(object, _context)
-      @object = object
     end
   end
 
@@ -30,7 +20,7 @@ module OdataDuty
       OAS_TYPE
     end
 
-    def __to_value
+    def self.to_value(object, _context)
       object && Integer(object)
     rescue StandardError => e
       raise InvalidValue, e.message
@@ -55,12 +45,6 @@ module OdataDuty
     rescue StandardError => e
       raise InvalidValue, e.message
     end
-
-    def __to_value
-      object&.to_str
-    rescue StandardError => e
-      raise InvalidValue, e.message
-    end
   end
 
   class EdmDate < EdmBase
@@ -77,15 +61,6 @@ module OdataDuty
     end
 
     def self.to_value(object, _context)
-      return object if object.nil?
-      return object.to_date&.iso8601 if object.respond_to?(:to_date)
-
-      Date.parse(object)&.iso8601
-    rescue StandardError => e
-      raise InvalidValue, e.message
-    end
-
-    def __to_value
       return object if object.nil?
       return object.to_date&.iso8601 if object.respond_to?(:to_date)
 
@@ -116,15 +91,6 @@ module OdataDuty
     rescue StandardError => e
       raise InvalidValue, e.message
     end
-
-    def __to_value
-      return object if object.nil?
-      return object.to_datetime&.iso8601 if object.respond_to?(:to_datetime)
-
-      DateTime.parse(object)&.iso8601
-    rescue StandardError => e
-      raise InvalidValue, e.message
-    end
   end
 
   class EdmBool < EdmBase
@@ -143,16 +109,6 @@ module OdataDuty
     VALID_VALUES = [true, false, nil].freeze
 
     def self.to_value(object, _context)
-      return true if object == 'true'
-      return false if object == 'false'
-      return object if VALID_VALUES.include?(object)
-
-      object.to_boolean
-    rescue NoMethodError
-      raise InvalidValue, "#{object} not boolean value"
-    end
-
-    def __to_value
       return true if object == 'true'
       return false if object == 'false'
       return object if VALID_VALUES.include?(object)
