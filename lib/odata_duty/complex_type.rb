@@ -1,3 +1,5 @@
+require_relative 'mapper_builder'
+
 module OdataDuty
   class ComplexType
     def self.properties
@@ -62,36 +64,6 @@ module OdataDuty
     def initialize(object, context)
       @object = object
       @od_context = context
-    end
-
-    def self.to_value(*args)
-      new(*args).__to_value
-    end
-
-    def __to_value
-      self.class.properties.each_with_object({}) do |property, result|
-        result[property.name] = property.to_value(public_send(property.calling_method), od_context)
-      rescue NoMethodError
-        raise NoImplementationError,
-              "#{self.class} or #{object.class} do not respond to #{property.calling_method}"
-      end
-    end
-
-    def method_missing(method_name, ...)
-      if object.respond_to?(method_name)
-        # Define the method dynamically
-        self.class.define_method(method_name) do
-          object.public_send(method_name)
-        end
-        # Call the newly defined method
-        public_send(method_name, ...)
-      else
-        super
-      end
-    end
-
-    def respond_to_missing?(method_name, include_private = false)
-      object.respond_to?(method_name) || super
     end
   end
 end

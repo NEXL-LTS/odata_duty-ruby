@@ -2,6 +2,16 @@ require 'byebug'
 require 'nokogiri'
 require 'odata_duty'
 
+class String
+  def to_date
+    Date.parse(self)
+  end
+
+  def to_datetime
+    DateTime.parse(self)
+  end
+end
+
 module TestHelpers
   def format_xml(xml_string)
     doc = Nokogiri::XML(xml_string) { |config| config.default_xml.noblanks }

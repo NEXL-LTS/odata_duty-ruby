@@ -130,9 +130,8 @@ module OdataDuty
     def collection(set_builder, endpoint, context, query_options)
       count = set_builder.count if query_options['$count'] == 'true'
       apply_remaining(query_options, set_builder)
-      data = endpoint
-             .collection(set_builder, context: context)
-             .merge('@odata.context': context.url_for(url: '$metadata', anchor: endpoint.name))
+      data = { '@odata.context' => context.url_for(url: '$metadata', anchor: endpoint.name),
+               'value' => endpoint.collection(set_builder, context: context) }
       data['@odata.count'] = count if count
       add_next_link(data, endpoint, set_builder, query_options, context)
       Oj.dump(data, mode: :compat)

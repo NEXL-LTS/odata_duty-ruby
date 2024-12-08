@@ -25,7 +25,7 @@ module OdataDuty
 
     def __load(matching_prop, method_name, value)
       return nil if value.nil?
-      return matching_prop.to_value(value, @context) if matching_prop.raw_type.scalar?
+      return matching_prop.to_value(value, @context) if matching_prop.scalar?
 
       if matching_prop.collection?
         value.map { |v| CreateComplexTypeHashWrapper.new(v, matching_prop.raw_type, @context) }
