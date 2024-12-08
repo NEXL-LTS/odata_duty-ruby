@@ -124,15 +124,15 @@ Benchmark.ips do |x|
   x.compare!
 end
 
-require 'vernier'
+# require 'vernier'
 
-Vernier.profile(out: 'odata_profile.json') do
-  schema.execute('Samples', context: Context.new)
-end
+# Vernier.profile(out: 'odata_profile.json') do
+#   schema.execute('Samples', context: Context.new)
+# end
 
-Vernier.profile(out: 'simple_profile.json') do
-  simple_test
-end
+# Vernier.profile(out: 'simple_profile.json') do
+#   simple_test
+# end
 
 simple_json = Oj.load(simple_test)
 odata_json = Oj.load(schema.execute('Samples', context: Context.new))
