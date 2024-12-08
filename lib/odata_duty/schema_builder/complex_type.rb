@@ -1,4 +1,5 @@
 require_relative 'data_type'
+require_relative '../mapper_builder'
 
 module OdataDuty
   module SchemaBuilder
@@ -17,18 +18,6 @@ module OdataDuty
 
         Property.new(name, *args, line__defined__at: line__defined__at, **kwargs).tap do |property|
           properties << property
-        end
-      end
-
-      def to_value(val, context)
-        properties.each_with_object({}) do |property, obj|
-          obj[property.name] = property.value_from_object(val, context)
-        rescue StandardError => e
-          if e.backtrace && property.line__defined__at
-            index = e.backtrace.find_index { |l| l.include?('lib/odata_duty') }
-            e.backtrace.insert(index, property.line__defined__at) if index
-          end
-          raise e
         end
       end
 

@@ -75,7 +75,9 @@ module OdataDuty
           raise NoImplementationError, "collection not implemented for #{entity_set}"
         end
 
-        values.map { |v| entity_type.new(v, context).__to_value }
+        mapper = entity_type.mapper(values.first, context)
+
+        values.map { |v| mapper.obj_to_hash(v) }
       end
 
       def individual(id, context:)
@@ -87,14 +89,17 @@ module OdataDuty
 
         raise ResourceNotFoundError, "No such entity #{id}" unless result
 
-        entity_type.new(result, context).__to_value
+        mapper = entity_type.mapper(result, context)
+
+        mapper.obj_to_hash(result)
       end
 
       def create(context:)
         wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context)
         result = entity_set.new(context: context)
                            .create(wrapper)
-        entity_type.new(result, context).__to_value
+        mapper = entity_type.mapper(result, context)
+        mapper.obj_to_hash(result)
       end
 
       private

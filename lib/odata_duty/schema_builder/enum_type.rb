@@ -14,6 +14,10 @@ module OdataDuty
         @members << EnumMember.new(*args)
       end
 
+      def scalar?
+        true
+      end
+
       def to_value(val, _context)
         return val if val.nil? || members.map(&:name).include?(val)
 

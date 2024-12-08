@@ -1,29 +1,58 @@
-require_relative 'public_send_method'
-
 module OdataDuty
   module Property
     class SingleProp
-      attr_reader :name, :nullable, :calling_method, :line__defined__at, :raw_type, :type
+      attr_reader :name, :nullable, :calling_method, :line__defined__at, :raw_type, :type,
+                  :set_type, :method_name
 
       def initialize(name, type = String, line__defined__at: nil, nullable: true, method: nil)
         @line__defined__at = line__defined__at
         @name = name.to_str.to_sym
-        @calling_method = if method.respond_to?(:call)
-                            method
-                          else
-                            PublicSendMethod.new(method&.to_sym || @name)
-                          end
+        @calling_method = method.respond_to?(:call) ? method : nil
+        method = nil if method.respond_to?(:call)
+        @method_name = (method || name).to_sym
         @nullable = nullable ? true : false
 
         load_type_instance_vars(type)
       end
 
-      def scalar?
-        raw_type.scalar?
+      def calling_method?
+        !!calling_method
       end
 
-      def value_from_object(obj, context)
-        to_value(calling_method.call(obj), context)
+      def nullable?
+        nullable
+      end
+
+      def boolean?
+        raw_type == EdmBool
+      end
+
+      def string?
+        raw_type == EdmString
+      end
+
+      def int?
+        raw_type == EdmInt64
+      end
+
+      def date?
+        raw_type == EdmDate
+      end
+
+      def datetime?
+        raw_type == EdmDateTimeOffset
+      end
+
+      def enum?
+        raw_type.respond_to?(:members)
+      end
+
+      def enum_members
+        raw_type.members
+      end
+
+      def scalar?
+        raw_type.scalar?
       end
 
       def to_value(value, context)
@@ -57,16 +86,11 @@ module OdataDuty
       end
 
       def to_oas2_type
-        if scalar?
+        if scalar? && !enum?
           raw_type.to_oas2(is_collection: false)
         else
           ref_oas2
         end
-      end
-
-      def build_odata_id(context, id)
-        context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
-        "#{context.current['odata_url_base']}(#{raw_type.url_id(id)})"
       end
 
       def collection?

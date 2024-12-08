@@ -22,10 +22,31 @@ module OdataDuty
         property_refs.first
       end
 
-      def to_value(val, context)
-        result = super
-        result['@odata.id'] = prop_ref.build_odata_id(context, val.id)
-        result
+      class OdataId
+        def initialize(id)
+          @id = id
+        end
+      end
+
+      def mapper(val, context)
+        context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
+        if integer_property_ref?
+          int_mapper(val, context)
+        else
+          string_mapper(val, context)
+        end
+      end
+
+      def int_mapper(val, context)
+        MapperBuilder.build(self, val) do |result, obj|
+          result['@odata.id'] = "#{context.current['odata_url_base']}(#{obj.id})"
+        end
+      end
+
+      def string_mapper(val, context)
+        MapperBuilder.build(self, val) do |result, obj|
+          result['@odata.id'] = "#{context.current['odata_url_base']}('#{obj.id}')"
+        end
       end
 
       def integer_property_ref?

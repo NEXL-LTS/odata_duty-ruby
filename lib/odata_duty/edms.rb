@@ -5,10 +5,6 @@ module OdataDuty
     def self.scalar?
       true
     end
-
-    def self.url_id(id)
-      "'#{id}'"
-    end
   end
 
   class EdmInt64 < EdmBase
@@ -28,10 +24,6 @@ module OdataDuty
       object && Integer(object)
     rescue StandardError => e
       raise InvalidValue, e.message
-    end
-
-    def self.url_id(id)
-      id.to_s
     end
   end
 
