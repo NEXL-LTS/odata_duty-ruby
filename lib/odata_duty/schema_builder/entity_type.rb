@@ -18,12 +18,14 @@ module OdataDuty
         end
       end
 
+      def prop_ref
+        property_refs.first
+      end
+
       def to_value(val, context)
-        super.tap do |result|
-          odata_id = integer_property_ref? ? val.id : "'#{val.id}'"
-          context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
-          result['@odata.id'] = "#{context.current['odata_url_base']}(#{odata_id})"
-        end
+        result = super
+        result['@odata.id'] = prop_ref.build_odata_id(context, val.id)
+        result
       end
 
       def integer_property_ref?

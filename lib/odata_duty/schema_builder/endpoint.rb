@@ -24,8 +24,7 @@ module OdataDuty
           raise NoImplementationError, "collection not implemented for #{entity_set}"
         end
 
-        new_values = values.map { |v| entity_type.to_value(v, context) }
-        { value: new_values }
+        values.map { |v| entity_type.to_value(v, context) }
       end
 
       def individual(id, context:)

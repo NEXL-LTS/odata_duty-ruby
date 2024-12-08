@@ -5,6 +5,10 @@ module OdataDuty
     def self.scalar?
       true
     end
+
+    def self.url_id(id)
+      "'#{id}'"
+    end
   end
 
   class EdmInt64 < EdmBase
@@ -24,6 +28,10 @@ module OdataDuty
       object && Integer(object)
     rescue StandardError => e
       raise InvalidValue, e.message
+    end
+
+    def self.url_id(id)
+      id.to_s
     end
   end
 
@@ -61,10 +69,7 @@ module OdataDuty
     end
 
     def self.to_value(object, _context)
-      return object if object.nil?
-      return object.to_date&.iso8601 if object.respond_to?(:to_date)
-
-      Date.parse(object)&.iso8601
+      object&.to_date&.iso8601
     rescue StandardError => e
       raise InvalidValue, e.message
     end
@@ -84,10 +89,7 @@ module OdataDuty
     end
 
     def self.to_value(object, _context)
-      return object if object.nil?
-      return object.to_datetime&.iso8601 if object.respond_to?(:to_datetime)
-
-      DateTime.parse(object)&.iso8601
+      object&.to_datetime&.iso8601
     rescue StandardError => e
       raise InvalidValue, e.message
     end
