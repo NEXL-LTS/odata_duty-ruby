@@ -64,12 +64,6 @@ module OdataDuty
       end
     end
 
-    # def __to_value
-    #   super.merge(
-    #     '@odata.id': od_context.url_for(url: "#{od_endpoint.url}(#{odata_id})")
-    #   )
-    # end
-
     private
 
     def odata_id
