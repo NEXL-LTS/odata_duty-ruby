@@ -75,7 +75,7 @@ module OdataDuty
           raise NoImplementationError, "collection not implemented for #{entity_set}"
         end
 
-        mapper = entity_type.mapper(values.first, context)
+        mapper = entity_type.mapper(context)
 
         values.map { |v| mapper.obj_to_hash(v) }
       end
@@ -89,7 +89,7 @@ module OdataDuty
 
         raise ResourceNotFoundError, "No such entity #{id}" unless result
 
-        mapper = entity_type.mapper(result, context)
+        mapper = entity_type.mapper(context)
 
         mapper.obj_to_hash(result)
       end
@@ -98,7 +98,7 @@ module OdataDuty
         wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context)
         result = entity_set.new(context: context)
                            .create(wrapper)
-        mapper = entity_type.mapper(result, context)
+        mapper = entity_type.mapper(context)
         mapper.obj_to_hash(result)
       end
 

@@ -2,14 +2,14 @@ require 'securerandom'
 
 module OdataDuty
   class MapperBuilder
-    def self.build(complex_type, val, &block)
-      mapper_class = build_class(complex_type, val)
-      mapper_class.new(val, complex_type.properties, &block)
+    def self.build(complex_type, &block)
+      mapper_class = build_class(complex_type)
+      mapper_class.new(complex_type.properties, &block)
     end
 
-    def self.build_class(complex_type, val)
+    def self.build_class(complex_type)
       @dynamic_classes ||= {}
-      @dynamic_classes[[val.class, complex_type]] ||= eval_erb_class(complex_type, val)
+      @dynamic_classes[complex_type] ||= eval_erb_class(complex_type)
     end
 
     require 'erb'
@@ -17,39 +17,46 @@ module OdataDuty
     ERB_TEMPLATE.location = ["#{__dir__}/dynamic_object_wrapper.rb.erb", 1]
     ERB_TEMPLATE.freeze
 
-    def self.eval_erb_class(complex_type, val)
-      base_name = [complex_type.name, val.class.to_s.gsub('::', '')].uniq.join('For')
-      klass_name = "#{base_name}#{SecureRandom.hex(2)}"
-
+    def self.eval_erb_class(complex_type)
       class_result = ERB_TEMPLATE.result(binding)
 
+      # puts class_result
       eval(class_result) # rubocop:disable Security/Eval
-
-      const_get(klass_name)
     end
 
     attr_accessor :obj
     attr_reader :complex_types, :calling_methods, :mappers
 
-    def initialize(obj, props, &block)
-      @obj = obj
+    def initialize(props, &block)
       @complex_types = props.reject(&:scalar?).to_h { |cp| [cp.name, cp.set_type] }
       @calling_methods = props.select(&:calling_method?).to_h { |cp| [cp.name, cp.calling_method] }
       @block = block
-      @mappers = {}
+      initialize_mappers
     end
 
     def obj_to_hash(obj)
       self.obj = obj
-      to_h.tap { |h| @block&.call(h, obj) }
+      base_hash = to_h
+      @block.call(base_hash, obj)
+      base_hash
     end
 
-    VALID_BOOLEAN_VALUES = [true, false].freeze
+    def obj_to_base_hash(obj)
+      return nil if obj.nil?
+
+      self.obj = obj
+      to_h
+    end
+
+    VALID_BOOLEAN_VALUES = [true, false, nil].freeze
 
     def confirm_boolean(name, value)
-      return value if VALID_BOOLEAN_VALUES.include?(value)
-
-      raise InvalidValue, "Property #{name} must be a boolean and not #{value}"
+      case value
+      when true, false, nil
+        value
+      else
+        raise InvalidValue, "Property #{name} must be a boolean and not #{value}"
+      end
     end
 
     def not_nullable(name, value)

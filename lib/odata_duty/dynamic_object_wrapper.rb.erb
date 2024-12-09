@@ -1,5 +1,52 @@
-class <%= klass_name %> < MapperBuilder
+Class.new(MapperBuilder) do
   def to_h
+  <% complex_type.properties.each do |property| %>
+    <% if property.calling_method? %>
+    <%= property.name %>_value = calling_methods.fetch(:<%= property.method_name %>).call(obj)
+    <% else %>
+    <%= property.name %>_value = obj.<%= property.method_name %>
+    <% end %>
+
+  <% if property.collection? %>
+    <% if property.scalar? %> 
+      <% if property.boolean? %>
+        <%= property.name %>_value&.map{ |rw| confirm_boolean("<%= property.name %>", rw) }
+      <% elsif property.string? %>
+        <%= property.name %>_value = <%= property.name %>_value&.map(&:to_str)
+      <% elsif property.int? %>
+        <%= property.name %>_value = <%= property.name %>_value&.map(&:to_int)
+      <% elsif property.date? %>
+        <%= property.name %>_value = <%= property.name %>_value&.map(&:to_date)&.map(&:iso8601)
+      <% elsif property.datetime? %>
+        <%= property.name %>_value = <%= property.name %>_value&.map(&:to_datetime)&.map(&:iso8601)
+      <% else %>
+        raise('<%= property.type %> Coming soon')
+      <% end %>
+    <% else %>
+      <%= property.name %>_value = <%= property.name %>_value&.map{ |rw| @<%= property.name %>_mapper.obj_to_base_hash(rw) }
+    <% end %>
+  <% else %>
+    <% if property.scalar? %> 
+      <% if property.boolean? %>
+        <%= property.name %>_value = confirm_boolean("<%= property.name %>", <%= property.name %>_value)
+      <% elsif property.string? %>
+        <%= property.name %>_value = <%= property.name %>_value&.to_str
+      <% elsif property.int? %>
+        <%= property.name %>_value = <%= property.name %>_value&.to_int
+      <% elsif property.date? %>
+        <%= property.name %>_value = <%= property.name %>_value&.to_date&.iso8601
+      <% elsif property.datetime? %>
+        <%= property.name %>_value = <%= property.name %>_value&.to_datetime&.iso8601
+      <% elsif property.enum? %>
+        <%= property.name %>_value = confirm_one_of("<%= property.name %>", <%= property.name %>_value, %w[<%= property.enum_members.map(&:name).join(' ') %>])
+      <% else %>
+        raise('<%= property.type %> Coming soon')
+      <% end %>
+    <% else %>
+      <%= property.name %>_value = @<%= property.name %>_mapper.obj_to_base_hash(<%= property.name %>_value)
+    <% end %>
+  <% end %>
+  <% end %>
     {
     <% complex_type.properties.each do |property| %>
       '<%= property.name %>' => <% unless property.nullable? %>not_nullable("<%= property.name %>",<% end %><%= property.name %>_value<% unless property.nullable? %>)<% end %>,
@@ -7,56 +54,9 @@ class <%= klass_name %> < MapperBuilder
     }
   end
 
-  <% complex_type.properties.each do |property| %>
-  def <%= property.name %>_value
-    <% if property.calling_method? %>
-    raw_value = calling_methods.fetch(:<%= property.method_name %>).call(obj)
-    <% else %>
-    raw_value = obj.<%= property.method_name %>
-    <% end %>
-    return nil if raw_value.nil?
-
-  <% if property.collection? %>
-    <% if property.scalar? %> 
-      <% if property.boolean? %>
-        raw_value.map{ |rw| confirm_boolean("<%= property.name %>", rw) }
-      <% elsif property.string? %>
-        raw_value.map(&:to_str)
-      <% elsif property.int? %>
-        raw_value.map(&:to_int)
-      <% elsif property.date? %>
-        raw_value.map(&:to_date).map(&:iso8601)
-      <% elsif property.datetime? %>
-        raw_value.map(&:to_datetime).map(&:iso8601)
-      <% else %>
-        raise('<%= property.type %> Coming soon')
-      <% end %>
-    <% else %>
-      mappers['<%= property.name %>'] ||= MapperBuilder.build(complex_types.fetch(:<%= property.name %>), raw_value.first)
-      raw_value.map{ |rw| mappers['<%= property.name %>'].obj_to_hash(rw) }
-    <% end %>
-  <% else %>
-    <% if property.scalar? %> 
-      <% if property.boolean? %>
-        confirm_boolean("<%= property.name %>", raw_value)
-      <% elsif property.string? %>
-        raw_value.to_str
-      <% elsif property.int? %>
-        raw_value.to_int
-      <% elsif property.date? %>
-        raw_value.to_date.iso8601
-      <% elsif property.datetime? %>
-        raw_value.to_datetime.iso8601
-      <% elsif property.enum? %>
-        confirm_one_of("<%= property.name %>", raw_value, %w[<%= property.enum_members.map(&:name).join(' ') %>])
-      <% else %>
-        raise('<%= property.type %> Coming soon')
-      <% end %>
-    <% else %>
-      mappers['<%= property.name %>'] ||= MapperBuilder.build(complex_types.fetch(:<%= property.name %>), raw_value)
-      mappers['<%= property.name %>'].obj_to_hash(raw_value)
-    <% end %>
+  def initialize_mappers
+  <% complex_type.properties.reject(&:scalar?).each do |property| %>
+    @<%= property.name %>_mapper = MapperBuilder.build(complex_types.fetch(:<%= property.name %>))
   <% end %>
   end
-  <% end %>
 end
