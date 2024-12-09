@@ -18,11 +18,28 @@ module OdataDuty
         end
       end
 
-      def to_value(val, context)
-        super.tap do |result|
-          odata_id = integer_property_ref? ? val.id : "'#{val.id}'"
-          context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
-          result['@odata.id'] = "#{context.current['odata_url_base']}(#{odata_id})"
+      def prop_ref
+        property_refs.first
+      end
+
+      def mapper(context)
+        context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
+        if integer_property_ref?
+          int_mapper(context)
+        else
+          string_mapper(context)
+        end
+      end
+
+      def int_mapper(context)
+        MapperBuilder.build(self) do |result, obj|
+          result['@odata.id'] = "#{context.current['odata_url_base']}(#{obj.id})"
+        end
+      end
+
+      def string_mapper(context)
+        MapperBuilder.build(self) do |result, obj|
+          result['@odata.id'] = "#{context.current['odata_url_base']}('#{obj.id}')"
         end
       end
 

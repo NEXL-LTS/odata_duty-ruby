@@ -4,8 +4,22 @@ require 'benchmark/ips'
 
 SampleData = Data.define(:id, :int_val, :string_val, :date_val, :datetime_val, :bool_val)
 
-DATA = 1000.times.map do |i|
-  SampleData.new("string_val_#{i}", i, "string_val_#{i}", Date.today, DateTime.now, i.even?)
+DATA = 5000.times.map do |i|
+  if (i % 3).zero?
+    SampleData.new("string_val_#{i}",
+                   nil,
+                   nil,
+                   nil,
+                   nil,
+                   nil)
+  else
+    SampleData.new("string_val_#{i}",
+                   i,
+                   "string_val_#{i}",
+                   Date.today,
+                   DateTime.now,
+                   i.even?)
+  end
 end
 
 class SampleResolver < OdataDuty::SetResolver
@@ -50,21 +64,23 @@ Context = Struct.new(:endpoint) do
   end
 end
 
+BOOLEANS = [true, false, nil].freeze
+
+def simple_test(context = Context.new)
+  base_url = context.url_for(url: 'Samples')
+  result = DATA.map do |data|
+    { 'id' => data.id, 'int_val' => data.int_val&.to_int,
+      'string_val' => data.string_val&.to_str, 'date_val' => data.date_val&.iso8601,
+      'datetime_val' => data.datetime_val&.iso8601,
+      'bool_val' => BOOLEANS.include?(data.bool_val) && data.bool_val,
+      '@odata.id' => "#{base_url}('#{data.id}')" }
+  end
+  Oj.dump('value' => result, mode: :compat)
+end
+
 Benchmark.ips do |x|
   x.report('simple') do
-    context = Context.new
-    result = DATA.each do |data|
-      {
-        id: data.id,
-        int_val: data.int_val,
-        string_val: data.string_val,
-        date_val: data.date_val.iso8601,
-        datetime_val: data.datetime_val.iso8601,
-        bool_val: data.bool_val,
-        '@odata.id': context.url_for(url: 'Samples', id: data.id)
-      }
-    end
-    Oj.dump(result)
+    simple_test
   end
   x.report('odata-duty') do
     schema.execute('Samples', context: Context.new)
@@ -75,6 +91,21 @@ end
 
 # require 'vernier'
 
-# Vernier.profile(out: "time_profile.json") do
+# Vernier.profile(out: 'odata_profile.json') do
 #   schema.execute('Samples', context: Context.new)
 # end
+
+# Vernier.profile(out: 'simple_profile.json') do
+#   simple_test
+# end
+
+simple_json = Oj.load(simple_test)
+odata_json = Oj.load(schema.execute('Samples', context: Context.new))
+
+if simple_json.fetch('value') == odata_json.fetch('value')
+  puts 'Both results are the same'
+else
+  puts simple_json.fetch('value').first
+  puts odata_json.fetch('value').first
+  raise 'Results are different'
+end

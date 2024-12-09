@@ -1,3 +1,5 @@
+require_relative 'mapper_builder'
+
 module OdataDuty
   class EntityType < ComplexType
     def self.property_refs
@@ -41,10 +43,25 @@ module OdataDuty
       od_context.endpoint
     end
 
-    def __to_value
-      super.merge(
-        '@odata.id': od_context.url_for(url: "#{od_endpoint.url}(#{odata_id})")
-      )
+    def self.mapper(context)
+      context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
+      if property_refs.first.raw_type == EdmInt64
+        int_mapper(context)
+      else
+        string_mapper(context)
+      end
+    end
+
+    def self.int_mapper(context)
+      MapperBuilder.build(self) do |result, obj|
+        result['@odata.id'] = "#{context.current['odata_url_base']}(#{obj.id})"
+      end
+    end
+
+    def self.string_mapper(context)
+      MapperBuilder.build(self) do |result, obj|
+        result['@odata.id'] = "#{context.current['odata_url_base']}('#{obj.id}')"
+      end
     end
 
     private
