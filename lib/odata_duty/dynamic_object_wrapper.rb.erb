@@ -3,6 +3,8 @@ Class.new(MapperBuilder) do
   <% complex_type.properties.each do |property| %>
     <% if property.calling_method? %>
     <%= property.name %>_value = calling_methods.fetch(:<%= property.method_name %>).call(obj)
+    <% elsif complex_type.respond_to?(:instance_methods) && complex_type.instance_methods.include?(property.method_name) %>
+    <%= property.name %>_value = wrapped_obj.<%= property.method_name %>
     <% else %>
     <%= property.name %>_value = obj.<%= property.method_name %>
     <% end %>

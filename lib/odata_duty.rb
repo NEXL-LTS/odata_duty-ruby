@@ -77,7 +77,7 @@ module OdataDuty
 
         mapper = entity_type.mapper(context)
 
-        values.map { |v| mapper.obj_to_hash(v) }
+        values.map { |v| mapper.obj_to_hash(v, context) }
       end
 
       def individual(id, context:)
@@ -91,7 +91,7 @@ module OdataDuty
 
         mapper = entity_type.mapper(context)
 
-        mapper.obj_to_hash(result)
+        mapper.obj_to_hash(result, context)
       end
 
       def create(context:)
@@ -99,7 +99,7 @@ module OdataDuty
         result = entity_set.new(context: context)
                            .create(wrapper)
         mapper = entity_type.mapper(context)
-        mapper.obj_to_hash(result)
+        mapper.obj_to_hash(result, context)
       end
 
       private
