@@ -43,25 +43,29 @@ module OdataDuty
       od_context.endpoint
     end
 
-    def self.mapper(context)
+    def self.mapper(context, selected:)
       context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
       if property_refs.first.raw_type == EdmInt64
-        int_mapper(context)
+        int_mapper(context, selected: selected)
       else
-        string_mapper(context)
+        string_mapper(context, selected: selected)
       end
     end
 
-    def self.int_mapper(context)
-      MapperBuilder.build(self) do |result, obj|
+    def self.int_mapper(context, selected:)
+      MapperBuilder.build(self, selected: selected) do |result, obj|
         result['@odata.id'] = "#{context.current['odata_url_base']}(#{obj.id})"
       end
     end
 
-    def self.string_mapper(context)
-      MapperBuilder.build(self) do |result, obj|
+    def self.string_mapper(context, selected:)
+      MapperBuilder.build(self, selected: selected) do |result, obj|
         result['@odata.id'] = "#{context.current['odata_url_base']}('#{obj.id}')"
       end
+    end
+
+    def self._defined_at_
+      Object.const_source_location(to_s).join(':')
     end
 
     private

@@ -68,37 +68,35 @@ module OdataDuty
         entity_set.new(context: context)
       end
 
-      def collection(set_builder, context:)
+      def collection(set_builder, context:, selected:)
         begin
           values = set_builder.collection
         rescue NoMethodError
           raise NoImplementationError, "collection not implemented for #{entity_set}"
         end
 
-        mapper = entity_type.mapper(context)
+        mapper = entity_type.mapper(context, selected: selected)
 
         values.map { |v| mapper.obj_to_hash(v, context) }
       end
 
-      def individual(id, context:)
+      def individual(set_builder, id, context:, selected:)
         begin
-          result = entity_set.new(context: context).individual(converted_id(id, context))
+          result = set_builder.individual(converted_id(id, context))
         rescue NoMethodError
           raise NoImplementationError, "individual not implemented for #{entity_set}"
         end
 
         raise ResourceNotFoundError, "No such entity #{id}" unless result
 
-        mapper = entity_type.mapper(context)
-
-        mapper.obj_to_hash(result, context)
+        entity_type.mapper(context, selected: selected).obj_to_hash(result, context)
       end
 
       def create(context:)
         wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context)
         result = entity_set.new(context: context)
                            .create(wrapper)
-        mapper = entity_type.mapper(context)
+        mapper = entity_type.mapper(context, selected: nil)
         mapper.obj_to_hash(result, context)
       end
 

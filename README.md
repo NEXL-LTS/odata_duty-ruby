@@ -207,6 +207,10 @@ class PeopleResolver < OdataDuty::SetResolver
 end
 ```
 
+## Further documentation
+
+- [Using `$select`](doc/using_select.md)
+
 ## TODO
 
 * add support for composite keys

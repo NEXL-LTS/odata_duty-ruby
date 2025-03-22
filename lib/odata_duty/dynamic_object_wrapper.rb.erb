@@ -1,6 +1,6 @@
 Class.new(MapperBuilder) do
   def to_h
-  <% complex_type.properties.each do |property| %>
+  <% properties.each do |property| %>
     <% if property.calling_method? %>
     <%= property.name %>_value = calling_methods.fetch(:<%= property.method_name %>).call(obj)
     <% elsif complex_type.respond_to?(:instance_methods) && complex_type.instance_methods.include?(property.method_name) %>
@@ -50,14 +50,14 @@ Class.new(MapperBuilder) do
   <% end %>
   <% end %>
     {
-    <% complex_type.properties.each do |property| %>
+    <% properties.each do |property| %>
       '<%= property.name %>' => <% unless property.nullable? %>not_nullable("<%= property.name %>",<% end %><%= property.name %>_value<% unless property.nullable? %>)<% end %>,
     <% end %>
     }
   end
 
   def initialize_mappers
-  <% complex_type.properties.reject(&:scalar?).each do |property| %>
+  <% properties.reject(&:scalar?).each do |property| %>
     @<%= property.name %>_mapper = MapperBuilder.build(complex_types.fetch(:<%= property.name %>))
   <% end %>
   end

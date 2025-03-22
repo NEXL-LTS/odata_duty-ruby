@@ -1,6 +1,7 @@
 require 'byebug'
 require 'nokogiri'
 require 'odata_duty'
+require 'camel_snake_struct'
 
 class String
   def to_date
@@ -117,4 +118,5 @@ RSpec.configure do |config|
     # (e.g. via a command-line flag).
     config.default_formatter = 'doc'
   end
+  config.seed = srand % 0xFFFF
 end
