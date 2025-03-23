@@ -58,13 +58,11 @@ class PeopleSet < OdataDuty::EntitySet
   end
 
   def individual(id)
-    @records.find { |record| record.id == id }
+    @records.find(id)
   end
 
   def create(data)
-    record = OpenStruct.new(id: ALL_RECORDS.size + 1, username: data.user_name, name: data.name, emails: data.emails)
-    ALL_RECORDS << record
-    record
+    Person.create!(username: data.user_name, name: data.name, emails: data.emails)
   end
 end
 
