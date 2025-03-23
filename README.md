@@ -20,6 +20,8 @@ Or install it yourself as:
 
 ## Usage
 
+The gem assumes some familiarity with OData concepts. If you're new to OData, you may want to check out the [OData Crash Course](doc/odata_crash_course.md) to get a quick overview of the core concepts.
+
 ### Key Features
 
 - **Define Entities and Properties**: Easily define your OData entities and their properties using simple Ruby classes.
@@ -47,13 +49,8 @@ end
 class PeopleSet < OdataDuty::EntitySet
   entity_type PersonEntity
 
-  ALL_RECORDS = [
-    OpenStruct.new(id: '1', user_name: 'user1', name: 'User One', emails: ['user1@example.com']),
-    OpenStruct.new(id: '2', user_name: 'user2', name: 'User Two', emails: ['user2@example.com'])
-  ]
-
   def od_after_init
-    @records = ALL_RECORDS
+    @records = Person.active
   end
 
   def collection
