@@ -18,7 +18,7 @@ Metrics/ModuleLength:
 Metrics/CyclomaticComplexity:
   Max: 7
 Metrics/MethodLength:
-  Max: 17
+  Max: 13
 Style/FrozenStringLiteralComment:
   Enabled: false
 Style/Documentation:
