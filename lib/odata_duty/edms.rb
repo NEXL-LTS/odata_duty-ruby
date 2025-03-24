@@ -117,5 +117,6 @@ module OdataDuty
                     String => EdmString,
                     Date => EdmDate,
                     DateTime => EdmDateTimeOffset,
+                    Time => EdmDateTimeOffset,
                     TrueClass => EdmBool }.freeze
 end

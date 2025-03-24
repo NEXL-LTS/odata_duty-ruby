@@ -20,6 +20,8 @@ Or install it yourself as:
 
 ## Usage
 
+The gem assumes some familiarity with OData concepts. If you're new to OData, you may want to check out the [OData Crash Course](doc/odata_crash_course.md) to get a quick overview of the core concepts.
+
 ### Key Features
 
 - **Define Entities and Properties**: Easily define your OData entities and their properties using simple Ruby classes.
@@ -47,13 +49,8 @@ end
 class PeopleSet < OdataDuty::EntitySet
   entity_type PersonEntity
 
-  ALL_RECORDS = [
-    OpenStruct.new(id: '1', user_name: 'user1', name: 'User One', emails: ['user1@example.com']),
-    OpenStruct.new(id: '2', user_name: 'user2', name: 'User Two', emails: ['user2@example.com'])
-  ]
-
   def od_after_init
-    @records = ALL_RECORDS
+    @records = Person.active
   end
 
   def collection
@@ -61,13 +58,11 @@ class PeopleSet < OdataDuty::EntitySet
   end
 
   def individual(id)
-    @records.find { |record| record.id == id }
+    @records.find(id)
   end
 
   def create(data)
-    record = OpenStruct.new(id: ALL_RECORDS.size + 1, username: data.user_name, name: data.name, emails: data.emails)
-    ALL_RECORDS << record
-    record
+    Person.create!(username: data.user_name, name: data.name, emails: data.emails)
   end
 end
 
@@ -206,6 +201,10 @@ class PeopleResolver < OdataDuty::SetResolver
   end
 end
 ```
+
+## Further documentation
+
+- [Using `$select`](doc/using_select.md)
 
 ## TODO
 

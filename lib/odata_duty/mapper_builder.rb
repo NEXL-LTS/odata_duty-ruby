@@ -2,14 +2,17 @@ require 'securerandom'
 
 module OdataDuty
   class MapperBuilder
-    def self.build(complex_type, &block)
-      mapper_class = build_class(complex_type)
+    def self.build(complex_type, selected: nil, &block)
+      mapper_class = build_class(complex_type, selected: selected)
       mapper_class.new(complex_type, &block)
     end
 
-    def self.build_class(complex_type)
+    def self.build_class(complex_type, selected:)
       @dynamic_classes ||= {}
-      @dynamic_classes[complex_type] ||= eval_erb_class(complex_type)
+      @dynamic_classes[complex_type] ||= {}
+      complex_classes = @dynamic_classes[complex_type]
+      selected_key = selected&.map(&:name)&.sort
+      complex_classes[selected_key] ||= eval_erb_class(complex_type, selected: selected)
     end
 
     require 'erb'
@@ -17,7 +20,9 @@ module OdataDuty
     ERB_TEMPLATE.location = ["#{__dir__}/dynamic_object_wrapper.rb.erb", 1]
     ERB_TEMPLATE.freeze
 
-    def self.eval_erb_class(complex_type)
+    def self.eval_erb_class(complex_type, selected:)
+      properties = selected || complex_type.properties
+      properties.nil?
       class_result = ERB_TEMPLATE.result(binding)
 
       eval(class_result) # rubocop:disable Security/Eval

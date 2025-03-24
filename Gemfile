@@ -7,6 +7,7 @@ gemspec
 
 gem 'benchmark-ips', '>= 2.14'
 gem 'byebug'
+gem 'camel_snake_struct'
 gem 'nokogiri'
 gem 'profile-viewer', '>= 0.0.2'
 gem 'rake', '>= 13.0'

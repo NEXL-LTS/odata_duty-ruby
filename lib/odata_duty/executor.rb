@@ -40,13 +40,17 @@ module OdataDuty
     end
 
     def execute
-      entity_id = extract_value_from_brackets(url)
-      return individual(endpoint, entity_id, wrapped_context) if url.include?('(')
-
       set_builder = prepare_builder(endpoint, wrapped_context, query_options)
-      return set_builder.count if url.include?('/$count')
+      props = selected(endpoint.entity_type, query_options['$select']) if query_options['$select']
+      apply_select(set_builder, props)
 
-      collection(set_builder, endpoint, wrapped_context, query_options)
+      if url.include?('(')
+        individual(set_builder, endpoint, wrapped_context, props)
+      elsif url.include?('/$count')
+        set_builder.count
+      else
+        collection(set_builder, endpoint, wrapped_context, query_options, props)
+      end
     end
 
     def create
@@ -127,23 +131,43 @@ module OdataDuty
       value.gsub(/^"|"$/, '').gsub(/^'|'$/, '')
     end
 
-    def collection(set_builder, endpoint, context, query_options)
-      count = set_builder.count if query_options['$count'] == 'true'
-      apply_remaining(query_options, set_builder)
-      data = { '@odata.context' => context.url_for(url: '$metadata', anchor: endpoint.name),
-               'value' => endpoint.collection(set_builder, context: context) }
-      data['@odata.count'] = count if count
-      add_next_link(data, endpoint, set_builder, query_options, context)
-      Oj.dump(data, mode: :compat)
+    def selected(entity_type, select_query)
+      valid_selected(select_query.split(',').map(&:strip)).map do |p|
+        entity_type.properties.find { |a| a.name.to_s == p }.tap do |prop|
+          raise UnknownPropertyError, "The property '#{p}' does not exist" unless prop
+        end
+      end
+    rescue UnknownPropertyError, InvalidQueryOptionError => e
+      e.backtrace.unshift entity_type._defined_at_ if entity_type.respond_to?(:_defined_at_)
+      raise e
+    end
+
+    def valid_selected(selected)
+      selected.each do |p|
+        unless Property.valid_name?(p)
+          raise InvalidQueryOptionError, "The property '#{p}' is not valid"
+        end
+        if p.include?('/')
+          raise InvalidQueryOptionError, "The property '#{p}' Cannot be directly selected"
+        end
+      end
     end
 
     def apply_remaining(query_options, set_builder)
-      query_options.except('$count', '$filter')
+      query_options.except('$count', '$filter', '$select')
                    .select { |k, _| k.start_with?('$') }.each do |k, v|
         send("apply_#{k[1, 10]}", set_builder, v)
       rescue NoMethodError
         raise NoImplementationError, "query option #{k} not supported"
       end
+    end
+
+    def apply_select(set_builder, props)
+      return unless set_builder.respond_to?(:od_select)
+
+      selected = (props || endpoint.entity_type.properties).map(&:name)
+      selected += endpoint.entity_type.property_refs.map(&:name)
+      set_builder.od_select(selected.uniq)
     end
 
     def apply_top(set_builder, top)
@@ -174,10 +198,22 @@ module OdataDuty
 
     require 'oj'
 
-    def individual(endpoint, entity_id, context)
+    def collection(set_builder, endpoint, context, query_options, props)
+      count = set_builder.count if query_options['$count'] == 'true'
+      apply_remaining(query_options, set_builder)
+      data = { '@odata.context' => context.url_for(url: '$metadata', anchor: endpoint.name),
+               'value' => endpoint.collection(set_builder, context: context, selected: props) }
+      data['@odata.count'] = count if count
+      add_next_link(data, endpoint, set_builder, query_options, context)
+      Oj.dump(data, mode: :compat)
+    end
+
+    def individual(set_builder, endpoint, context, props)
+      entity_id = extract_value_from_brackets(url)
+
       Oj.dump(
         endpoint
-          .individual(entity_id, context: context)
+          .individual(set_builder, entity_id, context: context, selected: props)
           .merge(
             '@odata.context': context.url_for(url: '$metadata', anchor: "#{endpoint.name}/$entity")
           ),
