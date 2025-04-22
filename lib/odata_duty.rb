@@ -155,15 +155,6 @@ module OdataDuty
       @base_url
     end
 
-    def self.host(host = nil)
-      @host = host if host
-      @host
-    end
-
-    def self.edmx_schema
-      EdmxSchema.new(self)
-    end
-
     class Metadata
       attr_reader :schema
 
