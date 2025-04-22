@@ -54,6 +54,7 @@ class DoesNotSupportCollectionSet < OdataDuty::EntitySet
 end
 
 class CollectionTestSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
   entity_sets [SupportsCollectionSet, DoesNotSupportCollectionSet, LargeCollectionSet]
 end
 
@@ -67,9 +68,9 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SupportsCollection',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollection',
             'value' => [
-              '@odata.id' => 'SupportsCollection(\'1\')',
+              '@odata.id' => 'http://localhost:3000/api/SupportsCollection(\'1\')',
               'id' => '1'
             ]
           }
@@ -86,10 +87,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         json_string = schema.execute('LargeCollection', context: Context.new)
         response = Oj.load(json_string)
         context = response['@odata.context']
-        expect(context).to eq('$metadata#LargeCollection')
+        expect(context).to eq('http://localhost:3000/api/$metadata#LargeCollection')
         expect(response['value'].count).to eq(50)
         next_link = response['@odata.nextLink']
-        expect(next_link).to eq('LargeCollection?$skiptoken=50')
+        expect(next_link).to eq('http://localhost:3000/api/LargeCollection?%24skiptoken=50')
       end
 
       it do
@@ -110,10 +111,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
                                                           query_options: { '$count' => 'true' })
           response = Oj.load(json_string)
           context = response['@odata.context']
-          expect(context).to eq('$metadata#LargeCollection')
+          expect(context).to eq('http://localhost:3000/api/$metadata#LargeCollection')
           expect(response['value'].count).to eq(50)
           next_link = response['@odata.nextLink']
-          expect(next_link).to eq('LargeCollection?$count=true&$skiptoken=50')
+          expect(next_link).to eq('http://localhost:3000/api/LargeCollection?%24count=true&%24skiptoken=50')
           count = response['@odata.count']
           expect(count).to eq(102)
         end
@@ -124,10 +125,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
                                        query_options: { '$skiptoken' => '50' })
           response = Oj.load(json_string)
           context = response['@odata.context']
-          expect(context).to eq('$metadata#LargeCollection')
+          expect(context).to eq('http://localhost:3000/api/$metadata#LargeCollection')
           expect(response['value'].count).to eq(2)
           next_link = response['@odata.nextLink']
-          expect(next_link).to eq('LargeCollection?$skiptoken=100')
+          expect(next_link).to eq('http://localhost:3000/api/LargeCollection?%24skiptoken=50&%24skiptoken=100')
         end
 
         it do
@@ -136,7 +137,7 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
                                        query_options: { '$skiptoken' => '100' })
           response = Oj.load(json_string)
           context = response['@odata.context']
-          expect(context).to eq('$metadata#LargeCollection')
+          expect(context).to eq('http://localhost:3000/api/$metadata#LargeCollection')
           expect(response['value'].count).to eq(2)
           next_link = response['@odata.nextLink']
           expect(next_link).to be_nil
@@ -150,10 +151,12 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
                                                       '$top' => '100' })
         response = Oj.load(json_string)
         context = response['@odata.context']
-        expect(context).to eq('$metadata#LargeCollection')
+        expect(context).to eq('http://localhost:3000/api/$metadata#LargeCollection')
         expect(response['value'].count).to eq(50)
         next_link = response['@odata.nextLink']
-        expect(next_link).to eq("LargeCollection?$filter=id ne '1'&$top=100&$skiptoken=50")
+        expect(next_link).to eq(
+          'http://localhost:3000/api/LargeCollection?%24filter=id+ne+%271%27&%24top=100&%24skiptoken=50'
+        )
       end
     end
   end

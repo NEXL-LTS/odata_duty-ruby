@@ -37,7 +37,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntityType, 'Can use boolean primitive type' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '') do |s|
         enum_type = s.add_enum_type(name: 'BoolValues') do |en|
           en.member 'one'
           en.member 'two'
@@ -57,7 +57,7 @@ module OdataDuty
 
     describe '#metadata_xml' do
       let(:parsed_xml) do
-        parse_xml_from_string(EdmxSchema.metadata_xml(schema))
+        parse_xml_from_string(schema.metadata_xml)
       end
       let(:entity_types) { entity_types_from_doc(parsed_xml) }
       let(:keys) { entity_type.fetch(:keys) }
@@ -87,11 +87,13 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#Enum',
+              '@odata.context' => 'https://localhost/$metadata#Enum',
               'value' => [
-                { '@odata.id' => 'Enum(\'1\')', 'id' => '1', 'enum' => 'one', 'maybe' => nil },
-                { '@odata.id' => 'Enum(\'2\')', 'id' => '2', 'enum' => 'two', 'maybe' => 'one' },
-                { '@odata.id' => 'Enum(\'3\')', 'id' => '3', 'enum' => 'one', 'maybe' => 'two' }
+                { '@odata.id' => 'https://localhost/Enum(\'1\')', 'id' => '1', 'enum' => 'one',
+                  'maybe' => nil },
+                { '@odata.id' => 'https://localhost/Enum(\'2\')', 'id' => '2', 'enum' => 'two',
+                  'maybe' => 'one' },
+                { '@odata.id' => 'https://localhost/Enum(\'3\')', 'id' => '3', 'enum' => 'one', 'maybe' => 'two' }
               ]
             }
           )
@@ -103,10 +105,11 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#Enum',
+              '@odata.context' => 'https://localhost/$metadata#Enum',
               'value' => [
-                { '@odata.id' => 'Enum(\'1\')', 'id' => '1', 'enum' => 'one', 'maybe' => nil },
-                { '@odata.id' => 'Enum(\'3\')', 'id' => '3', 'enum' => 'one', 'maybe' => 'two' }
+                { '@odata.id' => 'https://localhost/Enum(\'1\')', 'id' => '1', 'enum' => 'one',
+                  'maybe' => nil },
+                { '@odata.id' => 'https://localhost/Enum(\'3\')', 'id' => '3', 'enum' => 'one', 'maybe' => 'two' }
               ]
             }
           )
@@ -118,9 +121,9 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#Enum',
+              '@odata.context' => 'https://localhost/$metadata#Enum',
               'value' => [
-                { '@odata.id' => 'Enum(\'3\')', 'id' => '3', 'enum' => 'one', 'maybe' => 'two' }
+                { '@odata.id' => 'https://localhost/Enum(\'3\')', 'id' => '3', 'enum' => 'one', 'maybe' => 'two' }
               ]
             }
           )

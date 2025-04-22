@@ -69,6 +69,7 @@ class SetDoesNotEnd < OdataDuty::EntitySet
 end
 
 class EntityTestsSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
   entity_sets [NewNameSet, SetDoesNotEnd, RenamedSet, RenameBothWithSymbolSet,
                RenameUrlWithStringSet]
 end
@@ -95,10 +96,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can Override the default name and/or url' 
         response = Oj.load(schema.execute('symbol_renamed', context: Context.new))
         expect(response).to eq(
           'value' => [{
-            '@odata.id' => 'symbol_renamed(\'1\')',
+            '@odata.id' => 'http://localhost:3000/api/symbol_renamed(\'1\')',
             'id' => '1'
           }],
-          '@odata.context' => '$metadata#RenameWithSymbol'
+          '@odata.context' => 'http://localhost:3000/api/$metadata#RenameWithSymbol'
         )
       end
 
@@ -106,10 +107,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can Override the default name and/or url' 
         response = Oj.load(schema.execute('set_renamed', context: Context.new))
         expect(response).to eq(
           'value' => [{
-            '@odata.id' => 'set_renamed(\'2\')',
+            '@odata.id' => 'http://localhost:3000/api/set_renamed(\'2\')',
             'id' => '2'
           }],
-          '@odata.context' => '$metadata#set_renamed'
+          '@odata.context' => 'http://localhost:3000/api/$metadata#set_renamed'
         )
       end
 
@@ -117,10 +118,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can Override the default name and/or url' 
         response = Oj.load(schema.execute('SetDoesNotEnd', context: Context.new))
         expect(response).to eq(
           'value' => [{
-            '@odata.id' => 'SetDoesNotEnd(\'3\')',
+            '@odata.id' => 'http://localhost:3000/api/SetDoesNotEnd(\'3\')',
             'id' => '3'
           }],
-          '@odata.context' => '$metadata#SetDoesNotEnd'
+          '@odata.context' => 'http://localhost:3000/api/$metadata#SetDoesNotEnd'
         )
       end
 
@@ -128,10 +129,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can Override the default name and/or url' 
         response = Oj.load(schema.execute('NewName', context: Context.new))
         expect(response).to eq(
           'value' => [{
-            '@odata.id' => 'NewName(\'4\')',
+            '@odata.id' => 'http://localhost:3000/api/NewName(\'4\')',
             'id' => '4'
           }],
-          '@odata.context' => '$metadata#NewName'
+          '@odata.context' => 'http://localhost:3000/api/$metadata#NewName'
         )
       end
     end

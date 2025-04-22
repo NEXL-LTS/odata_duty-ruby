@@ -73,7 +73,7 @@ def simple_test(context = Context.new)
       'string_val' => data.string_val&.to_str, 'date_val' => data.date_val&.iso8601,
       'datetime_val' => data.datetime_val&.iso8601,
       'bool_val' => BOOLEANS.include?(data.bool_val) && data.bool_val,
-      '@odata.id' => "#{base_url}('#{data.id}')" }
+      '@odata.id' => "http://localhost/#{base_url}('#{data.id}')" }
   end
   Oj.dump('value' => result, mode: :compat)
 end

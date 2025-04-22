@@ -2,13 +2,13 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'odata_duty'
-  spec.version       = '0.9.0'
+  spec.version       = '0.10.0'
   spec.authors       = ['Grant Petersen-Speelman']
   spec.email         = ['grant@nexl.io']
 
-  spec.summary       = 'Write OData compatible APIs'
+  spec.summary       = 'A unified, intent-driven interface layer that serves automation, AI, and developer platforms with minimal duplication.' # rubocop:disable Layout/LineLength
   spec.description   =
-    'Write OData compatible APIs to easier connection to Microsoft PowerBI and PowerAutomate.'
+    'A unified DSL for exposing structured data and operations across analytics tools (PowerBI), no-code platforms (PowerAutomate), and AI agents (via MCP).' # rubocop:disable Layout/LineLength
   # spec.homepage      = "TODO: Put your gem's website or public repo URL here."
   spec.required_ruby_version = Gem::Requirement.new('>= 3.0.0')
 
@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'oj', '>= 3.0.0', '< 5.0.0'
+  spec.add_dependency 'uri', '>= 1.0.0', '< 2.0.0'
   # spec.add_dependency 'securerandom', '>= 0.1.0', '< 2.0.0'
 
   # For more information and examples about making a new gem, checkout our

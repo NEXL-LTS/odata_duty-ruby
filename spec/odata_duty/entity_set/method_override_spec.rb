@@ -24,6 +24,7 @@ class MethodOverrideSet < OdataDuty::EntitySet
 end
 
 class MethodOverrideTestsSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
   entity_sets [MethodOverrideSet]
 end
 
@@ -36,13 +37,13 @@ RSpec.describe OdataDuty::EntitySet, 'Can Override the default name and/or url' 
         response = Oj.load(schema.execute('MethodOverride', context: Context.new))
         expect(response).to eq(
           'value' => [{
-            '@odata.id' => 'MethodOverride(\'1\')',
+            '@odata.id' => 'http://localhost:3000/api/MethodOverride(\'1\')',
             'id' => '1',
             'second_id' => '1',
             'over' => 'overridden',
             'second_over' => 'overridden'
           }],
-          '@odata.context' => '$metadata#MethodOverride'
+          '@odata.context' => 'http://localhost:3000/api/$metadata#MethodOverride'
         )
       end
     end

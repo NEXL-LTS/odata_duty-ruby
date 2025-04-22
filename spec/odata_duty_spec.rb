@@ -62,6 +62,7 @@ class SampleSchema < OdataDuty::Schema
   namespace 'SampleSpace'
   version '1.2.3'
   title 'This is a sample OData service.'
+  base_url 'http://localhost'
   entity_sets [PeopleSet]
 end
 
@@ -93,7 +94,7 @@ RSpec.describe OdataDuty do
         expect(response).to eq(
           {
             'value' => [{
-              '@odata.id' => 'People(\'1\')',
+              '@odata.id' => 'http://localhost/People(\'1\')',
               'id' => '1', 'user_name' => 'user1', 'name' => 'User',
               'emails' => ['user@email.com'],
               'address_info' => [
@@ -104,7 +105,7 @@ RSpec.describe OdataDuty do
               ],
               'gender' => 'Male', 'concurrency' => 11
             }],
-            '@odata.context' => '$metadata#People'
+            '@odata.context' => 'http://localhost/$metadata#People'
           }
         )
       end
@@ -122,8 +123,8 @@ RSpec.describe OdataDuty do
         json_string = SampleSchema.execute("People('1')", context: Context.new)
         response = Oj.load(json_string)
         expect(response).to eq(
-          { '@odata.context' => '$metadata#People/$entity',
-            '@odata.id' => 'People(\'1\')',
+          { '@odata.context' => 'http://localhost/$metadata#People/$entity',
+            '@odata.id' => 'http://localhost/People(\'1\')',
             'id' => '1',
             'user_name' => 'user1',
             'name' => 'User',
@@ -160,8 +161,8 @@ RSpec.describe OdataDuty do
                                                   query_options: attributes)
       response = Oj.load(json_string)
       expect(response).to eq(
-        { '@odata.context' => '$metadata#People/$entity',
-          '@odata.id' => 'People(\'111\')',
+        { '@odata.context' => 'http://localhost/$metadata#People/$entity',
+          '@odata.id' => 'http://localhost/People(\'111\')',
           'id' => '111',
           'user_name' => 'user2',
           'name' => 'User2',

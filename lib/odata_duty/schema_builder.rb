@@ -90,6 +90,32 @@ module OdataDuty
         Executor.create(url: url, context: context, query_options: query_options, schema: self)
       end
 
+      def handle_jsonrpc(request_hash, context:)
+        MCPExecutor.handle(request_hash: request_hash, schema: self, context: context)
+      end
+
+      def metadata_xml
+        require 'erb'
+
+        # Create a metadata variable for the template
+        metadata = self
+
+        b = binding
+        # create and run templates, filling member data variables
+        erb = ERB.new(File.read("#{File.dirname(__FILE__)}/../metadata.xml.erb"), trim_mode: '<>')
+        erb.location = ["#{File.dirname(__FILE__)}/../metadata.xml.erb", 1]
+        erb.result b
+      end
+
+      def index_hash(metadata_url)
+        {
+          '@odata.context': metadata_url,
+          value: endpoints.map do |e|
+            { name: e.name, kind: e.kind, url: e.url }
+          end
+        }
+      end
+
       private
 
       def add_type(type)

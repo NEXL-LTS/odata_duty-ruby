@@ -45,6 +45,7 @@ class BoolWithInvalidSet < OdataDuty::EntitySet
 end
 
 class BooleanTestSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
   entity_sets [BoolSet, BoolWithInvalidSet]
 end
 
@@ -77,11 +78,13 @@ RSpec.describe OdataDuty::EntitySet, 'Can use boolean primitive type' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#Bool',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#Bool',
             'value' => [
-              { '@odata.id' => 'Bool(\'1\')', 'id' => '1', 'boolean' => true, 'maybe' => nil },
-              { '@odata.id' => 'Bool(\'2\')', 'id' => '2', 'boolean' => false, 'maybe' => true },
-              { '@odata.id' => 'Bool(\'3\')', 'id' => '3', 'boolean' => true, 'maybe' => false }
+              { '@odata.id' => 'http://localhost:3000/api/Bool(\'1\')', 'id' => '1',
+                'boolean' => true, 'maybe' => nil },
+              { '@odata.id' => 'http://localhost:3000/api/Bool(\'2\')', 'id' => '2',
+                'boolean' => false, 'maybe' => true },
+              { '@odata.id' => 'http://localhost:3000/api/Bool(\'3\')', 'id' => '3', 'boolean' => true, 'maybe' => false }
             ]
           }
         )
@@ -93,10 +96,11 @@ RSpec.describe OdataDuty::EntitySet, 'Can use boolean primitive type' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#Bool',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#Bool',
             'value' => [
-              { '@odata.id' => 'Bool(\'1\')', 'id' => '1', 'boolean' => true, 'maybe' => nil },
-              { '@odata.id' => 'Bool(\'3\')', 'id' => '3', 'boolean' => true, 'maybe' => false }
+              { '@odata.id' => 'http://localhost:3000/api/Bool(\'1\')', 'id' => '1',
+                'boolean' => true, 'maybe' => nil },
+              { '@odata.id' => 'http://localhost:3000/api/Bool(\'3\')', 'id' => '3', 'boolean' => true, 'maybe' => false }
             ]
           }
         )
@@ -108,9 +112,9 @@ RSpec.describe OdataDuty::EntitySet, 'Can use boolean primitive type' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#Bool',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#Bool',
             'value' => [
-              { '@odata.id' => 'Bool(\'3\')', 'id' => '3', 'boolean' => true, 'maybe' => false }
+              { '@odata.id' => 'http://localhost:3000/api/Bool(\'3\')', 'id' => '3', 'boolean' => true, 'maybe' => false }
             ]
           }
         )

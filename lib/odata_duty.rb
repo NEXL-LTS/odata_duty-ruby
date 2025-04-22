@@ -5,6 +5,7 @@ require 'odata_duty/set_resolver'
 require 'odata_duty/schema_builder'
 require 'odata_duty/edmx_schema'
 require 'odata_duty/executor'
+require 'odata_duty/mcp_executor'
 require 'odata_duty/oas2'
 require 'odata_duty/property'
 require 'odata_duty/enum_type'
@@ -149,6 +150,20 @@ module OdataDuty
       @entity_sets
     end
 
+    def self.base_url(url = nil)
+      @base_url = url if url
+      @base_url
+    end
+
+    def self.host(host = nil)
+      @host = host if host
+      @host
+    end
+
+    def self.edmx_schema
+      EdmxSchema.new(self)
+    end
+
     class Metadata
       attr_reader :schema
 
@@ -236,11 +251,13 @@ module OdataDuty
     end
 
     def self.execute(url, context:, query_options: {})
-      Executor.execute(url: url, context: context, query_options: query_options, schema: self)
+      Executor.execute(url: url, context: context,
+                       query_options: query_options, schema: self)
     end
 
     def self.create(url, context:, query_options: {})
-      Executor.create(url: url, context: context, query_options: query_options, schema: self)
+      Executor.create(url: url, context: context,
+                      query_options: query_options, schema: self)
     end
   end
 end

@@ -14,7 +14,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntityType, 'Can suggest an alternative method' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '') do |s|
         a_complex_type = s.add_complex_type(name: 'SimpleComplex') do |et|
           et.property 'string', String
         end
@@ -37,9 +37,9 @@ module OdataDuty
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#AlternativeMethods',
+            '@odata.context' => 'https://localhost/$metadata#AlternativeMethods',
             'value' => [
-              { '@odata.id' => 'AlternativeMethods(\'1\')',
+              { '@odata.id' => 'https://localhost/AlternativeMethods(\'1\')',
                 'id' => '1',
                 'string' => 'alternative_string',
                 'combined' => '1-alternative_string',

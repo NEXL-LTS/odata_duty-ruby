@@ -23,7 +23,7 @@ module OdataDuty
       end
 
       def mapper(context, selected:)
-        context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
+        context.current['odata_url_base'] ||= context.od_full_url(context.endpoint.url)
         if integer_property_ref?
           int_mapper(context, selected: selected)
         else

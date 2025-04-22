@@ -31,6 +31,7 @@ class DoesNotSupportCreateSet < OdataDuty::EntitySet
 end
 
 class CreateTestSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
   entity_sets [CreateScalarsTestSet, DoesNotSupportCreateSet]
 end
 
@@ -47,8 +48,8 @@ RSpec.describe OdataDuty::EntitySet, 'Can create' do
 
     it do
       expect(response).to eq(
-        '@odata.context' => '$metadata#CreateScalarsTest/$entity',
-        '@odata.id' => 'CreateScalarsTest(\'1\')',
+        '@odata.context' => 'http://localhost:3000/api/$metadata#CreateScalarsTest/$entity',
+        '@odata.id' => 'http://localhost:3000/api/CreateScalarsTest(\'1\')',
         'id' => '1',
         'string' => nil,
         'string_list' => nil,

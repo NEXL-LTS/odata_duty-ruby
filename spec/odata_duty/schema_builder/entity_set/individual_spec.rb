@@ -18,7 +18,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can specific individual result' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '') do |s|
         string_entity = s.add_entity_type(name: 'IndividualTest') do |et|
           et.property_ref 'id', String
         end
@@ -39,8 +39,8 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SupportsIndividual/$entity',
-              '@odata.id' => 'SupportsIndividual(\'1\')',
+              '@odata.context' => 'https://localhost/$metadata#SupportsIndividual/$entity',
+              '@odata.id' => 'https://localhost/SupportsIndividual(\'1\')',
               'id' => '1'
             }
           )
@@ -51,8 +51,8 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#IndividualInteger/$entity',
-              '@odata.id' => 'IndividualInteger(1)',
+              '@odata.context' => 'https://localhost/$metadata#IndividualInteger/$entity',
+              '@odata.id' => 'https://localhost/IndividualInteger(1)',
               'id' => 1
             }
           )
