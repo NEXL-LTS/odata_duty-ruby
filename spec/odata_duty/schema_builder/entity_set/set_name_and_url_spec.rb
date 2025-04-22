@@ -70,7 +70,7 @@ module OdataDuty
     end
 
     describe '#index_hash' do
-      let(:index_hash) { schema.index_hash('$metadata') }
+      let(:index_hash) { schema.index_hash }
       let(:index_values) { index_hash.fetch(:value) }
       let(:entity_set) { index_values.map { |x| x.slice(:name, :url) } }
 

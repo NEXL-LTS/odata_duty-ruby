@@ -98,13 +98,8 @@ module OdataDuty
         EdmxSchema.metadata_xml(self)
       end
 
-      def index_hash(metadata_url)
-        {
-          '@odata.context': metadata_url,
-          value: endpoints.map do |e|
-            { name: e.name, kind: e.kind, url: e.url }
-          end
-        }
+      def index_hash
+        EdmxSchema.index_hash(self)
       end
 
       private

@@ -60,9 +60,9 @@ module OdataDuty
 
     describe '#index_hash' do
       it do
-        expect(schema.index_hash('$metadata'))
+        expect(schema.index_hash)
           .to eq({
-                   '@odata.context': '$metadata',
+                   '@odata.context': 'http://localhost/$metadata',
                    value: [{ kind: 'EntitySet', name: 'People', url: 'People' }]
                  })
       end
