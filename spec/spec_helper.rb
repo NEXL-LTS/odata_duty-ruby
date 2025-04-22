@@ -72,10 +72,6 @@ module TestHelpers
 end
 
 Context = Struct.new(:endpoint)
-# def url_for(url:, anchor: nil, **params)
-#   params_joined = params.transform_keys(&:to_s).map { |k, v| "#{k}=#{v}" }.join('&')
-#   "#{url}#{params_joined == '' ? '' : "?#{params_joined}"}#{anchor ? "##{anchor}" : ''}"
-# end
 
 CountryCity = Struct.new(:country_region, :name, :region) do
   def self.all
