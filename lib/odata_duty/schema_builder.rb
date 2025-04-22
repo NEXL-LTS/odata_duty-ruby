@@ -95,16 +95,7 @@ module OdataDuty
       end
 
       def metadata_xml
-        require 'erb'
-
-        # Create a metadata variable for the template
-        metadata = self
-
-        b = binding
-        # create and run templates, filling member data variables
-        erb = ERB.new(File.read("#{File.dirname(__FILE__)}/../metadata.xml.erb"), trim_mode: '<>')
-        erb.location = ["#{File.dirname(__FILE__)}/../metadata.xml.erb", 1]
-        erb.result b
+        EdmxSchema.metadata_xml(self)
       end
 
       def index_hash(metadata_url)
