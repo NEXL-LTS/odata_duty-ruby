@@ -242,13 +242,11 @@ module OdataDuty
     end
 
     def self.execute(url, context:, query_options: {})
-      Executor.execute(url: url, context: context,
-                       query_options: query_options, schema: self)
+      Executor.execute(url: url, context: context, query_options: query_options, schema: self)
     end
 
     def self.create(url, context:, query_options: {})
-      Executor.create(url: url, context: context,
-                      query_options: query_options, schema: self)
+      Executor.create(url: url, context: context, query_options: query_options, schema: self)
     end
   end
 end
