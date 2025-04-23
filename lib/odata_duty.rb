@@ -5,6 +5,7 @@ require 'odata_duty/set_resolver'
 require 'odata_duty/schema_builder'
 require 'odata_duty/edmx_schema'
 require 'odata_duty/executor'
+require 'odata_duty/mcp_executor'
 require 'odata_duty/oas2'
 require 'odata_duty/property'
 require 'odata_duty/enum_type'
@@ -147,6 +148,11 @@ module OdataDuty
     def self.entity_sets(entity_sets = nil)
       @entity_sets = entity_sets.uniq if entity_sets
       @entity_sets
+    end
+
+    def self.base_url(url = nil)
+      @base_url = url if url
+      @base_url
     end
 
     class Metadata

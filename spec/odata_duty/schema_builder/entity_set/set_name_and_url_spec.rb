@@ -53,7 +53,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can Override the default name and/or url' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '') do |s|
         name_entity = s.add_entity_type(name: 'Name') do |et|
           et.property_ref 'id', String
         end
@@ -70,7 +70,7 @@ module OdataDuty
     end
 
     describe '#index_hash' do
-      let(:index_hash) { EdmxSchema.index_hash(schema) }
+      let(:index_hash) { schema.index_hash }
       let(:index_values) { index_hash.fetch(:value) }
       let(:entity_set) { index_values.map { |x| x.slice(:name, :url) } }
 
@@ -88,10 +88,10 @@ module OdataDuty
           response = Oj.load(schema.execute('symbol_renamed', context: Context.new))
           expect(response).to eq(
             'value' => [{
-              '@odata.id' => 'symbol_renamed(\'1\')',
+              '@odata.id' => 'https://localhost/symbol_renamed(\'1\')',
               'id' => '1'
             }],
-            '@odata.context' => '$metadata#RenameWithSymbol'
+            '@odata.context' => 'https://localhost/$metadata#RenameWithSymbol'
           )
         end
 
@@ -99,10 +99,10 @@ module OdataDuty
           response = Oj.load(schema.execute('set_renamed', context: Context.new))
           expect(response).to eq(
             'value' => [{
-              '@odata.id' => 'set_renamed(\'2\')',
+              '@odata.id' => 'https://localhost/set_renamed(\'2\')',
               'id' => '2'
             }],
-            '@odata.context' => '$metadata#set_renamed'
+            '@odata.context' => 'https://localhost/$metadata#set_renamed'
           )
         end
 
@@ -110,10 +110,10 @@ module OdataDuty
           response = Oj.load(schema.execute('ResolverDoesNotEnd', context: Context.new))
           expect(response).to eq(
             'value' => [{
-              '@odata.id' => 'ResolverDoesNotEnd(\'3\')',
+              '@odata.id' => 'https://localhost/ResolverDoesNotEnd(\'3\')',
               'id' => '3'
             }],
-            '@odata.context' => '$metadata#ResolverDoesNotEnd'
+            '@odata.context' => 'https://localhost/$metadata#ResolverDoesNotEnd'
           )
         end
 
@@ -121,10 +121,10 @@ module OdataDuty
           response = Oj.load(schema.execute('NewName', context: Context.new))
           expect(response).to eq(
             'value' => [{
-              '@odata.id' => 'NewName(\'4\')',
+              '@odata.id' => 'https://localhost/NewName(\'4\')',
               'id' => '4'
             }],
-            '@odata.context' => '$metadata#NewName'
+            '@odata.context' => 'https://localhost/$metadata#NewName'
           )
         end
       end
@@ -132,7 +132,7 @@ module OdataDuty
 
     describe '#metadata_xml' do
       let(:parsed_xml) do
-        parse_xml_from_string(EdmxSchema.metadata_xml(schema))
+        parse_xml_from_string(schema.metadata_xml)
       end
       let(:entity_sets) { entity_sets_from_doc(parsed_xml) }
 

@@ -68,9 +68,9 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SupportsCollection',
+              '@odata.context' => 'https://localhost/$metadata#SupportsCollection',
               'value' => [
-                '@odata.id' => 'SupportsCollection(\'1\')',
+                '@odata.id' => 'https://localhost/SupportsCollection(\'1\')',
                 'id' => '1'
               ]
             }
@@ -87,10 +87,10 @@ module OdataDuty
           json_string = schema.execute('LargeCollection', context: Context.new)
           response = Oj.load(json_string)
           context = response['@odata.context']
-          expect(context).to eq('$metadata#LargeCollection')
+          expect(context).to eq('https://localhost/$metadata#LargeCollection')
           expect(response['value'].count).to eq(50)
           next_link = response['@odata.nextLink']
-          expect(next_link).to eq('LargeCollection?$skiptoken=50')
+          expect(next_link).to eq('https://localhost/LargeCollection?%24skiptoken=50')
         end
 
         it do
@@ -111,10 +111,10 @@ module OdataDuty
                                                             query_options: { '$count' => 'true' })
             response = Oj.load(json_string)
             context = response['@odata.context']
-            expect(context).to eq('$metadata#LargeCollection')
+            expect(context).to eq('https://localhost/$metadata#LargeCollection')
             expect(response['value'].count).to eq(50)
             next_link = response['@odata.nextLink']
-            expect(next_link).to eq('LargeCollection?$count=true&$skiptoken=50')
+            expect(next_link).to eq('https://localhost/LargeCollection?%24count=true&%24skiptoken=50')
             count = response['@odata.count']
             expect(count).to eq(102)
           end
@@ -125,10 +125,10 @@ module OdataDuty
                                          query_options: { '$skiptoken' => '50' })
             response = Oj.load(json_string)
             context = response['@odata.context']
-            expect(context).to eq('$metadata#LargeCollection')
+            expect(context).to eq('https://localhost/$metadata#LargeCollection')
             expect(response['value'].count).to eq(2)
             next_link = response['@odata.nextLink']
-            expect(next_link).to eq('LargeCollection?$skiptoken=100')
+            expect(next_link).to eq('https://localhost/LargeCollection?%24skiptoken=50&%24skiptoken=100')
           end
 
           it do
@@ -137,7 +137,7 @@ module OdataDuty
                                          query_options: { '$skiptoken' => '100' })
             response = Oj.load(json_string)
             context = response['@odata.context']
-            expect(context).to eq('$metadata#LargeCollection')
+            expect(context).to eq('https://localhost/$metadata#LargeCollection')
             expect(response['value'].count).to eq(2)
             next_link = response['@odata.nextLink']
             expect(next_link).to be_nil
@@ -151,10 +151,12 @@ module OdataDuty
                                                         '$top' => '100' })
           response = Oj.load(json_string)
           context = response['@odata.context']
-          expect(context).to eq('$metadata#LargeCollection')
+          expect(context).to eq('https://localhost/$metadata#LargeCollection')
           expect(response['value'].count).to eq(50)
           next_link = response['@odata.nextLink']
-          expect(next_link).to eq("LargeCollection?$filter=id ne '1'&$top=100&$skiptoken=50")
+          expect(next_link).to eq(
+            'https://localhost/LargeCollection?%24filter=id+ne+%271%27&%24top=100&%24skiptoken=50'
+          )
         end
       end
     end

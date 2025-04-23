@@ -29,7 +29,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntityType, 'Can use array boolean primitive type' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '') do |s|
         bool_entity = s.add_entity_type(name: 'BoolValues') do |et|
           et.property_ref 'id', String
           et.property 'booleans', [TrueClass], nullable: false
@@ -44,7 +44,7 @@ module OdataDuty
 
     describe '#metadata_xml' do
       let(:parsed_xml) do
-        parse_xml_from_string(EdmxSchema.metadata_xml(schema))
+        parse_xml_from_string(schema.metadata_xml)
       end
       let(:entity_types) { entity_types_from_doc(parsed_xml) }
       let(:keys) { entity_type.fetch(:keys) }
@@ -71,11 +71,13 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#Bool',
+              '@odata.context' => 'https://localhost/$metadata#Bool',
               'value' => [
-                { '@odata.id' => 'Bool(\'1\')', 'id' => '1', 'booleans' => [true] },
-                { '@odata.id' => 'Bool(\'2\')', 'id' => '2', 'booleans' => [false] },
-                { '@odata.id' => 'Bool(\'3\')', 'id' => '3', 'booleans' => [true] }
+                { '@odata.id' => 'https://localhost/Bool(\'1\')', 'id' => '1',
+                  'booleans' => [true] },
+                { '@odata.id' => 'https://localhost/Bool(\'2\')', 'id' => '2',
+                  'booleans' => [false] },
+                { '@odata.id' => 'https://localhost/Bool(\'3\')', 'id' => '3', 'booleans' => [true] }
               ]
             }
           )

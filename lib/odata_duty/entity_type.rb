@@ -44,7 +44,7 @@ module OdataDuty
     end
 
     def self.mapper(context, selected:)
-      context.current['odata_url_base'] ||= context.url_for(url: context.endpoint.url)
+      context.current['odata_url_base'] ||= context.od_full_url(context.endpoint.url)
       if property_refs.first.raw_type == EdmInt64
         int_mapper(context, selected: selected)
       else

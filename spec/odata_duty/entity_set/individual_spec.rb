@@ -29,6 +29,7 @@ class IndividualIntegerSet < OdataDuty::EntitySet
 end
 
 class IndividualTestSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
   entity_sets [SupportsIndividualSet, DoesNotSupportIndividualSet, IndividualIntegerSet]
 end
 
@@ -42,8 +43,8 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SupportsIndividual/$entity',
-            '@odata.id' => 'SupportsIndividual(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsIndividual/$entity',
+            '@odata.id' => 'http://localhost:3000/api/SupportsIndividual(\'1\')',
             'id' => '1'
           }
         )
@@ -54,8 +55,8 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#IndividualInteger/$entity',
-            '@odata.id' => 'IndividualInteger(1)',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#IndividualInteger/$entity',
+            '@odata.id' => 'http://localhost:3000/api/IndividualInteger(1)',
             'id' => 1
           }
         )

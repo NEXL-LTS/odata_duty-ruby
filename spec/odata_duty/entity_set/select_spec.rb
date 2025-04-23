@@ -58,6 +58,7 @@ class SelectlessCollectionSet < OdataDuty::EntitySet
 end
 
 class CollectionSelectTestSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
   entity_sets [SupportsCollectionSelectSet, SelectlessCollectionSet]
 end
 
@@ -73,8 +74,8 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SelectlessCollection/$entity',
-            '@odata.id' => 'SelectlessCollection(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SelectlessCollection/$entity',
+            '@odata.id' => 'http://localhost:3000/api/SelectlessCollection(\'1\')',
             'id' => '1', 'i' => 1
           }
         )
@@ -87,8 +88,8 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SelectlessCollection/$entity',
-            '@odata.id' => 'SelectlessCollection(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SelectlessCollection/$entity',
+            '@odata.id' => 'http://localhost:3000/api/SelectlessCollection(\'1\')',
             'c' => { 's' => '1' }
           }
         )
@@ -127,8 +128,8 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SupportsCollectionSelect/$entity',
-            '@odata.id' => 'SupportsCollectionSelect(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect/$entity',
+            '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
             'id' => '1', 'i' => 1
           }
         )
@@ -143,8 +144,8 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SupportsCollectionSelect/$entity',
-            '@odata.id' => 'SupportsCollectionSelect(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect/$entity',
+            '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
             'c' => { 's' => '1' }
           }
         )
@@ -159,10 +160,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SelectlessCollection',
-            'value' => [{ '@odata.id' => 'SelectlessCollection(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SelectlessCollection',
+            'value' => [{ '@odata.id' => 'http://localhost:3000/api/SelectlessCollection(\'1\')',
                           'id' => '1', 'i' => 1 },
-                        { '@odata.id' => 'SelectlessCollection(\'2\')',
+                        { '@odata.id' => 'http://localhost:3000/api/SelectlessCollection(\'2\')',
                           'id' => '2', 'i' => 2 }]
           }
         )
@@ -175,10 +176,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SelectlessCollection',
-            'value' => [{ '@odata.id' => 'SelectlessCollection(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SelectlessCollection',
+            'value' => [{ '@odata.id' => 'http://localhost:3000/api/SelectlessCollection(\'1\')',
                           'c' => { 's' => '1' } },
-                        { '@odata.id' => 'SelectlessCollection(\'2\')',
+                        { '@odata.id' => 'http://localhost:3000/api/SelectlessCollection(\'2\')',
                           'c' => { 's' => '2' } }]
           }
         )
@@ -217,10 +218,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SupportsCollectionSelect',
-            'value' => [{ '@odata.id' => 'SupportsCollectionSelect(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect',
+            'value' => [{ '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
                           'id' => '1', 'i' => 1 },
-                        { '@odata.id' => 'SupportsCollectionSelect(\'2\')',
+                        { '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'2\')',
                           'id' => '2', 'i' => 2 }]
           }
         )
@@ -235,10 +236,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => '$metadata#SupportsCollectionSelect',
-            'value' => [{ '@odata.id' => 'SupportsCollectionSelect(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect',
+            'value' => [{ '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
                           'c' => { 's' => '1' } },
-                        { '@odata.id' => 'SupportsCollectionSelect(\'2\')',
+                        { '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'2\')',
                           'c' => { 's' => '2' } }]
           }
         )

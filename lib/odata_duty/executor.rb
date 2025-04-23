@@ -13,6 +13,7 @@ module OdataDuty
     def initialize(schema:, url:, context:, query_options:)
       @schema = schema
       @url = url
+      @base_url = schema.base_url.to_str
       @context = context
       @query_options = query_options
     end
@@ -21,17 +22,21 @@ module OdataDuty
 
     require 'delegate'
     class ContextWrapper < SimpleDelegator
-      attr_reader :url_builder, :endpoint, :query_options
+      attr_reader :caller_context, :base_url, :endpoint, :query_options
 
-      def initialize(url_builder, endpoint:, query_options: nil)
-        super(url_builder)
-        @url_builder = url_builder
+      def initialize(caller_context, base_url:, endpoint:, query_options: nil)
+        super(caller_context)
+        @base_url = base_url.chomp('/')
         @endpoint = endpoint
         @query_options = (query_options || {}).to_h
       end
 
-      def url_for(*args, **kwargs)
-        url_builder.url_for(*args, **kwargs)
+      def od_full_url(path, anchor: nil, **query_params)
+        path = [base_url, *path.split('/')].compact.join('/')
+        URI.parse(path).tap do |uri|
+          uri.query = URI.encode_www_form(query_params) if query_params.any?
+          uri.fragment = anchor if anchor
+        end.to_str
       end
 
       def current
@@ -57,8 +62,8 @@ module OdataDuty
       Oj.dump(endpoint
           .create(context: wrapped_context)
           .merge(
-            '@odata.context': wrapped_context.url_for(url: '$metadata',
-                                                      anchor: "#{endpoint.name}/$entity")
+            '@odata.context': wrapped_context.od_full_url('$metadata',
+                                                          anchor: "#{endpoint.name}/$entity")
           ),
               mode: :compat)
     rescue NoMethodError
@@ -76,7 +81,8 @@ module OdataDuty
     private
 
     def wrapped_context
-      @wrapped_context ||= ContextWrapper.new(context, endpoint: endpoint,
+      @wrapped_context ||= ContextWrapper.new(context, base_url: schema.base_url,
+                                                       endpoint: endpoint,
                                                        query_options: query_options)
     end
 
@@ -191,9 +197,8 @@ module OdataDuty
     def add_next_link(data, endpoint, set_builder, query_options, context)
       return unless set_builder.od_next_link_skiptoken
 
-      next_query_options = query_options.merge(url: endpoint.url,
-                                               :$skiptoken => set_builder.od_next_link_skiptoken)
-      data[:'@odata.nextLink'] = context.url_for(**next_query_options)
+      next_query_options = query_options.merge(:$skiptoken => set_builder.od_next_link_skiptoken)
+      data[:'@odata.nextLink'] = context.od_full_url(endpoint.url, **next_query_options)
     end
 
     require 'oj'
@@ -201,7 +206,7 @@ module OdataDuty
     def collection(set_builder, endpoint, context, query_options, props)
       count = set_builder.count if query_options['$count'] == 'true'
       apply_remaining(query_options, set_builder)
-      data = { '@odata.context' => context.url_for(url: '$metadata', anchor: endpoint.name),
+      data = { '@odata.context' => context.od_full_url('$metadata', anchor: endpoint.name),
                'value' => endpoint.collection(set_builder, context: context, selected: props) }
       data['@odata.count'] = count if count
       add_next_link(data, endpoint, set_builder, query_options, context)
@@ -215,7 +220,7 @@ module OdataDuty
         endpoint
           .individual(set_builder, entity_id, context: context, selected: props)
           .merge(
-            '@odata.context': context.url_for(url: '$metadata', anchor: "#{endpoint.name}/$entity")
+            '@odata.context': context.od_full_url('$metadata', anchor: "#{endpoint.name}/$entity")
           ),
         mode: :compat
       )

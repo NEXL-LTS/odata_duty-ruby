@@ -24,7 +24,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can create' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '') do |s|
         complex_type = s.add_complex_type(name: 'CreateTestComplex') do |et|
           et.property 'string', String
           et.property 'string_list', [String]
@@ -60,8 +60,8 @@ module OdataDuty
 
       it do
         expect(response).to eq(
-          '@odata.context' => '$metadata#CreateComplexTest/$entity',
-          '@odata.id' => 'CreateComplexTest(\'1\')',
+          '@odata.context' => 'https://localhost/$metadata#CreateComplexTest/$entity',
+          '@odata.id' => 'https://localhost/CreateComplexTest(\'1\')',
           'id' => '1',
           'complex' => nil
         )

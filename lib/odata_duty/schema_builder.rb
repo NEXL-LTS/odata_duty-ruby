@@ -90,6 +90,18 @@ module OdataDuty
         Executor.create(url: url, context: context, query_options: query_options, schema: self)
       end
 
+      def handle_jsonrpc(request_hash, context:)
+        MCPExecutor.handle(request_hash: request_hash, schema: self, context: context)
+      end
+
+      def metadata_xml
+        EdmxSchema.metadata_xml(self)
+      end
+
+      def index_hash
+        EdmxSchema.index_hash(self)
+      end
+
       private
 
       def add_type(type)

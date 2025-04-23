@@ -16,7 +16,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can create' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '') do |s|
         collection_entity = s.add_entity_type(name: 'CreateScalarsTestEntity') do |et|
           et.property_ref 'id', String
           et.property 'string', String
@@ -48,8 +48,8 @@ module OdataDuty
 
       it do
         expect(response).to eq(
-          '@odata.context' => '$metadata#CreateScalarsTest/$entity',
-          '@odata.id' => 'CreateScalarsTest(\'1\')',
+          '@odata.context' => 'https://localhost/$metadata#CreateScalarsTest/$entity',
+          '@odata.id' => 'https://localhost/CreateScalarsTest(\'1\')',
           'id' => '1',
           'string' => nil,
           'string_list' => nil,

@@ -44,6 +44,7 @@ class InvalidPropertyTestSet < OdataDuty::EntitySet
 end
 
 class CreateComplexTestSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
   entity_sets [CreateComplexTestSet, InvalidPropertyTestSet]
 end
 
@@ -60,8 +61,8 @@ RSpec.describe OdataDuty::EntitySet, 'Can create' do
 
     it do
       expect(response).to eq(
-        '@odata.context' => '$metadata#CreateComplexTest/$entity',
-        '@odata.id' => 'CreateComplexTest(\'1\')',
+        '@odata.context' => 'http://localhost:3000/api/$metadata#CreateComplexTest/$entity',
+        '@odata.id' => 'http://localhost:3000/api/CreateComplexTest(\'1\')',
         'id' => '1',
         'complex' => nil
       )

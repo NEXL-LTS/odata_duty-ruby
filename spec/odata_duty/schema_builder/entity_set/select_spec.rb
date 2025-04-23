@@ -48,7 +48,7 @@ end
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can select specific properties in the return result' do
     subject(:schema) do
-      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+      SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '') do |s|
         complex = s.add_entity_type(name: 'CollectionSelectTestComplex') do |et|
           et.property 's', String
         end
@@ -74,8 +74,8 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SelectlessCollection/$entity',
-              '@odata.id' => 'SelectlessCollection(\'1\')',
+              '@odata.context' => 'https://localhost/$metadata#SelectlessCollection/$entity',
+              '@odata.id' => 'https://localhost/SelectlessCollection(\'1\')',
               'id' => '1', 'i' => 1
             }
           )
@@ -88,8 +88,8 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SelectlessCollection/$entity',
-              '@odata.id' => 'SelectlessCollection(\'1\')',
+              '@odata.context' => 'https://localhost/$metadata#SelectlessCollection/$entity',
+              '@odata.id' => 'https://localhost/SelectlessCollection(\'1\')',
               'c' => { 's' => '1' }
             }
           )
@@ -126,8 +126,8 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SupportsCollectionSelect/$entity',
-              '@odata.id' => 'SupportsCollectionSelect(\'1\')',
+              '@odata.context' => 'https://localhost/$metadata#SupportsCollectionSelect/$entity',
+              '@odata.id' => 'https://localhost/SupportsCollectionSelect(\'1\')',
               'id' => '1', 'i' => 3
             }
           )
@@ -140,8 +140,8 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SupportsCollectionSelect/$entity',
-              '@odata.id' => 'SupportsCollectionSelect(\'1\')',
+              '@odata.context' => 'https://localhost/$metadata#SupportsCollectionSelect/$entity',
+              '@odata.id' => 'https://localhost/SupportsCollectionSelect(\'1\')',
               'c' => { 's' => '3' }
             }
           )
@@ -156,10 +156,10 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SelectlessCollection',
-              'value' => [{ '@odata.id' => 'SelectlessCollection(\'1\')',
+              '@odata.context' => 'https://localhost/$metadata#SelectlessCollection',
+              'value' => [{ '@odata.id' => 'https://localhost/SelectlessCollection(\'1\')',
                             'id' => '1', 'i' => 1 },
-                          { '@odata.id' => 'SelectlessCollection(\'2\')',
+                          { '@odata.id' => 'https://localhost/SelectlessCollection(\'2\')',
                             'id' => '2', 'i' => 2 }]
             }
           )
@@ -172,10 +172,10 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SelectlessCollection',
-              'value' => [{ '@odata.id' => 'SelectlessCollection(\'1\')',
+              '@odata.context' => 'https://localhost/$metadata#SelectlessCollection',
+              'value' => [{ '@odata.id' => 'https://localhost/SelectlessCollection(\'1\')',
                             'c' => { 's' => '1' } },
-                          { '@odata.id' => 'SelectlessCollection(\'2\')',
+                          { '@odata.id' => 'https://localhost/SelectlessCollection(\'2\')',
                             'c' => { 's' => '2' } }]
             }
           )
@@ -212,10 +212,10 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SupportsCollectionSelect',
-              'value' => [{ '@odata.id' => 'SupportsCollectionSelect(\'1\')',
+              '@odata.context' => 'https://localhost/$metadata#SupportsCollectionSelect',
+              'value' => [{ '@odata.id' => 'https://localhost/SupportsCollectionSelect(\'1\')',
                             'id' => '1', 'i' => 3 },
-                          { '@odata.id' => 'SupportsCollectionSelect(\'2\')',
+                          { '@odata.id' => 'https://localhost/SupportsCollectionSelect(\'2\')',
                             'id' => '2', 'i' => 4 }]
             }
           )
@@ -228,10 +228,10 @@ module OdataDuty
           response = Oj.load(json_string)
           expect(response).to eq(
             {
-              '@odata.context' => '$metadata#SupportsCollectionSelect',
-              'value' => [{ '@odata.id' => 'SupportsCollectionSelect(\'1\')',
+              '@odata.context' => 'https://localhost/$metadata#SupportsCollectionSelect',
+              'value' => [{ '@odata.id' => 'https://localhost/SupportsCollectionSelect(\'1\')',
                             'c' => { 's' => '3' } },
-                          { '@odata.id' => 'SupportsCollectionSelect(\'2\')',
+                          { '@odata.id' => 'https://localhost/SupportsCollectionSelect(\'2\')',
                             'c' => { 's' => '4' } }]
             }
           )

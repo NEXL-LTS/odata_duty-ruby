@@ -89,7 +89,7 @@ def simple_test(context = Context.new)
     { 'id' => nested_data.id,
       'sample1' => build_sample(nested_data.sample1),
       'sample2' => build_sample(nested_data.sample2),
-      '@odata.id' => "#{base_url}('#{nested_data.id}')" }
+      '@odata.id' => "http://localhost/#{base_url}('#{nested_data.id}')" }
   end
   Oj.dump('value' => result, mode: :compat)
 end

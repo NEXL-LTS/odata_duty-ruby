@@ -1,6 +1,19 @@
 # OdataDuty
 
-Write OData compatible APIs in Ruby with the goal of easily connection your application to Microsoft PowerBI and PowerAutomate.
+**OdataDuty** is a Ruby gem that lets you define structured data and operations once using a simple DSL — and expose them seamlessly to analytics tools (like PowerBI), no-code platforms (like PowerAutomate), and AI systems (via JSON-RPC or the Model Context Protocol).
+
+It’s designed around the principle of _"define once, serve everywhere"_: you model your entities, properties, filters, and behaviors in Ruby, and OdataDuty takes care of transforming that into formats and protocols your tools and agents understand.
+
+---
+
+## ✨ Why use OdataDuty?
+
+- ✅ Define your data model and logic in plain Ruby
+- ✅ Support schema-based APIs (OpenAPI/Swagger)
+- ✅ Avoid repeating business logic in multiple layers or formats
+- ✅ Build for humans and works with reporting tools, automation tools, and LLMs (WIP) simultaneously
+
+---
 
 ## Installation
 
@@ -12,32 +25,38 @@ gem 'odata_duty'
 
 And then execute:
 
-    $ bundle install
+```bash
+bundle install
+```
 
-Or install it yourself as:
+Or install it manually:
 
-    $ gem install odata_duty
+```bash
+gem install odata_duty
+```
 
-## Usage
+---
 
-The gem assumes some familiarity with OData concepts. If you're new to OData, you may want to check out the [OData Crash Course](doc/odata_crash_course.md) to get a quick overview of the core concepts.
+## Getting Started
 
-### Key Features
+> The gem assumes basic familiarity with OData concepts.  
+> If you’re new, check out the [OData Crash Course](doc/odata_crash_course.md).
 
-- **Define Entities and Properties**: Easily define your OData entities and their properties using simple Ruby classes.
-- **Handle Collections**: Manage collections of entities with support for filtering, paging, and counting.
-- **Support for Complex Types and Enums**: Define and use complex types and enumerations within your entities.
-- **Retrieve Individual Items**: Implement methods to fetch individual entities by their keys.
-- **Schema Definition**: Organize and expose your OData entities using schemas.
+### 🔧 Key Features
 
-#### Quick Example
+- **Entity and property definition** using a simple DSL
+- **Filtering, paging, and count support**
+- **Complex types and enums**
+- **Individual item retrieval and creation**
+- **Schema introspection and OpenAPI generation**
 
-Here's a quick example demonstrating how to define entities, manage collections, and handle individual items.
+---
+
+## DSL Quick Example
 
 ```ruby
 require 'odata_duty'
 
-# Define an entity type
 class PersonEntity < OdataDuty::EntityType
   property_ref 'id', String
   property 'user_name', String, nullable: false
@@ -45,7 +64,6 @@ class PersonEntity < OdataDuty::EntityType
   property 'emails', [String], nullable: false
 end
 
-# Define a collection set
 class PeopleSet < OdataDuty::EntitySet
   entity_type PersonEntity
 
@@ -66,59 +84,41 @@ class PeopleSet < OdataDuty::EntitySet
   end
 end
 
-# Define the schema
 class SampleSchema < OdataDuty::Schema
   namespace 'SampleSpace'
   entity_sets [PeopleSet]
+  base_url Rails.application.routes.url_helpers.api_root_url
 end
-
-# Example usage
-schema = SampleSchema.new
-puts schema.execute('People')
-puts schema.execute("People('1')")
 ```
 
-#### Quick Dynamic Example with Rails
+---
+
+## Rails Integration Example
 
 ```ruby
-# add to routes.rb
-
+# config/routes.rb
 scope '/api' do
   root 'api#index'
-  get '$metadata' => 'api#metadata', as: 'metadata'
-  get '$oas2' => 'api#oas2', as: 'oas2'
-  get '*url' => 'api#show', as: 'show'
-  post '*url' => 'api#create', as: 'create'
+  get '$metadata' => 'api#metadata'
+  get '$oas2' => 'api#oas2'
+  get '*url' => 'api#show'
+  post '*url' => 'api#create'
 end
 ```
 
 ```ruby
-rescue_from OdataDuty::RequestError do |error|
-  render json: { error: { code: error.code, error: error.message, target: error.target } }, 
-         status: error.status
-end
+# app/controllers/api_controller.rb
 
-rescue_from ActiveRecord::StatementInvalid do |error|
-  render json: { error: { code: 'StatementInvalid', error: error.message } }, 
-         status: :bad_request
-end
-
-rescue_from ActiveRecord::RecordNotFound do |error|
-  render json: { error: { code: 'RecordNotFound', error: error.message } }, 
-         status: :not_found
-end
-
-# add to api_controller.rb
-def index # OData Service Index
+def index
   render json: OdataDuty::EdmxSchema.index_hash(schema)
 end
 
-def metadata # OData metadata
+def metadata
   render xml: OdataDuty::EdmxSchema.metadata_xml(schema)
 end
 
-def oas2 # OpenAPI 2.0 (Swagger) schema
-  render xml: OdataDuty::OAS2.build_json(schema)
+def oas2
+  render json: OdataDuty::OAS2.build_json(schema)
 end
 
 def show
@@ -151,41 +151,26 @@ end
 ```
 
 ```ruby
-# add to people_resolver.rb
+# app/models/people_resolver.rb
 class PeopleResolver < OdataDuty::SetResolver
   def od_after_init
     @records = Person.all
   end
 
-  # eq: Test whether a field is equal to
   def od_filter_eq(property_name, value)
     @records = @records.where(property_name.to_sym => value)
   end
 
-  # ne: Test whether a field is not equal to
   def od_filter_ne(property_name, value)
     @records = @records.where.not(property_name.to_sym => value)
   end
 
-  # gt: Test whether a field is greater than
   def od_filter_gt(property_name, value)
-    @records = @records.where("#{@records.table_name}.#{property_name} > ?", value)
+    @records = @records.where("#{property_name} > ?", value)
   end
 
-  # ge: Test whether a field is greater than or equal
-  def od_filter_ge(property_name, value)
-    @records = @records.where(property_name.to_sym => value..)
-  end
-
-  # lt: Test whether a field is less than
   def od_filter_lt(property_name, value)
-    @records = @records.where(property_name.to_sym => ...value)
-  end
-
-  # le: Test whether a field is less than or equal to
-  def od_filter_le(property_name, value)
-    assert_filterable_property(property_name)
-    @records = @records.where(property_name.to_sym => ..value)
+    @records = @records.where("#{property_name} < ?", value)
   end
 
   def count
@@ -202,21 +187,51 @@ class PeopleResolver < OdataDuty::SetResolver
 end
 ```
 
-## Further documentation
+---
 
+## 📚 Further Documentation
+
+- [OData Crash Course](doc/odata_crash_course.md)
+- [MCP Crash Course](doc/mcp_crash_course.md)
 - [Using `$select`](doc/using_select.md)
+
+---
 
 ## TODO
 
-* add support for composite keys
-* add support for descriptions
+- Add support for composite keys
+- Add support for schema descriptions
+- Extend protocol adapters (MCP tools, resource reading)
+
+---
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```bash
+bin/setup     # Install dependencies
+rake spec     # Run the test suite
+bin/console   # Open interactive console
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem locally:
+
+```bash
+bundle exec rake install
+```
+
+To release a new version:
+
+```bash
+bundle exec rake release
+```
+
+---
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/odata_duty.
+Bug reports and pull requests are welcome on GitHub at [github.com/[USERNAME]/odata_duty](https://github.com/[USERNAME]/odata_duty).
+
+If you're interested in extending the DSL to support new protocols or tool integrations, open an issue or start a discussion — the architecture is designed for extensibility.
+```
+
+---
