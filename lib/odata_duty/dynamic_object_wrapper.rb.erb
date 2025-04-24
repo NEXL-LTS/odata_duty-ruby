@@ -10,20 +10,25 @@ Class.new(MapperBuilder) do
     <% end %>
 
   <% if property.collection? %>
-    <% if property.scalar? %> 
+    <% if property.scalar? %>
+      begin 
       <% if property.boolean? %>
         <%= property.name %>_value&.map{ |rw| confirm_boolean("<%= property.name %>", rw) }
       <% elsif property.string? %>
-        <%= property.name %>_value = <%= property.name %>_value&.map(&:to_str)
+        <%= property.name %>_value = <%= property.name %>_value&.map{ |v| v&.to_str }
       <% elsif property.int? %>
-        <%= property.name %>_value = <%= property.name %>_value&.map(&:to_int)
+        <%= property.name %>_value = <%= property.name %>_value&.map{ |v| v&.to_int }
       <% elsif property.date? %>
-        <%= property.name %>_value = <%= property.name %>_value&.map(&:to_date)&.map(&:iso8601)
+        <%= property.name %>_value = <%= property.name %>_value&.map{ |v| v&.to_date&.iso8601 }
       <% elsif property.datetime? %>
-        <%= property.name %>_value = <%= property.name %>_value&.map(&:to_datetime)&.map(&:iso8601)
+        <%= property.name %>_value = <%= property.name %>_value&.map{ |v| v&.to_datetime&.iso8601 }
       <% else %>
         raise('<%= property.type %> Coming soon')
       <% end %>
+      rescue NoMethodError => e
+        e.backtrace.unshift "<%= property.line__defined__at %>"
+        raise InvalidValue.new(e)
+      end
     <% else %>
       <%= property.name %>_value = <%= property.name %>_value&.map{ |rw| @<%= property.name %>_mapper.obj_to_base_hash(rw) }
     <% end %>
