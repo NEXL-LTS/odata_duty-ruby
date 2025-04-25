@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'odata_duty'
-  spec.version       = '0.10.0'
+  spec.version       = '0.10.1'
   spec.authors       = ['Grant Petersen-Speelman']
   spec.email         = ['grant@nexl.io']
 
