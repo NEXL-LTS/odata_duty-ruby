@@ -124,7 +124,7 @@ module OdataDuty
       elsif set_builder.respond_to?(generic_method)
         set_builder.public_send(generic_method, filter.property_name, value)
       else
-        raise NoImplementationError, "#{filter.operation} on #{filter.property_name} not supported"
+        raise NoImplementationError, "#{filter.property_name} #{filter.operation} not supported"
       end
     end
 
@@ -163,8 +163,6 @@ module OdataDuty
       query_options.except('$count', '$filter', '$select')
                    .select { |k, _| k.start_with?('$') }.each do |k, v|
         send("apply_#{k[1, 10]}", set_builder, v)
-      rescue NoMethodError
-        raise NoImplementationError, "query option #{k} not supported"
       end
     end
 
@@ -177,21 +175,27 @@ module OdataDuty
     end
 
     def apply_top(set_builder, top)
+      if !set_builder.respond_to?(:od_top) && top
+        raise NoImplementationError, "$top not implemented for #{set_builder.class}"
+      end
+
       set_builder.od_top(top) if top
-    rescue NoMethodError
-      raise NoImplementationError, "top not implemented for #{entity_set}"
     end
 
     def apply_skip(set_builder, skip)
+      if !set_builder.respond_to?(:od_skip) && skip
+        raise NoImplementationError, "$skip not implemented for #{set_builder.class}"
+      end
+
       set_builder.od_skip(skip) if skip
-    rescue NoMethodError
-      raise NoImplementationError, "skip not implemented for #{entity_set}"
     end
 
-    def apply_skiptoken(set_builder, top)
-      set_builder.od_skiptoken(top) if top
-    rescue NoMethodError
-      raise NoImplementationError, "skip not implemented for #{entity_set}"
+    def apply_skiptoken(set_builder, skiptoken)
+      if !set_builder.respond_to?(:od_skiptoken) && skiptoken
+        raise NoImplementationError, "$skiptoken not implemented for #{set_builder.class}"
+      end
+
+      set_builder.od_skiptoken(skiptoken) if skiptoken
     end
 
     def add_next_link(data, endpoint, set_builder, query_options, context)

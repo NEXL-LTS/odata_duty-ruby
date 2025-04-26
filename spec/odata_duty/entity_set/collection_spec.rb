@@ -77,6 +77,45 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         )
       end
 
+      context 'when top is not supported' do
+        it do
+          expect do
+            schema.execute('SupportsCollection', context: Context.new,
+                                                 query_options: { '$top' => '1' })
+          end.to raise_error(OdataDuty::NoImplementationError,
+                             '$top not implemented for SupportsCollectionSet')
+        end
+      end
+
+      context 'when skip is not supported' do
+        it do
+          expect do
+            schema.execute('SupportsCollection', context: Context.new,
+                                                 query_options: { '$skip' => '1' })
+          end.to raise_error(OdataDuty::NoImplementationError,
+                             '$skip not implemented for SupportsCollectionSet')
+        end
+      end
+
+      context 'when skiptoken is not supported' do
+        it do
+          expect do
+            schema.execute('SupportsCollection', context: Context.new,
+                                                 query_options: { '$skiptoken' => '1' })
+          end.to raise_error(OdataDuty::NoImplementationError,
+                             '$skiptoken not implemented for SupportsCollectionSet')
+        end
+      end
+
+      context 'when filter is not supported' do
+        it do
+          expect do
+            schema.execute('SupportsCollection', context: Context.new,
+                                                 query_options: { '$filter' => 'id = 1' })
+          end.to raise_error(OdataDuty::NoImplementationError)
+        end
+      end
+
       it do
         expect do
           schema.execute('DoesNotSupportCollection', context: Context.new)

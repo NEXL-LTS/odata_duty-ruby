@@ -14,7 +14,11 @@ class LargeCollectionResolver < OdataDuty::SetResolver
   end
 
   def od_top(top)
-    @records = @records[0..top.to_i - 1]
+    @top = top
+  end
+
+  def od_skip(skip)
+    @skip = skip
   end
 
   def od_skiptoken(skiptoken)
@@ -31,6 +35,8 @@ class LargeCollectionResolver < OdataDuty::SetResolver
   end
 
   def collection
+    @records = @records[@skip.to_i..] if @skip
+    @records = @records[0..@top.to_i - 1] if @top
     max_results = 50
     if @records.count > max_results
       od_next_link_skiptoken(@skiptoken.to_i + max_results)
@@ -61,6 +67,71 @@ module OdataDuty
       end
     end
 
+    describe '#oas_2' do
+      let(:json) { OAS2.build_json(schema) }
+      let(:path_names) { json['paths'].keys }
+      let(:get_parameters) { json['paths'][path]['get']['parameters'] }
+      let(:hashed_parameters) do
+        get_parameters.to_h do |p|
+          [p['name'], p.slice('type', 'in', 'description')]
+        end
+      end
+
+      it { expect(path_names).not_to include('/DoesNotSupportCollection') }
+
+      describe '/LargeCollection' do
+        let(:path) { '/LargeCollection' }
+
+        describe 'Collection get parameters' do
+          it do
+            expect(hashed_parameters['$filter']).to eq(
+              'type' => 'string',
+              'in' => 'query',
+              'description' => 'Filter the results'
+            )
+          end
+
+          it do
+            expect(hashed_parameters['$top']).to eq(
+              'type' => 'integer',
+              'in' => 'query',
+              'description' => 'Number of results to return'
+            )
+          end
+
+          it do
+            expect(hashed_parameters['$skip']).to eq(
+              'type' => 'integer',
+              'in' => 'query',
+              'description' => 'Number of results to skip'
+            )
+          end
+
+          it do
+            expect(hashed_parameters['$count']).to eq(
+              'type' => 'boolean',
+              'in' => 'query',
+              'description' => 'Include count of the results'
+            )
+          end
+
+          it do
+            expect(hashed_parameters['$skiptoken']).to eq(
+              'type' => 'string',
+              'in' => 'query',
+              'description' => 'Token for next page of results'
+            )
+          end
+        end
+      end
+
+      describe '/SupportsCollection' do
+        let(:path) { '/SupportsCollection' }
+
+        it { expect(hashed_parameters.keys).to eq(['$filter', '$select']) }
+      end
+    end
+
     describe '#execute' do
       describe 'collection' do
         it do
@@ -75,6 +146,45 @@ module OdataDuty
               ]
             }
           )
+        end
+
+        context 'when top is not supported' do
+          it do
+            expect do
+              schema.execute('SupportsCollection', context: Context.new,
+                                                   query_options: { '$top' => '1' })
+            end.to raise_error(OdataDuty::NoImplementationError,
+                               '$top not implemented for SupportsCollectionResolver')
+          end
+        end
+
+        context 'when skip is not supported' do
+          it do
+            expect do
+              schema.execute('SupportsCollection', context: Context.new,
+                                                   query_options: { '$skip' => '1' })
+            end.to raise_error(OdataDuty::NoImplementationError,
+                               '$skip not implemented for SupportsCollectionResolver')
+          end
+        end
+
+        context 'when skiptoken is not supported' do
+          it do
+            expect do
+              schema.execute('SupportsCollection', context: Context.new,
+                                                   query_options: { '$skiptoken' => '1' })
+            end.to raise_error(OdataDuty::NoImplementationError,
+                               '$skiptoken not implemented for SupportsCollectionResolver')
+          end
+        end
+
+        context 'when filter is not supported' do
+          it do
+            expect do
+              schema.execute('SupportsCollection', context: Context.new,
+                                                   query_options: { '$filter' => 'id = 1' })
+            end.to raise_error(OdataDuty::NoImplementationError)
+          end
         end
 
         it do
