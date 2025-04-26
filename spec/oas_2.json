@@ -20,6 +20,16 @@
             "description": "Filter the results"
           },
           {
+            "name": "$select",
+            "in": "query",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "description": "Comma-separated list of properties to return"
+          },
+          {
             "name": "$top",
             "in": "query",
             "type": "integer",

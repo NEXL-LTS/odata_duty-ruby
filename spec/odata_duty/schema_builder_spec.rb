@@ -2,11 +2,23 @@ require 'spec_helper'
 
 class PeopleResolver < OdataDuty::SetResolver
   def od_after_init
-    @records = if context.query_options['none'] == 'true'
+    @records = if context && context.query_options['none'] == 'true'
                  []
                else
                  Person.all
                end
+  end
+
+  def od_top(value)
+    @od_top = value.to_i
+  end
+
+  def od_skip(value)
+    @od_skip = value.to_i
+  end
+
+  def od_skiptoken(value)
+    @od_skiptoken = value
   end
 
   def count
@@ -91,6 +103,13 @@ module OdataDuty
         describe "paths #{path} get" do
           it do
             generated_json = json.dig('paths', path, 'get')
+            value['get'].each do |k, v|
+              if v.is_a?(Array)
+                expect(generated_json[k]).to match_array(v)
+              else
+                expect(generated_json[k]).to eq(v)
+              end
+            end
             expect(generated_json).to eq(value['get'])
           end
         end

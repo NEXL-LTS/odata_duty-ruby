@@ -54,7 +54,7 @@ module OdataDuty
     def add_collection_paths
       schema.collection_entity_sets.each do |entity_set|
         hash['paths']["/#{entity_set.url}"] = {
-          'get' => entity_set.collection.to_oas2,
+          'get' => CollectionGetPath.new(entity_set).to_oas2,
           'post' => CollectionPostPath.to_oas2(entity_set)
         }
       end
@@ -63,56 +63,20 @@ module OdataDuty
     def add_individual_paths
       schema.individual_entity_sets.each do |entity_set|
         hash['paths']["/#{entity_set.url}({id})"] = {
-          'get' => entity_set.individual.to_oas2
+          'get' => IndividualGetPath.new(entity_set).to_oas2
         }
       end
     end
 
-    class CollectionPostPath
-      def self.to_oas2(entity_set)
-        path_info = new(entity_set)
-        {
-          'operationId' => path_info.operation_id,
-          'produces' => path_info.produces,
-          'parameters' => path_info.parameters,
-          'responses' => path_info.responses
-        }
-      end
-
-      def initialize(entity_set)
-        @entity_set = entity_set
-      end
-
-      def operation_id
-        "Create#{@entity_set.name}"
-      end
-
-      def produces
-        ['application/json']
-      end
-
-      def parameters
-        [
-          {
-            'name' => 'body', 'in' => 'body', 'required' => true, 'schema' => entity_type_schema
-          }
-        ]
-      end
-
-      def responses
-        {
-          '200' => { 'description' => 'Success', 'schema' => entity_type_schema },
-          '201' => { 'description' => 'Created', 'schema' => entity_type_schema },
-          'default' => { 'description' => 'Unexpected error',
-                         'schema' => { '$ref' => '#/definitions/Error' } }
-        }
-      end
-
-      private
-
-      def entity_type_schema
-        { '$ref' => "#/definitions/#{@entity_set.entity_type.name}" }
-      end
-    end
+    DEFAULT_ERROR_RESPONSE = {
+      'description' => 'Unexpected error',
+      'schema' => {
+        '$ref' => '#/definitions/Error'
+      }
+    }.freeze
   end
 end
+
+require 'odata_duty/oas2/collection_get_path'
+require 'odata_duty/oas2/collection_post_path'
+require 'odata_duty/oas2/individual_get_path'
