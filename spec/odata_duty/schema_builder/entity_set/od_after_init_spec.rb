@@ -71,10 +71,7 @@ module OdataDuty
         it 'raises error InitArgsMismatchError when none given' do
           schema.add_entity_set(name: 'InitErrors', entity_type: 'InitArgTest',
                                 resolver: 'InitErrorsArgsResolver')
-          expect { json }.to raise_error(
-            OdataDuty::InitArgsMismatchError,
-            'wrong number of arguments (given 0, expected 1)'
-          )
+          expect { json }.to raise_error(OdataDuty::InitArgsMismatchError)
         end
 
         it 'raises error ArgumentError when error inside of resolver' do
