@@ -6,7 +6,15 @@ module OdataDuty
       @context = context
       return unless respond_to?(:od_after_init)
 
-      call_od_after_init(init_args)
+      begin
+        call_od_after_init(init_args)
+      rescue StandardError => e
+        insert_at = e.is_a?(InitArgsMismatchError) ? 1 : 2
+        if entity_set.respond_to?(:_defined_at_)
+          e.backtrace.insert(insert_at, entity_set._defined_at_)
+        end
+        raise e
+      end
     end
 
     def od_next_link_skiptoken(token = nil)
@@ -36,7 +44,6 @@ module OdataDuty
 
       err = InitArgsMismatchError.new(arg_error.message)
       err.set_backtrace(arg_error.backtrace.clone)
-      err.backtrace.insert(1, entity_set._defined_at_) if entity_set.respond_to?(:_defined_at_)
 
       raise err
     end

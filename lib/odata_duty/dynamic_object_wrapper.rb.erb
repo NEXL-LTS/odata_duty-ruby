@@ -25,15 +25,18 @@ Class.new(MapperBuilder) do
       <% else %>
         raise('<%= property.type %> Coming soon')
       <% end %>
-      rescue NoMethodError => e
-        e.backtrace.unshift "<%= property.line__defined__at %>"
-        raise InvalidValue.new(e)
+      rescue NoMethodError => no__err
+        err = InvalidValue.new(no__err.message)
+        err.set_backtrace(no__err.backtrace.clone)
+        err.backtrace.unshift "<%= property.line__defined__at %>"
+        raise err
       end
     <% else %>
       <%= property.name %>_value = <%= property.name %>_value&.map{ |rw| @<%= property.name %>_mapper.obj_to_base_hash(rw) }
     <% end %>
   <% else %>
     <% if property.scalar? %> 
+      begin
       <% if property.boolean? %>
         <%= property.name %>_value = confirm_boolean("<%= property.name %>", <%= property.name %>_value)
       <% elsif property.string? %>
@@ -49,6 +52,12 @@ Class.new(MapperBuilder) do
       <% else %>
         raise('<%= property.type %> Coming soon')
       <% end %>
+      rescue NoMethodError => no__err
+        err = InvalidValue.new(no__err.message)
+        err.set_backtrace(no__err.backtrace.clone)
+        err.backtrace.unshift "<%= property.line__defined__at %>"
+        raise err
+      end
     <% else %>
       <%= property.name %>_value = @<%= property.name %>_mapper.obj_to_base_hash(<%= property.name %>_value)
     <% end %>

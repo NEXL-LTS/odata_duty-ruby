@@ -17,27 +17,29 @@ module OdataDuty
       def entity_type = entity_set.entity_type
 
       def collection(set_builder, context:, selected:)
-        begin
-          values = set_builder.collection
-        rescue NoMethodError
+        unless set_builder.respond_to?(:collection)
           raise NoImplementationError, "collection not implemented for #{entity_set}"
         end
 
+        values = set_builder.collection
         mapper = entity_type.mapper(context, selected: selected)
 
         values.map { |v| mapper.obj_to_hash(v, context) }
+      rescue StandardError => e
+        extend_error(e, set_builder, :collection)
       end
 
       def individual(set_builder, id, context:, selected:)
-        begin
-          result = set_builder.individual(converted_id(id, context))
-        rescue NoMethodError
+        unless set_builder.respond_to?(:individual)
           raise NoImplementationError, "individual not implemented for #{entity_set}"
         end
 
+        result = set_builder.individual(converted_id(id, context))
         raise ResourceNotFoundError, "No such entity #{id}" unless result
 
         entity_type.mapper(context, selected: selected).obj_to_hash(result, context)
+      rescue StandardError => e
+        extend_error(e, set_builder, :collection)
       end
 
       def create(context:)
@@ -48,6 +50,17 @@ module OdataDuty
       end
 
       private
+
+      def extend_error(err, set_builder, method_name)
+        err.backtrace.unshift(entity_set._defined_at_) if entity_set.respond_to?(:_defined_at_)
+        if set_builder.respond_to?(:od_after_init)
+          err.backtrace.unshift(set_builder.method(:od_after_init).source_location.join(':'))
+        end
+        if set_builder.respond_to?(method_name)
+          err.backtrace.unshift(set_builder.method(method_name).source_location.join(':'))
+        end
+        raise err
+      end
 
       def converted_id(id, context)
         entity_type.property_refs.first.convert(id, context)
