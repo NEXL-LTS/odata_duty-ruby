@@ -3,6 +3,7 @@ module OdataDuty
 
   class PropertyAlreadyDefinedError < ArgumentError; end
   class InvalidNCNamesError < ArgumentError; end
+  class InitArgsMismatchError < ArgumentError; end
 
   class RequestError < Error
     attr_reader :code, :target

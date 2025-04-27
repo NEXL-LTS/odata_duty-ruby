@@ -1,6 +1,6 @@
 module OdataDuty
   class OAS2
-    CollectionGetPath = Struct.new(:entity_set) do
+    CollectionGetPath = Struct.new(:entity_set, :context) do
       COLLECTION_PARAMETERS = [
         {
           'name' => '$filter',
@@ -63,7 +63,7 @@ module OdataDuty
       }.freeze
 
       def to_oas2
-        instance = entity_set.resolver_class.new(context: nil)
+        instance = entity_set.resolver_class.new(context: context, init_args: entity_set.init_args)
         parameters = COLLECTION_PARAMETERS.select do |param|
           !PARAMETER_REQUIREMENTS.key?(param['name']) ||
             instance.respond_to?(PARAMETER_REQUIREMENTS[param['name']])

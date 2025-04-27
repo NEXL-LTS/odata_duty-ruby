@@ -1,7 +1,10 @@
+require_relative 'context_wrapper'
+require_relative 'schema_builder/endpoint'
+
 module OdataDuty
   class OAS2
-    def self.build_json(schema)
-      builder = new(schema)
+    def self.build_json(schema, context: nil)
+      builder = new(schema, context: context)
       builder.add_error_definition
       builder.add_enum_definitions
       builder.add_complex_definitions
@@ -10,10 +13,11 @@ module OdataDuty
       builder.hash
     end
 
-    attr_reader :hash, :schema
+    attr_reader :hash, :schema, :context
 
-    def initialize(schema)
+    def initialize(schema, context:)
       @schema = schema
+      @context = context
       @hash = { 'swagger' => '2.0', 'info' => {}, 'host' => schema.host,
                 'schemes' => [schema.scheme], 'basePath' => schema.base_path,
                 'paths' => {}, 'definitions' => {} }
@@ -54,7 +58,7 @@ module OdataDuty
     def add_collection_paths
       schema.collection_entity_sets.each do |entity_set|
         hash['paths']["/#{entity_set.url}"] = {
-          'get' => CollectionGetPath.new(entity_set).to_oas2,
+          'get' => CollectionGetPath.new(entity_set, wrap_context(entity_set)).to_oas2,
           'post' => CollectionPostPath.to_oas2(entity_set)
         }
       end
@@ -74,6 +78,14 @@ module OdataDuty
         '$ref' => '#/definitions/Error'
       }
     }.freeze
+
+    private
+
+    def wrap_context(entity_set)
+      ContextWrapper.new(@context, base_url: schema.base_url,
+                                   endpoint: SchemaBuilder::Endpoint.new(entity_set) ,
+                                   query_options: {})
+    end
   end
 end
 

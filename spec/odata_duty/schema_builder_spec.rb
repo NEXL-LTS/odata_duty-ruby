@@ -2,7 +2,7 @@ require 'spec_helper'
 
 class PeopleResolver < OdataDuty::SetResolver
   def od_after_init
-    @records = if context && context.query_options['none'] == 'true'
+    @records = if context.query_options['none'] == 'true'
                  []
                else
                  Person.all
@@ -91,7 +91,7 @@ module OdataDuty
     EXPECTED_DOC = Oj.load(File.read("#{__dir__}/../oas_2.json"))
 
     describe '#oas_2' do
-      let(:json) { OAS2.build_json(schema) }
+      let(:json) { OAS2.build_json(schema, context: Context.new) }
 
       it do
         s = %w[swagger info host schemes basePath]
