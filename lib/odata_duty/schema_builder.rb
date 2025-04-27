@@ -55,7 +55,7 @@ module OdataDuty
       end
 
       def endpoints
-        entity_sets.map { |entity_set| Endpoint.new(entity_set, 'EntitySet') }
+        entity_sets.map { |entity_set| Endpoint.new(entity_set) }
       end
 
       def enum_types

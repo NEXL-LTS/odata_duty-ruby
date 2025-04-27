@@ -4,7 +4,7 @@ module OdataDuty
       {
         '@odata.context': [schema.base_url.chomp('/'), '$metadata'].join('/'),
         value: schema.endpoints.map do |e|
-          { name: e.name, kind: e.kind, url: e.url }
+          { name: e.name, kind: 'EntitySet', url: e.url }
         end
       }
     end

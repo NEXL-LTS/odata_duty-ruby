@@ -1,18 +1,17 @@
 module OdataDuty
   module SchemaBuilder
     class Endpoint
-      attr_reader :entity_set, :kind
+      attr_reader :entity_set
 
-      def initialize(entity_set, kind)
+      def initialize(entity_set)
         @entity_set = entity_set
-        @kind = kind
       end
 
       def name = entity_set.name
       def url = entity_set.url
 
-      def new_entity_set(**kwargs)
-        entity_set.resolver_class.new(**kwargs)
+      def new_entity_set(context:)
+        entity_set.resolver_class.new(context: context, init_args: entity_set.init_args)
       end
 
       def entity_type = entity_set.entity_type

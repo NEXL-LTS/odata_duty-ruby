@@ -68,7 +68,7 @@ module OdataDuty
     end
 
     describe '#oas_2' do
-      let(:json) { OAS2.build_json(schema) }
+      let(:json) { OAS2.build_json(schema, context: Context.new) }
       let(:path_names) { json['paths'].keys }
       let(:get_parameters) { json['paths'][path]['get']['parameters'] }
       let(:hashed_parameters) do
