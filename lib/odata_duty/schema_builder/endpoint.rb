@@ -26,7 +26,7 @@ module OdataDuty
 
         values.map { |v| mapper.obj_to_hash(v, context) }
       rescue StandardError => e
-        extend_error(e, :collection)
+        extend_error(e, set_builder, :collection)
       end
 
       def individual(set_builder, id, context:, selected:)
@@ -39,7 +39,7 @@ module OdataDuty
 
         entity_type.mapper(context, selected: selected).obj_to_hash(result, context)
       rescue StandardError => e
-        extend_error(e, :collection)
+        extend_error(e, set_builder, :collection)
       end
 
       def create(context:)
@@ -51,7 +51,7 @@ module OdataDuty
 
       private
 
-      def extend_error(err, method_name)
+      def extend_error(err, set_builder, method_name)
         err.backtrace.unshift(entity_set._defined_at_) if entity_set.respond_to?(:_defined_at_)
         if set_builder.respond_to?(:od_after_init)
           err.backtrace.unshift(set_builder.method(:od_after_init).source_location.join(':'))
