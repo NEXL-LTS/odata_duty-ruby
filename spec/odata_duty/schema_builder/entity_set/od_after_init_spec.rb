@@ -69,18 +69,20 @@ module OdataDuty
 
       context 'with a entity set that requires args' do
         it 'raises error InitArgsMismatchError when none given' do
-          schema.add_entity_set(name: 'InitErrors', entity_type: 'InitArgTest', resolver: 'InitErrorsArgsResolver')
+          schema.add_entity_set(name: 'InitErrors', entity_type: 'InitArgTest',
+                                resolver: 'InitErrorsArgsResolver')
           expect { json }.to raise_error(
-            OdataDuty::InitArgsMismatchError, 
-            "wrong number of arguments (given 0, expected 1)"
+            OdataDuty::InitArgsMismatchError,
+            'wrong number of arguments (given 0, expected 1)'
           )
         end
 
         it 'raises error ArgumentError when error inside of resolver' do
-          schema.add_entity_set(name: 'InsideError', entity_type: 'InitArgTest', resolver: 'InitErrorsArgsResolver', init_args: 'given')
+          schema.add_entity_set(name: 'InsideError', entity_type: 'InitArgTest',
+                                resolver: 'InitErrorsArgsResolver', init_args: 'given')
           expect { json }.to raise_error(
             ArgumentError,
-            "wrong number of arguments (given 3, expected 0)"
+            'wrong number of arguments (given 3, expected 0)'
           )
         end
       end

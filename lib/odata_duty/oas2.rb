@@ -83,7 +83,7 @@ module OdataDuty
 
     def wrap_context(entity_set)
       ContextWrapper.new(@context, base_url: schema.base_url,
-                                   endpoint: SchemaBuilder::Endpoint.new(entity_set) ,
+                                   endpoint: SchemaBuilder::Endpoint.new(entity_set),
                                    query_options: {})
     end
   end
