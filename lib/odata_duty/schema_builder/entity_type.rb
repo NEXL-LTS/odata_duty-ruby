@@ -12,7 +12,7 @@ module OdataDuty
 
       def property_ref(*args)
         property(*args, nullable: false).tap do |property|
-          raise 'Multiple Property Reference not yet suported' if property_refs.size.positive?
+          raise 'Multiple Property Reference not yet supported' if property_refs.size.positive?
 
           property_refs << property
         end
