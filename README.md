@@ -95,6 +95,12 @@ end
 
 ## Rails Integration Example
 
+You can quickly generate the boilerplate controller, routes and schema with:
+
+```bash
+bin/rails generate odata_duty:install
+```
+
 ```ruby
 # config/routes.rb
 scope '/api' do

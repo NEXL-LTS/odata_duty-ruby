@@ -13,6 +13,7 @@ require 'odata_duty/complex_type'
 require 'odata_duty/entity_type'
 require 'odata_duty/filter'
 require 'odata_duty/create_complex_type_hash_wrapper'
+require 'odata_duty/railtie' if defined?(Rails::Railtie)
 
 module OdataDuty
   class EntitySet

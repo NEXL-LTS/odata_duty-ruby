@@ -1,0 +1,16 @@
+<% if module_name %>module <%= module_name %>
+<% end %>class Schema
+  def self.build(request)
+    OdataDuty::SchemaBuilder.build(namespace: "<%= module_name || 'MySpace' %>",
+                                   host: request.host_with_port,
+                                   scheme: request.scheme,
+                                   base_path: '/api') do |s|
+      s.title = 'My Dynamic API'
+      s.version = '0.0.1'
+      # Add entity types and sets here
+    end
+  end
+end
+<% if module_name %>
+end
+<% end %>
