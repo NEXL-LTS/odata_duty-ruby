@@ -229,9 +229,8 @@ bundle exec rake release
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at [github.com/[USERNAME]/odata_duty](https://github.com/[USERNAME]/odata_duty).
+Bug reports and pull requests are welcome on GitHub at [https://github.com/NEXL-LTS/odata_duty-ruby](https://github.com/NEXL-LTS/odata_duty-ruby).
 
 If you're interested in extending the DSL to support new protocols or tool integrations, open an issue or start a discussion — the architecture is designed for extensibility.
-```
 
 ---
