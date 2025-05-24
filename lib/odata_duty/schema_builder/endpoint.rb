@@ -39,7 +39,7 @@ module OdataDuty
 
         entity_type.mapper(context, selected: selected).obj_to_hash(result, context)
       rescue StandardError => e
-        extend_error(e, set_builder, :collection)
+        extend_error(e, set_builder, :individual)
       end
 
       def create(context:)
