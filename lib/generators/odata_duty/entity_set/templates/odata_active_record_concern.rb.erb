@@ -1,0 +1,91 @@
+module OdataActiveRecordConcern
+  def max_results
+    1000
+  end
+
+  def od_top(value)
+    if value.to_i > max_results
+      raise OdataDuty::ClientError, "Invalid $top cannot be more than \#{max_results}"
+    end
+
+    @records = @records.limit(value)
+  end
+
+  def od_skip(value)
+    @records = @records.offset(value)
+  end
+
+  def od_skiptoken(value)
+    @skiptoken = value
+    @records = @records.reorder(:id).where("\#{@records.table_name}.id > ?", value)
+  end
+
+  def count
+    @records.count
+  end
+
+  def collection
+    if @records.count > max_results
+      @records.safe_loading.reorder(:id).limit(max_results).to_a.tap do |r|
+        od_next_link_skiptoken(r.last.id)
+      end
+    else
+      @records.safe_loading
+    end
+  end
+
+  def individual(id)
+    @records.find_by(id: id)
+  end
+  # ODATA operators:
+  # eq, ne, gt, lt, ge, and le comes from OData naming conventions
+
+  # eq: Test whether a field is equal to a constant value
+  def od_filter_eq(property_name, value)
+    assert_filterable_property(property_name)
+    @records = @records.where(property_name.to_sym => value)
+  end
+
+  # ne: Test whether a field is not equal to a constant value
+  def od_filter_ne(property_name, value)
+    assert_filterable_property(property_name)
+    @records = @records.where.not(property_name.to_sym => value)
+  end
+
+  # gt: Test whether a field is greater than a constant value
+  def od_filter_gt(property_name, value)
+    assert_filterable_property(property_name)
+    @records = @records.order(property_name => :asc)
+                        .where("\#{@records.table_name}.\#{property_name} > ?", value)
+  end
+
+  # ge: Test whether a field is greater than or equal to a constant value
+  def od_filter_ge(property_name, value)
+    assert_filterable_property(property_name)
+    @records = @records.order(property_name => :asc)
+                        .where(property_name.to_sym => value..)
+  end
+
+  # lt: Test whether a field is less than a constant value
+  def od_filter_lt(property_name, value)
+    assert_filterable_property(property_name)
+    @records = @records.order(property_name => :desc)
+                        .where(property_name.to_sym => ...value)
+  end
+
+  # le: Test whether a field is less than or equal to a constant value
+  def od_filter_le(property_name, value)
+    assert_filterable_property(property_name)
+    @records = @records.order(property_name => :desc)
+                        .where(property_name.to_sym => ..value)
+  end
+
+  protected
+
+  def assert_filterable_property(property_name)
+    return if @records.column_names.include?(property_name.to_s)
+    return if @records.attribute_aliases.keys.include?(property_name.to_s)
+
+    raise NotImplementedError, "Filtering on \#{property_name} not supported"
+  end
+end

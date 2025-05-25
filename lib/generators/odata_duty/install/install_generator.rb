@@ -6,7 +6,8 @@ module OdataDuty
       class_option :module, type: :string, default: nil, desc: 'Module namespace'
 
       def create_controller
-        template 'controller.rb.tt', File.join('app/controllers', controller_path, 'api_controller.rb')
+        template 'controller.rb.tt',
+                 File.join('app/controllers', controller_path, 'api_controller.rb')
       end
 
       def create_schema

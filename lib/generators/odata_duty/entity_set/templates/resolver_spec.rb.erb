@@ -1,0 +1,33 @@
+require 'spec_helper'
+
+RSpec.describe <%= class_name %>Resolver do
+  let(:context) { instance_double(OdataDuty::Context) }
+  
+  subject { described_class.new(context: context, init_args: :_od_none_) }
+  
+  before do
+    allow(subject).to receive(:collection).and_return([])
+  end
+  
+  describe '#collection' do
+    it 'returns a collection of entities' do
+      expect(subject.collection).to be_an(Array)
+    end
+  end
+  
+  describe '#individual' do
+    let(:test_entity) { OpenStruct.new(<%= attributes.first.name %>: 'test_id') }
+    
+    before do
+      allow(subject).to receive(:collection).and_return([test_entity])
+    end
+    
+    it 'returns a specific entity by id' do
+      expect(subject.individual('test_id')).to eq(test_entity)
+    end
+    
+    it 'returns nil when the entity is not found' do
+      expect(subject.individual('non_existent_id')).to be_nil
+    end
+  end
+end

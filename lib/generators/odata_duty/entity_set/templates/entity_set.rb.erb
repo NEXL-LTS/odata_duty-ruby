@@ -1,0 +1,12 @@
+class <%= class_name %>Set < OdataDuty::EntitySet
+  include OdataActiveRecordConcern
+  entity_type <%= class_name %>Entity
+
+  def od_after_init
+    @records = <%= class_name %>.active
+  end
+
+  def create(data)
+    <%= class_name %>.create!(<% attributes.each do |attr| %><%= attr.name %>: data.<%= attr.name %>,<% end %>)
+  end
+end

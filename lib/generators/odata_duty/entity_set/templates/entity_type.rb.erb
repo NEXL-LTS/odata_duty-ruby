@@ -1,0 +1,6 @@
+class <%= class_name %>Entity < OdataDuty::EntityType
+  property_ref '<%= attributes.first.name %>', <%= odata_type(attributes.first.type) %>, nullable: false
+<% attributes.slice(1..-1).each do |attr| -%>
+  property '<%= attr.name %>', <%= odata_type(attr.type) %>
+<% end -%>
+end

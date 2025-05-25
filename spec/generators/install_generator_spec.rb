@@ -4,13 +4,15 @@ if Gem.loaded_specs['railties']
   require 'rails/generators'
   require 'generators/odata_duty/install/install_generator'
   require 'fileutils'
+  require 'tmpdir'
 
   RSpec.describe OdataDuty::Generators::InstallGenerator do
     let(:destination) { Dir.mktmpdir }
 
     before do
       FileUtils.mkdir_p(File.join(destination, 'config'))
-      File.write(File.join(destination, 'config/routes.rb'), "Rails.application.routes.draw do\nend\n")
+      File.write(File.join(destination, 'config/routes.rb'),
+                 "Rails.application.routes.draw do\nend\n")
     end
 
     after do

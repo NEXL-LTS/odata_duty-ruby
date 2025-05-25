@@ -26,8 +26,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'uri', '>= 1.0.0', '< 2.0.0'
   # spec.add_dependency 'securerandom', '>= 0.1.0', '< 2.0.0'
 
-  spec.add_development_dependency 'railties', '>= 3.2'
-
   # For more information and examples about making a new gem, checkout our
   # guide at: https://bundler.io/guides/creating_gem.html
   spec.metadata = {

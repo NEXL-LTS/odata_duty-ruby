@@ -1,0 +1,26 @@
+require 'rails_helper'
+
+RSpec.describe <%= class_name %>Set do
+  let(:context) { { } }
+  let(:entity_set) { <%= class_name %>Set.new(context) }
+
+  it 'returns all records' do
+    expect(entity_set.collection).to eq(<%= class_name %>.active)
+  end
+
+  it 'finds individual record' do
+    record = <%= class_name %>.create!(<%= attributes.map { |attr| "#{attr.name}: '#{attr.name}_value'" }.join(', ') %>)
+    expect(entity_set.individual(record.id)).to eq(record)
+  end
+
+  it 'creates a new record' do
+    data = OpenStruct.new(<%= attributes.map { |attr| "#{attr.name}: '#{attr.name}_new'" }.join(', ') %>)
+    expect { entity_set.create(data) }.to change { <%= class_name %>.count }.by(1)
+  end
+  
+  describe 'entity_type' do
+    it 'uses the correct entity type' do
+      expect(described_class.entity_type).to eq(<%= class_name %>Entity)
+    end
+  end
+end
