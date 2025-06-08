@@ -1,3 +1,9 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'bundler/setup'
+require 'odata_duty'
+
 require 'rails/generators'
 require 'generators/odata_duty/entity_set/entity_set_generator'
 require 'fileutils'
