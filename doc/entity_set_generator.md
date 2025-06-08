@@ -10,6 +10,14 @@ Generate entity types and sets with a single command:
 bin/rails generate odata_duty:entity_set ModelName field1:type field2:type field3:type
 ```
 
+You can also generate namespaced entities:
+
+```bash
+bin/rails generate odata_duty:entity_set Namespace::ModelName field1:type field2:type field3:type
+```
+
+This will create a namespaced module structure and place files in the appropriate subdirectories.
+
 This will create:
 - `app/odata/model_name_entity.rb` (EntityType)
 - `app/odata/model_name_set.rb` (EntitySet)
@@ -54,6 +62,17 @@ Generate an Order entity with order_number, date and amount properties, skipping
 ```bash
 bin/rails generate odata_duty:entity_set Order order_number:string date:date amount:integer --skip-tests
 ```
+
+Generate a namespaced entity:
+
+```bash
+bin/rails generate odata_duty:entity_set MySpace::Customer id:string name:string email:string
+```
+
+This will create:
+- `app/odata/my_space/customer_entity.rb`
+- `app/odata/my_space/customer_set.rb`
+- Corresponding test files in `spec/odata/my_space/`
 
 ## Supported Data Types
 
