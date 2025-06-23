@@ -69,7 +69,7 @@ end
 Context = Struct.new(:endpoint) do
   def url_for(url:, anchor: nil, **params)
     params_joined = params.transform_keys(&:to_s).map { |k, v| "#{k}=#{v}" }.join('&')
-    "#{url}#{params_joined == '' ? '' : "?#{params_joined}"}#{anchor ? "##{anchor}" : ''}"
+    "#{url}#{"?#{params_joined}" unless params_joined == ''}#{"##{anchor}" if anchor}"
   end
 end
 
