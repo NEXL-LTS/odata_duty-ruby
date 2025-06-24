@@ -1,0 +1,20 @@
+require 'spec_helper'
+
+RSpec.describe <%= class_name %>Entity do
+  let(:attributes) do
+    {
+      <% attributes.slice(1..-1).each do |attr| %>
+        <%= attr.name %>: '',
+      <% end %>
+    }
+  end
+  let(:record) { <%= class_name %>.create!(attributes) }
+  let(:context) { {} }
+  subject(:entity) { described_class.new(record, context) }
+
+  <% attributes.each do |attr| %>
+    describe '<%= attr.name %> property' do
+      it { expect(entity.<%= attr.name %>).to eq(record.<%= attr.name %>) }
+    end
+  <% end %>
+end

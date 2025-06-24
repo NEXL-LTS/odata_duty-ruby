@@ -1,0 +1,29 @@
+class <%= class_name %>Resolver < OdataDuty::SetResolver
+  def od_after_init
+    # Initialize any resources needed for this entity set
+    @<%= file_name.pluralize %> = []
+  end
+  
+  def collection
+    # Return all instances of this entity
+    @<%= file_name.pluralize %>
+  end
+  
+  def individual(id)
+    # Find and return a specific entity by id
+    @<%= file_name.pluralize %>.find { |item| item.<%= attributes.first.name %> == id }
+  end
+  
+  # Optional: Implement create method to support POST operations
+  def create(data)
+    # Create a new entity from the submitted data
+    new_<%= file_name %> = OpenStruct.new(
+<% attributes.each do |attr| %>
+      <%= attr.name %>: data['<%= attr.name %>'],
+<% end %>
+    )
+    
+    @<%= file_name.pluralize %> << new_<%= file_name %>
+    new_<%= file_name %>
+  end
+end

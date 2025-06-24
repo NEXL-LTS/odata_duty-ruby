@@ -22,7 +22,7 @@ class LargeCollectionSet < OdataDuty::EntitySet
   end
 
   def od_top(top)
-    @records = @records[0..top.to_i - 1]
+    @records = @records[0..(top.to_i - 1)]
   end
 
   def od_skiptoken(skiptoken)

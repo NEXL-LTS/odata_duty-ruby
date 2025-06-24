@@ -35,6 +35,22 @@ Or install it manually:
 gem install odata_duty
 ```
 
+### Rails Integration
+
+If you're using Rails, you can use the included generators to quickly set up OdataDuty:
+
+1. Set up the basic OData API structure:
+```bash
+bin/rails generate odata_duty:install
+```
+
+2. Generate entity types and sets:
+```bash
+bin/rails generate odata_duty:entity_set Product name:string price:decimal category:string
+```
+
+See the [Entity Set Generator documentation](doc/entity_set_generator.md) for more details.
+
 ---
 
 ## Getting Started
@@ -94,6 +110,12 @@ end
 ---
 
 ## Rails Integration Example
+
+You can quickly generate the boilerplate controller, routes and schema with:
+
+```bash
+bin/rails generate odata_duty:install
+```
 
 ```ruby
 # config/routes.rb

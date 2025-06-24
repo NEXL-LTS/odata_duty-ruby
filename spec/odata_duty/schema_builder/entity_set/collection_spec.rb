@@ -36,7 +36,7 @@ class LargeCollectionResolver < OdataDuty::SetResolver
 
   def collection
     @records = @records[@skip.to_i..] if @skip
-    @records = @records[0..@top.to_i - 1] if @top
+    @records = @records[0..(@top.to_i - 1)] if @top
     max_results = 50
     if @records.count > max_results
       od_next_link_skiptoken(@skiptoken.to_i + max_results)

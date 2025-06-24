@@ -1,0 +1,35 @@
+class <%= controller_class %> < ApplicationController
+  def index
+    render json: OdataDuty::EdmxSchema.index_hash(schema_metadata_url)
+  end
+
+  def metadata
+    render xml: OdataDuty::EdmxSchema.metadata_xml(schema)
+  end
+
+  def oas2
+    render json: OdataDuty::OAS2.build_json(schema)
+  end
+
+  def show
+    render json: schema.execute(params[:url], context: self, query_options: query_options)
+  end
+
+  def create
+    render json: schema.create(params[:url], context: self, query_options: query_options)
+  end
+
+  private
+
+  def query_options
+    params.to_unsafe_hash.except('url', 'action', 'controller', 'format')
+  end
+
+  def schema
+    <%= schema_class %>.build(request)
+  end
+
+  def schema_metadata_url
+    url_for(action: :metadata, only_path: false)
+  end
+end

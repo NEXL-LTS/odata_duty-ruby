@@ -34,3 +34,6 @@ Style/AccessorGrouping:
 
 Lint/ConstantDefinitionInBlock:
   Enabled: false
+
+Gemspec/AttributeAssignment:
+  Enabled: false
