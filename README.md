@@ -235,6 +235,20 @@ rake spec     # Run the test suite
 bin/console   # Open interactive console
 ```
 
+### Test Server
+
+To run the test server with auto-restart:
+
+```bash
+bundle exec rerun -- bundle exec rackup spec/config.ru
+```
+
+For MCP debugging with the inspector:
+
+```bash
+npx @modelcontextprotocol/inspector@0.15.0 -e PORT=9292 bundle exec rackup spec/config.ru
+```
+
 To install this gem locally:
 
 ```bash

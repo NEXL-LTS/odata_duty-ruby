@@ -13,3 +13,5 @@ Gemfile.lock
 .byebug_history
 odata_profile.json
 simple_profile.json
+
+/.devcontainer/
