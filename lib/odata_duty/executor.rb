@@ -176,6 +176,14 @@ module OdataDuty
       set_builder.od_skiptoken(skiptoken) if skiptoken
     end
 
+    def apply_search(set_builder, search_expression)
+      if !set_builder.respond_to?(:od_search) && search_expression
+        raise NoImplementationError, "$search not implemented for #{set_builder.class}"
+      end
+
+      set_builder.od_search(search_expression) if search_expression
+    end
+
     def add_next_link(data, endpoint, set_builder, query_options, context)
       return unless set_builder.od_next_link_skiptoken
 
@@ -197,6 +205,7 @@ module OdataDuty
 
     def individual(set_builder, endpoint, context, props)
       entity_id = extract_value_from_brackets(url)
+      apply_remaining(query_options, set_builder)
 
       Oj.dump(
         endpoint
