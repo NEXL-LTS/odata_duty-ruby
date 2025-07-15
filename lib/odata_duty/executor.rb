@@ -1,4 +1,5 @@
 require_relative 'context_wrapper'
+require_relative 'parslet_search_expression'
 
 module OdataDuty
   class Executor # rubocop:disable Metrics/ClassLength
@@ -176,12 +177,15 @@ module OdataDuty
       set_builder.od_skiptoken(skiptoken) if skiptoken
     end
 
-    def apply_search(set_builder, search_expression)
-      if !set_builder.respond_to?(:od_search) && search_expression
+    def apply_search(set_builder, search_string)
+      if !set_builder.respond_to?(:od_search) && search_string
         raise NoImplementationError, "$search not implemented for #{set_builder.class}"
       end
 
-      set_builder.od_search(search_expression) if search_expression
+      return unless search_string
+
+      search_expression = SearchExpression.parse(search_string)
+      set_builder.od_search(search_expression)
     end
 
     def add_next_link(data, endpoint, set_builder, query_options, context)

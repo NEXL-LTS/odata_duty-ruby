@@ -2,14 +2,14 @@ require 'spec_helper'
 
 class SupportsCollectionSearchResolver < OdataDuty::SetResolver
   ALL_RECORDS = [
-    { 'id' => '1', 'name' => 'John Doe', 'email' => 'john@example.com',
-      'address' => '123 Main St, John, ID', 'c' => OpenStruct.new(s: 'value1') },
-    { 'id' => '2', 'name' => 'Jane Smith', 'email' => 'jane@example.com',
+    { 'id' => '1', 'name' => 'Alice Brown', 'email' => 'alice@example.com',
+      'address' => '123 Main St, Boise, ID', 'c' => OpenStruct.new(s: 'value1') },
+    { 'id' => '2', 'name' => 'Bob Smith', 'email' => 'bob@example.com',
       'address' => '456 Oak Ave, Seattle, WA', 'c' => OpenStruct.new(s: 'value2') },
-    { 'id' => '3', 'name' => 'Bob Johnson', 'email' => 'bob@bob.com',
-      'address' => '789 Pine Rd, Portland, OR', 'c' => OpenStruct.new(s: 'bob') },
-    { 'id' => '4', 'name' => 'John Doe', 'email' => 'john@example.com',
-      'address' => '123 Main St, Boise, ID', 'c' => OpenStruct.new(s: 'searched') }
+    { 'id' => '3', 'name' => 'Charlie Johnson', 'email' => 'charlie@portland.com',
+      'address' => '789 Pine Rd, Portland, OR', 'c' => OpenStruct.new(s: 'value3') },
+    { 'id' => '4', 'name' => 'Dave Wilson', 'email' => 'dave@example.com',
+      'address' => '321 Elm St, Denver, CO', 'c' => OpenStruct.new(s: 'searched') }
   ].freeze
 
   def od_after_init
@@ -17,15 +17,38 @@ class SupportsCollectionSearchResolver < OdataDuty::SetResolver
   end
 
   def od_search(search_expression)
-    @records = @records.select do |key_val|
-      key_val.values.any? do |v|
-        v.to_s.include?(search_expression)
-      end
+    if search_expression.or?
+      od_search_or(search_expression)
+    else
+      od_search_and(search_expression)
     end
   end
 
   def collection
     @records.map { |r| CamelSnakeStruct.new(r) }
+  end
+
+  private
+
+  def od_search_or(search_expression)
+    found_records = []
+    search_expression.terms.each do |term|
+      matches = @records.select do |record|
+        match_found = record.values.any? { |v| v.to_s.downcase.include?(term.value.downcase) }
+        term.not? ? !match_found : match_found
+      end
+      found_records += matches
+    end
+    @records = found_records.uniq { |r| r['id'] }
+  end
+
+  def od_search_and(search_expression)
+    search_expression.terms.each do |term|
+      @records = @records.select do |record|
+        match_found = record.values.any? { |v| v.to_s.downcase.include?(term.value.downcase) }
+        term.not? ? !match_found : match_found
+      end
+    end
   end
 end
 
@@ -88,12 +111,12 @@ module OdataDuty
               '@odata.context' => 'https://localhost/$metadata#SupportsCollectionSearch',
               'value' => [
                 {
-                  '@odata.id' => 'https://localhost/SupportsCollectionSearch(\'4\')',
-                  'id' => '4',
-                  'name' => 'John Doe',
-                  'email' => 'john@example.com',
+                  '@odata.id' => 'https://localhost/SupportsCollectionSearch(\'1\')',
+                  'id' => '1',
+                  'name' => 'Alice Brown',
+                  'email' => 'alice@example.com',
                   'address' => '123 Main St, Boise, ID',
-                  'c' => { 's' => 'searched' }
+                  'c' => { 's' => 'value1' }
                 }
               ]
             }
@@ -117,6 +140,123 @@ module OdataDuty
           expect(response['value'].length).to eq(1)
           expect(response['value'].first).to include('id', 'name')
           expect(response['value'].first).not_to include('address', 'email')
+        end
+
+        # Test comprehensive search expression parsing functionality
+        it 'parses single word search' do
+          json_string = schema.execute('SupportsCollectionSearch',
+                                       context: Context.new,
+                                       query_options: { '$search' => 'Alice' })
+          response = Oj.load(json_string)
+          expect(response['value'].length).to eq(1)
+          expect(response['value'].first['name']).to eq('Alice Brown')
+        end
+
+        it 'parses quoted phrase search' do
+          json_string = schema.execute('SupportsCollectionSearch',
+                                       context: Context.new,
+                                       query_options: { '$search' => '"Alice Brown"' })
+          response = Oj.load(json_string)
+          expect(response['value'].length).to eq(1)
+          expect(response['value'].first['name']).to eq('Alice Brown')
+        end
+
+        it 'parses negated term search' do
+          json_string = schema.execute('SupportsCollectionSearch',
+                                       context: Context.new,
+                                       query_options: { '$search' => 'NOT Alice' })
+          response = Oj.load(json_string)
+          expect(response['value'].length).to eq(3)
+          names = response['value'].map { |v| v['name'] }
+          expect(names).to contain_exactly('Bob Smith', 'Charlie Johnson', 'Dave Wilson')
+        end
+
+        it 'parses implicit AND search' do
+          json_string = schema.execute('SupportsCollectionSearch',
+                                       context: Context.new,
+                                       query_options: { '$search' => 'Alice Brown' })
+          response = Oj.load(json_string)
+          expect(response['value'].length).to eq(1)
+          expect(response['value'].first['name']).to eq('Alice Brown')
+        end
+
+        it 'parses explicit AND search' do
+          json_string = schema.execute('SupportsCollectionSearch',
+                                       context: Context.new,
+                                       query_options: { '$search' => 'Alice AND Brown' })
+          response = Oj.load(json_string)
+          expect(response['value'].length).to eq(1)
+          expect(response['value'].first['name']).to eq('Alice Brown')
+        end
+
+        it 'parses OR expression search' do
+          json_string = schema.execute('SupportsCollectionSearch',
+                                       context: Context.new,
+                                       query_options: { '$search' => 'Alice OR Bob' })
+          response = Oj.load(json_string)
+          expect(response['value'].length).to eq(2)
+          names = response['value'].map { |v| v['name'] }
+          expect(names).to contain_exactly('Alice Brown', 'Bob Smith')
+        end
+
+        it 'parses OR with negation' do
+          json_string = schema.execute('SupportsCollectionSearch',
+                                       context: Context.new,
+                                       query_options: { '$search' => 'Alice OR NOT example.com' })
+          response = Oj.load(json_string)
+          expect(response['value'].length).to eq(2)
+          names = response['value'].map { |v| v['name'] }
+          expect(names).to contain_exactly('Alice Brown', 'Charlie Johnson')
+        end
+
+        it 'handles empty search string' do
+          json_string = schema.execute('SupportsCollectionSearch',
+                                       context: Context.new,
+                                       query_options: { '$search' => '' })
+          response = Oj.load(json_string)
+          expect(response['value'].length).to eq(4)
+        end
+
+        it 'handles whitespace only search' do
+          json_string = schema.execute('SupportsCollectionSearch',
+                                       context: Context.new,
+                                       query_options: { '$search' => '   ' })
+          response = Oj.load(json_string)
+          expect(response['value'].length).to eq(4)
+        end
+
+        it 'raises error for mixed AND/OR operators' do
+          expect do
+            schema.execute('SupportsCollectionSearch',
+                           context: Context.new,
+                           query_options: { '$search' => 'apple AND orange OR peach' })
+          end.to raise_error(OdataDuty::NoImplementationError,
+                             %r{Mixed AND/OR operators are not supported})
+        end
+
+        it 'raises error for parentheses' do
+          expect do
+            schema.execute('SupportsCollectionSearch',
+                           context: Context.new,
+                           query_options: { '$search' => '(apple AND orange) AND peach' })
+          end.to raise_error(OdataDuty::NoImplementationError)
+        end
+
+        it 'raises error for unterminated quote' do
+          expect do
+            schema.execute('SupportsCollectionSearch',
+                           context: Context.new,
+                           query_options: { '$search' => '"hello world' })
+          end.to raise_error(OdataDuty::InvalidQueryOptionError)
+        end
+
+        it 'raises error for implicit AND mixed with OR' do
+          expect do
+            schema.execute('SupportsCollectionSearch',
+                           context: Context.new,
+                           query_options: { '$search' => 'apple orange OR peach' })
+          end.to raise_error(OdataDuty::NoImplementationError,
+                             %r{Mixed AND/OR operators are not supported})
         end
       end
     end
