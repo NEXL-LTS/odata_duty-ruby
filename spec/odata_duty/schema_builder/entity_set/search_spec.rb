@@ -260,5 +260,43 @@ module OdataDuty
         end
       end
     end
+
+    describe '#oas_2' do
+      let(:json) { OdataDuty::OAS2.build_json(schema, context: Context.new) }
+      let(:get_parameters) { json['paths'][path]['get']['parameters'] }
+      let(:hashed_parameters) do
+        get_parameters.to_h do |p|
+          [p['name'], p.slice('type', 'in', 'description')]
+        end
+      end
+
+      describe '/SupportsCollectionSearch' do
+        let(:path) { '/SupportsCollectionSearch' }
+
+        it 'includes $search parameter when od_search is supported' do
+          expect(hashed_parameters['$search']).to eq(
+            'type' => 'string',
+            'in' => 'query',
+            'description' => 'Search across entity contents using structured expressions with AND, OR, NOT operators'
+          )
+        end
+
+        it 'includes other standard parameters' do
+          expect(hashed_parameters.keys).to include('$filter', '$select', '$search')
+        end
+      end
+
+      describe '/SearchlessCollection' do
+        let(:path) { '/SearchlessCollection' }
+
+        it 'does not include $search parameter when od_search is not supported' do
+          expect(hashed_parameters.keys).not_to include('$search')
+        end
+
+        it 'includes other standard parameters' do
+          expect(hashed_parameters.keys).to include('$filter', '$select')
+        end
+      end
+    end
   end
 end

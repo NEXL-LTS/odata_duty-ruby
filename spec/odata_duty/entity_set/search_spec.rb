@@ -1,5 +1,22 @@
 require 'spec_helper'
 
+# OAS2 test resolver classes
+class SupportsCollectionSearchResolver < OdataDuty::SetResolver
+  def od_search(search_expression)
+    # This method indicates search support for OAS2
+  end
+  
+  def collection
+    []
+  end
+end
+
+class SearchlessCollectionResolver < OdataDuty::SetResolver
+  def collection
+    []
+  end
+end
+
 class CollectionSearchTestComplexEntity < OdataDuty::ComplexType
   property 's', String
 end
@@ -327,6 +344,61 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
                          context: Context.new,
                          query_options: { '$search' => '(apple)' })
         end.to raise_error(OdataDuty::NoImplementationError, /Parentheses are not supported/)
+      end
+    end
+  end
+
+  describe '#oas_2' do
+    # Use SchemaBuilder pattern for OAS2 tests since the legacy EntitySet approach doesn't work with OAS2
+    let(:oas2_schema) do
+      OdataDuty::SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '/api') do |s|
+        entity = s.add_entity_type(name: 'CollectionSearchTestEntity') do |et|
+          et.property_ref 'id', String
+          et.property 'name', String
+          et.property 'email', String
+          et.property 'address', String
+        end
+
+        s.add_entity_set(name: 'SupportsCollectionSearch', entity_type: entity,
+                         resolver: 'SupportsCollectionSearchResolver')
+        s.add_entity_set(name: 'SearchlessCollection', entity_type: entity,
+                         resolver: 'SearchlessCollectionResolver')
+      end
+    end
+
+    let(:json) { OdataDuty::OAS2.build_json(oas2_schema, context: Context.new) }
+    let(:get_parameters) { json['paths'][path]['get']['parameters'] }
+    let(:hashed_parameters) do
+      get_parameters.to_h do |p|
+        [p['name'], p.slice('type', 'in', 'description')]
+      end
+    end
+
+    describe '/SupportsCollectionSearch' do
+      let(:path) { '/SupportsCollectionSearch' }
+
+      it 'includes $search parameter when od_search is supported' do
+        expect(hashed_parameters['$search']).to eq(
+          'type' => 'string',
+          'in' => 'query',
+          'description' => 'Search across entity contents using structured expressions with AND, OR, NOT operators'
+        )
+      end
+
+      it 'includes other standard parameters' do
+        expect(hashed_parameters.keys).to include('$filter', '$select', '$search')
+      end
+    end
+
+    describe '/SearchlessCollection' do
+      let(:path) { '/SearchlessCollection' }
+
+      it 'does not include $search parameter when od_search is not supported' do
+        expect(hashed_parameters.keys).not_to include('$search')
+      end
+
+      it 'includes other standard parameters' do
+        expect(hashed_parameters.keys).to include('$filter', '$select')
       end
     end
   end
