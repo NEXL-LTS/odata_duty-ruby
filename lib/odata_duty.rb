@@ -102,6 +102,11 @@ module OdataDuty
         mapper.obj_to_hash(result, context)
       end
 
+      def supports_search?
+        # Check if the entity set class supports search by looking for the od_search method
+        entity_set.method_defined?(:od_search)
+      end
+
       private
 
       def converted_id(id, context)

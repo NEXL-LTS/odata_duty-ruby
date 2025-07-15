@@ -213,4 +213,46 @@ GET /MyEntitySet?$search="senior developer" AND NOT intern&$filter=age gt 25
 - **Flexibility:**  
   Unlike the strict comparison logic of `$filter`, `$search` allows for flexible, implementation-defined matching strategies with support for complex boolean logic.
 
-By following these guidelines, you'll provide robust support for the `$search` option in your OData API, enabling powerful search capabilities with AND, OR, and NOT operators for your clients.
+## OData Metadata Integration
+
+When you implement `od_search`, OdataDuty automatically includes the appropriate search capabilities in your OData metadata (`$metadata` endpoint). This ensures that clients can discover search functionality through standard OData metadata inspection.
+
+### Automatic Metadata Generation
+
+The system automatically adds OData Capabilities vocabulary annotations to your metadata:
+
+```xml
+<EntitySet Name="YourEntitySet" EntityType="YourNamespace.YourEntityType">
+    <Annotation Term="Capabilities.SearchRestrictions">
+        <Record>
+            <PropertyValue Property="Searchable" Bool="true" />
+            <PropertyValue Property="UnsupportedExpressions" EnumMember="Capabilities.SearchExpressions/group" />
+        </Record>
+    </Annotation>
+</EntitySet>
+```
+
+### Supported Search Expressions
+
+The metadata indicates that your entity set supports:
+- **Basic search terms** (single words and quoted phrases)
+- **AND operations** (explicit `AND` and implicit)
+- **OR operations** (explicit `OR`)
+- **NOT operations** (negation with `NOT`)
+
+### Unsupported Features
+
+The metadata also indicates that the following are **not supported**:
+- **Grouping with parentheses** (indicated by `SearchExpressions/group`)
+- **Mixed AND/OR operations** in the same expression
+
+### Client Discovery
+
+OData clients can inspect the metadata to determine:
+1. Whether an entity set supports search (`Searchable` property)
+2. Which search expression types are supported
+3. Which search features are restricted
+
+This allows clients to provide appropriate user interfaces and validation for search functionality.
+
+By following these guidelines, you'll provide robust support for the `$search` option in your OData API, enabling powerful search capabilities with AND, OR, and NOT operators for your clients, complete with proper metadata annotations for client discovery.

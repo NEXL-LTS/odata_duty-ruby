@@ -5,7 +5,7 @@ class SupportsCollectionSearchResolver < OdataDuty::SetResolver
   def od_search(search_expression)
     # This method indicates search support for OAS2
   end
-  
+
   def collection
     []
   end
@@ -349,9 +349,9 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
   end
 
   describe '#oas_2' do
-    # Use SchemaBuilder pattern for OAS2 tests since the legacy EntitySet approach doesn't work with OAS2
     let(:oas2_schema) do
-      OdataDuty::SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '/api') do |s|
+      OdataDuty::SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost',
+                                     base_path: '/api') do |s|
         entity = s.add_entity_type(name: 'CollectionSearchTestEntity') do |et|
           et.property_ref 'id', String
           et.property 'name', String
@@ -381,7 +381,7 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         expect(hashed_parameters['$search']).to eq(
           'type' => 'string',
           'in' => 'query',
-          'description' => 'Search across entity contents using structured expressions with AND, OR, NOT operators'
+          'description' => 'Search using structured expressions with AND, OR, NOT operators'
         )
       end
 
@@ -400,6 +400,46 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
       it 'includes other standard parameters' do
         expect(hashed_parameters.keys).to include('$filter', '$select')
       end
+    end
+  end
+
+  describe '#metadata' do
+    let(:metadata_xml) do
+      OdataDuty::SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost',
+                                     base_path: '/api') do |s|
+        entity = s.add_entity_type(name: 'CollectionSearchTestEntity') do |et|
+          et.property_ref 'id', String
+          et.property 'name', String
+          et.property 'email', String
+          et.property 'address', String
+        end
+
+        s.add_entity_set(name: 'SupportsCollectionSearch', entity_type: entity,
+                         resolver: 'SupportsCollectionSearchResolver')
+        s.add_entity_set(name: 'SearchlessCollection', entity_type: entity,
+                         resolver: 'SearchlessCollectionResolver')
+      end.metadata_xml
+    end
+
+    it 'includes OData Capabilities vocabulary reference' do
+      expect(metadata_xml).to include('Org.OData.Capabilities.V1')
+      expect(metadata_xml).to include('Alias="Capabilities"')
+    end
+
+    it 'includes SearchRestrictions annotation for search-enabled entity sets' do
+      expect(metadata_xml).to include('<EntitySet Name="SupportsCollectionSearch"')
+      expect(metadata_xml).to include('Term="Capabilities.SearchRestrictions"')
+      expect(metadata_xml).to include('Property="Searchable" Bool="true"')
+      expect(metadata_xml).to include(
+        'Property="UnsupportedExpressions" EnumMember="Capabilities.SearchExpressions/group"'
+      )
+    end
+
+    it 'does not include SearchRestrictions annotation for non-search entity sets' do
+      searchless_entity_set_xml = metadata_xml.split(
+        '<EntitySet Name="SearchlessCollection"'
+      )[1].split('</EntitySet>')[0]
+      expect(searchless_entity_set_xml).not_to include('Capabilities.SearchRestrictions')
     end
   end
 end

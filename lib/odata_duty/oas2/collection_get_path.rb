@@ -12,7 +12,7 @@ module OdataDuty
           'name' => '$search',
           'in' => 'query',
           'type' => 'string',
-          'description' => 'Search across entity contents using structured expressions with AND, OR, NOT operators'
+          'description' => 'Search using structured expressions with AND, OR, NOT operators'
         },
         {
           'name' => '$select',
@@ -47,7 +47,6 @@ module OdataDuty
           'description' => 'Token for next page of results'
         }
       ].freeze
-
       COLLECTION_RESPONSE_DEFAULTS = {
         '@odata.nextLink' => {
           'type' => 'string',
