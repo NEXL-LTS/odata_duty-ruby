@@ -15,6 +15,14 @@ class TestPersonResolver < OdataDuty::SetResolver
     ]
   end
 
+  def od_search(search_expression)
+    if search_expression.or?
+      od_search_or(search_expression)
+    else
+      od_search_and(search_expression)
+    end
+  end
+
   def od_filter_eq(property_name, value)
     @records = @records.select { |record| record.send(property_name) == value }
   end
@@ -34,6 +42,29 @@ class TestPersonResolver < OdataDuty::SetResolver
   def individual(id)
     @records.find { |record| record.id == id.to_i }
   end
+
+  private
+
+  def od_search_or(search_expression)
+    found_records = []
+    search_expression.terms.each do |term|
+      matches = @records.select do |record|
+        match_found = record.to_h.values.any? { |v| v.to_s.downcase.include?(term.value.downcase) }
+        term.not? ? !match_found : match_found
+      end
+      found_records += matches
+    end
+    @records = found_records.uniq { |r| r['id'] }
+  end
+
+  def od_search_and(search_expression)
+    search_expression.terms.each do |term|
+      @records = @records.select do |record|
+        match_found = record.to_h.values.any? { |v| v.to_s.downcase.include?(term.value.downcase) }
+        term.not? ? !match_found : match_found
+      end
+    end
+  end
 end
 
 # rubocop:disable Metrics/MethodLength,Metrics/AbcSize,Metrics/CyclomaticComplexity,Layout/LineLength
@@ -44,7 +75,7 @@ class TestApiApp
       s.title = 'Test OData API'
       s.version = '1.0.0'
       person_entity = s.add_entity_type(name: 'Person') do |et|
-        et.property_ref 'id', String
+        et.property_ref 'id', Integer
         et.property 'user_name', String, nullable: false
         et.property 'name', String
         et.property 'emails', [String], nullable: false

@@ -323,5 +323,109 @@ module OdataDuty
         expect(searchless_entity_set_xml).not_to include('Capabilities.SearchRestrictions')
       end
     end
+
+    describe 'mcp' do
+      let(:mcp_server) { schema }
+
+      describe 'tools/list' do
+        let(:request_payload) do
+          {
+            'jsonrpc' => '2.0',
+            'method' => 'tools/list',
+            'params' => {},
+            'id' => 'tools-list-1'
+          }
+        end
+
+        it 'returns search tools for entity sets that support search' do
+          actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+
+          expect(actual['result']['tools']).to include(
+            {
+              'name' => 'search_SupportsCollectionSearch',
+              'description' =>
+              'Search SupportsCollectionSearch using expressions with AND, OR, NOT operators',
+              'inputSchema' => {
+                'type' => 'object',
+                'properties' => {
+                  '$search' => {
+                    'type' => 'string',
+                    'description' => 'Search query using expressions with AND, OR, NOT operators'
+                  }
+                },
+                'required' => ['$search']
+              }
+            }
+          )
+        end
+
+        it 'does not return search tools for entity sets that do not support search' do
+          actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+
+          tool_names = actual['result']['tools'].map { |tool| tool['name'] }
+          expect(tool_names).not_to include('search_SearchlessCollection')
+        end
+      end
+
+      describe 'tools/call for search' do
+        let(:request_payload) do
+          {
+            'jsonrpc' => '2.0',
+            'method' => 'tools/call',
+            'params' => {
+              'name' => 'search_SupportsCollectionSearch',
+              'arguments' => {
+                '$search' => 'Alice'
+              }
+            },
+            'id' => 'tools-call-1'
+          }
+        end
+
+        it 'executes search on entity set that supports search' do
+          actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+
+          expect(actual['result']['value']).to be_an(Array)
+          expect(actual['result']['value'].length).to eq(1)
+          expect(actual['result']['value'].first['name']).to eq('Alice Brown')
+          expect(actual['result']['@odata.context']).to include('SupportsCollectionSearch')
+        end
+
+        it 'supports complex search expressions' do
+          request_payload['params']['arguments']['$search'] = 'Alice OR Bob'
+
+          actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+
+          expect(actual['result']['value']).to be_an(Array)
+          expect(actual['result']['value'].length).to eq(2)
+          names = actual['result']['value'].map { |v| v['name'] }
+          expect(names).to contain_exactly('Alice Brown', 'Bob Smith')
+        end
+
+        it 'raises error for entity set that does not support search' do
+          request_payload['params']['name'] = 'search_SearchlessCollection'
+
+          expect do
+            mcp_server.handle_jsonrpc(request_payload, context: Context.new)
+          end.to raise_error(OdataDuty::NoImplementationError)
+        end
+
+        it 'raises error for unknown tool' do
+          request_payload['params']['name'] = 'unknown_tool'
+
+          expect do
+            mcp_server.handle_jsonrpc(request_payload, context: Context.new)
+          end.to raise_error(/Unknown tool/)
+        end
+
+        it 'handles search expression parsing errors' do
+          request_payload['params']['arguments']['$search'] = 'apple AND orange OR peach'
+
+          expect do
+            mcp_server.handle_jsonrpc(request_payload, context: Context.new)
+          end.to raise_error(%r{Mixed AND/OR operators are not supported})
+        end
+      end
+    end
   end
 end

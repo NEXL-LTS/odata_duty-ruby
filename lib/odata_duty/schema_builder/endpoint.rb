@@ -49,6 +49,10 @@ module OdataDuty
         mapper.obj_to_hash(result, context)
       end
 
+      def supports_search?
+        entity_set.supports_search?
+      end
+
       private
 
       def extend_error(err, set_builder, method_name)

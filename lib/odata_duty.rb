@@ -254,5 +254,9 @@ module OdataDuty
     def self.create(url, context:, query_options: {})
       Executor.create(url: url, context: context, query_options: query_options, schema: self)
     end
+
+    def self.handle_jsonrpc(request_hash, context:)
+      MCPExecutor.handle(request_hash: request_hash, schema: self, context: context)
+    end
   end
 end
