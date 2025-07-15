@@ -45,25 +45,31 @@ class TestPersonResolver < OdataDuty::SetResolver
 
   private
 
-  def od_search_or(search_expression)
-    found_records = []
+  def filter_records_by_terms(search_expression, accumulate: false)
+    result_records = accumulate ? [] : @records
+
     search_expression.terms.each do |term|
       matches = @records.select do |record|
         match_found = record.to_h.values.any? { |v| v.to_s.downcase.include?(term.value.downcase) }
         term.not? ? !match_found : match_found
       end
-      found_records += matches
+
+      if accumulate
+        result_records += matches
+      else
+        result_records &= matches
+      end
     end
-    @records = found_records.uniq { |r| r['id'] }
+
+    accumulate ? result_records.uniq { |r| r['id'] } : result_records
+  end
+
+  def od_search_or(search_expression)
+    @records = filter_records_by_terms(search_expression, accumulate: true)
   end
 
   def od_search_and(search_expression)
-    search_expression.terms.each do |term|
-      @records = @records.select do |record|
-        match_found = record.to_h.values.any? { |v| v.to_s.downcase.include?(term.value.downcase) }
-        term.not? ? !match_found : match_found
-      end
-    end
+    @records = filter_records_by_terms(search_expression, accumulate: false)
   end
 end
 
