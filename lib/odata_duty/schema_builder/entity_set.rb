@@ -18,6 +18,11 @@ module OdataDuty
       def entity_type_name = entity_type.name
 
       def resolver_class = Module.const_get(resolver)
+
+      def supports_search?
+        # Check if the resolver class supports search by looking for the od_search method
+        resolver_class.method_defined?(:od_search)
+      end
     end
   end
 end

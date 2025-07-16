@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'odata_duty'
-  spec.version       = '0.13.0'
+  spec.version       = '0.14.0'
   spec.authors       = ['Grant Petersen-Speelman']
   spec.email         = ['grant@nexl.io']
 
@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'oj', '>= 3.0.0', '< 5.0.0'
+  spec.add_dependency 'parslet', '~> 2.0'
   spec.add_dependency 'uri', '>= 1.0.0', '< 2.0.0'
   # spec.add_dependency 'securerandom', '>= 0.1.0', '< 2.0.0'
 

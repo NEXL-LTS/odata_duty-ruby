@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" edmx:schemaLocation="https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/schemas/edm.xsd https://docs.oasis-open.org/odata/odata-csdl-xml/v4.01/os/schemas/edmx.xsd">
+    <edmx:Reference Uri="https://docs.oasis-open.org/odata/odata-vocabularies/v4.0/vocabularies/Org.OData.Capabilities.V1.xml">
+        <edmx:Include Namespace="Org.OData.Capabilities.V1" Alias="Capabilities" />
+    </edmx:Reference>
     <edmx:DataServices>
         <Schema Namespace="<%= metadata.namespace %>" xmlns="http://docs.oasis-open.org/odata/ns/edm">
              <% if metadata.version %><Annotation Term="<%= metadata.namespace %>.Version" String="<%= metadata.version %>" /><% end %>
@@ -33,7 +36,16 @@
             <% end %>
             <EntityContainer Name="Container">
                 <% metadata.entity_sets.each do |entity_set| %>
-                    <EntitySet Name="<%= entity_set.name %>" EntityType="<%= metadata.namespace %>.<%= entity_set.entity_type_name %>" />
+                    <EntitySet Name="<%= entity_set.name %>" EntityType="<%= metadata.namespace %>.<%= entity_set.entity_type_name %>">
+                        <% if entity_set.supports_search? %>
+                            <Annotation Term="Capabilities.SearchRestrictions">
+                                <Record>
+                                    <PropertyValue Property="Searchable" Bool="true" />
+                                    <PropertyValue Property="UnsupportedExpressions" EnumMember="Capabilities.SearchExpressions/group" />
+                                </Record>
+                            </Annotation>
+                        <% end %>
+                    </EntitySet>
                 <% end %>
             </EntityContainer>
         </Schema>

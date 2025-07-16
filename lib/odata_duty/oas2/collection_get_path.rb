@@ -9,6 +9,12 @@ module OdataDuty
           'description' => 'Filter the results'
         },
         {
+          'name' => '$search',
+          'in' => 'query',
+          'type' => 'string',
+          'description' => 'Search using structured expressions with AND, OR, NOT operators'
+        },
+        {
           'name' => '$select',
           'in' => 'query',
           'type' => 'array',
@@ -41,7 +47,6 @@ module OdataDuty
           'description' => 'Token for next page of results'
         }
       ].freeze
-
       COLLECTION_RESPONSE_DEFAULTS = {
         '@odata.nextLink' => {
           'type' => 'string',
@@ -59,7 +64,8 @@ module OdataDuty
         '$top' => :od_top,
         '$count' => :count,
         '$skip' => :od_skip,
-        '$skiptoken' => :od_skiptoken
+        '$skiptoken' => :od_skiptoken,
+        '$search' => :od_search
       }.freeze
 
       def to_oas2

@@ -102,6 +102,11 @@ module OdataDuty
         mapper.obj_to_hash(result, context)
       end
 
+      def supports_search?
+        # Check if the entity set class supports search by looking for the od_search method
+        entity_set.method_defined?(:od_search)
+      end
+
       private
 
       def converted_id(id, context)
@@ -248,6 +253,10 @@ module OdataDuty
 
     def self.create(url, context:, query_options: {})
       Executor.create(url: url, context: context, query_options: query_options, schema: self)
+    end
+
+    def self.handle_jsonrpc(request_hash, context:)
+      MCPExecutor.handle(request_hash: request_hash, schema: self, context: context)
     end
   end
 end
