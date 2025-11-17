@@ -41,9 +41,9 @@ module OdataDuty
       {
         'protocolVersion' => '2024-11-05',
         'capabilities' => {
-          'logging' => {}, 'prompts' => { 'listChanged' => false },
-          'resources' => { 'subscribe' => false, 'listChanged' => false },
-          'tools' => { 'listChanged' => false }
+          'logging' => {}, 'prompts' => { 'listChanged' => true },
+          'resources' => { 'subscribe' => false, 'listChanged' => true },
+          'tools' => { 'listChanged' => true }
         },
         'serverInfo' => { 'name' => schema.title, 'version' => schema.version }
         # "instructions": "Optional instructions for the client"
