@@ -32,6 +32,12 @@ module OdataDuty
 
     def handle_notifications_initialized; end
 
+    def handle_logging_setLevel
+      {}
+    end
+
+    def handle_notifications_cancelled; end
+
     def handle_resources_read
       { 'contents' => [{ 'uri' => uri.path, 'mimeType' => 'application/json',
                          'text' => run_resources_read.to_s }] }
