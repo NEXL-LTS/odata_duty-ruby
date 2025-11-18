@@ -67,44 +67,131 @@ module OdataDuty
     end
 
     def handle_tools_list
-      # Add search tool for each entity set that supports search
-      tools = schema.endpoints.select(&:supports_search?).map do |endpoint|
-        build_tool(endpoint)
-      end
-
+      tools = schema.endpoints.flat_map { |endpoint| tools_for_endpoint(endpoint) }
       { 'tools' => tools }
     end
 
-    def build_tool(endpoint)
-      { 'name' => "search_#{endpoint.name}",
-        'description' => "Search #{endpoint.name} using expressions with AND, OR, NOT operators",
-        'inputSchema' => {
-          'type' => 'object',
-          'properties' => {
-            '$search' => {
-              'type' => 'string',
-              'description' => 'Search query using expressions with AND, OR, NOT operators'
+    def tools_for_endpoint(endpoint)
+      entity_name = endpoint.entity_type.name.downcase
+      collection_name = endpoint.name.downcase
+
+      tools = [
+        {
+          'name' => "get_#{entity_name}_by_id",
+          'description' => "Get a specific #{endpoint.entity_type.name} by ID",
+          'inputSchema' => {
+            'type' => 'object',
+            'properties' => {
+              'id' => {
+                'type' => 'string',
+                'description' => "#{endpoint.entity_type.name} ID"
+              }
+            },
+            'required' => ['id']
+          }
+        },
+        {
+          'name' => "list_#{collection_name}",
+          'description' => "List #{endpoint.name} with pagination",
+          'inputSchema' => {
+            'type' => 'object',
+            'properties' => {
+              'top' => {
+                'type' => 'integer',
+                'description' => 'Number of records to return',
+                'minimum' => 0
+              },
+              'skip' => {
+                'type' => 'integer',
+                'description' => 'Number of records to skip',
+                'minimum' => 0
+              }
             }
-          },
-          'required' => ['$search']
-        } }
+          }
+        },
+        {
+          'name' => "count_#{collection_name}",
+          'description' => "Count #{endpoint.name}",
+          'inputSchema' => {
+            'type' => 'object',
+            'properties' => {}
+          }
+        }
+      ]
+
+      # Add search tool if endpoint supports search
+      if endpoint.supports_search?
+        tools << {
+          'name' => "search_#{collection_name}",
+          'description' => "Search #{endpoint.name} using expressions with AND, OR, NOT operators",
+          'inputSchema' => {
+            'type' => 'object',
+            'properties' => {
+              '$search' => {
+                'type' => 'string',
+                'description' => 'Search query using expressions with AND, OR, NOT operators'
+              }
+            },
+            'required' => ['$search']
+          }
+        }
+      end
+
+      tools
     end
 
     def handle_tools_call
       tool_name = request_hash['params']['name']
-      query_options = request_hash['params']['arguments'] || {}
+      args = request_hash['params']['arguments'] || {}
 
-      # Parse tool name to extract entity set
-      raise "Unknown tool: #{tool_name}" unless tool_name.start_with?('search_')
+      # Find matching endpoint
+      endpoint = find_endpoint_for_tool(tool_name)
+      raise "Unknown tool: #{tool_name}" unless endpoint
 
-      endpoint_name = tool_name[7..] # Remove 'search_' prefix
-      endpoint = schema.endpoints.find { |ep| ep.name == endpoint_name }
+      # Execute the appropriate operation
+      result = execute_tool(tool_name, endpoint, args)
 
-      result = Executor.execute(url: endpoint.url, context: context,
-                                query_options: query_options, schema: schema)
+      # Return MCP-compliant response
+      { 'content' => [{ 'type' => 'text', 'text' => Oj.dump(result) }] }
+    end
 
-      # Parse the JSON result to return it as structured data
-      Oj.load(result)
+    def find_endpoint_for_tool(tool_name)
+      schema.endpoints.find do |ep|
+        entity_name = ep.entity_type.name.downcase
+        collection_name = ep.name.downcase
+        tool_name == "get_#{entity_name}_by_id" ||
+          tool_name == "list_#{collection_name}" ||
+          tool_name == "count_#{collection_name}" ||
+          tool_name == "search_#{collection_name}"
+      end
+    end
+
+    def execute_tool(tool_name, endpoint, args)
+      entity_name = endpoint.entity_type.name.downcase
+      collection_name = endpoint.name.downcase
+
+      case tool_name
+      when "get_#{entity_name}_by_id"
+        id = args['id'].to_s
+        url = "#{endpoint.url}('#{id}')"
+        result = Executor.execute(url: url, context: context, query_options: {}, schema: schema)
+        Oj.load(result)
+      when "list_#{collection_name}"
+        top = args['top'].to_i
+        skip = args['skip'].to_i
+        query_options = {}
+        query_options['$top'] = top.to_s if top > 0
+        query_options['$skip'] = skip.to_s if skip > 0
+        result = Executor.execute(url: endpoint.url, context: context, query_options: query_options, schema: schema)
+        Oj.load(result)
+      when "count_#{collection_name}"
+        url = "#{endpoint.url}/$count"
+        Executor.execute(url: url, context: context, query_options: {}, schema: schema)
+      when "search_#{collection_name}"
+        query_options = { '$search' => args['$search'] }
+        result = Executor.execute(url: endpoint.url, context: context, query_options: query_options, schema: schema)
+        Oj.load(result)
+      end
     end
 
     def resources_for_endpoint(endpoint)
