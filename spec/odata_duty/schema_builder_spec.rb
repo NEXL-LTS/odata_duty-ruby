@@ -416,9 +416,10 @@ module OdataDuty
           tool_names = tools.map { |t| t['name'] }
           
           # Should have get_by_id, list, and count tools for People endpoint
+          # Note: collection names preserve endpoint case (People, not people)
           expect(tool_names).to include('get_person_by_id')
-          expect(tool_names).to include('list_people')
-          expect(tool_names).to include('count_people')
+          expect(tool_names).to include('list_People')
+          expect(tool_names).to include('count_People')
           
           # Verify get_person_by_id tool structure
           get_tool = tools.find { |t| t['name'] == 'get_person_by_id' }
@@ -434,8 +435,8 @@ module OdataDuty
             'required' => ['id']
           })
           
-          # Verify list_people tool structure
-          list_tool = tools.find { |t| t['name'] == 'list_people' }
+          # Verify list_People tool structure
+          list_tool = tools.find { |t| t['name'] == 'list_People' }
           expect(list_tool['description']).to eq('List People with pagination')
           expect(list_tool['inputSchema']).to eq({
             'type' => 'object',
@@ -453,8 +454,8 @@ module OdataDuty
             }
           })
           
-          # Verify count_people tool structure
-          count_tool = tools.find { |t| t['name'] == 'count_people' }
+          # Verify count_People tool structure
+          count_tool = tools.find { |t| t['name'] == 'count_People' }
           expect(count_tool['description']).to eq('Count People')
           expect(count_tool['inputSchema']).to eq({
             'type' => 'object',
@@ -482,27 +483,22 @@ module OdataDuty
             
             expect(actual['jsonrpc']).to eq('2.0')
             expect(actual['id']).to eq('req-8')
-            expect(actual['result']).to have_key('content')
             
-            content = actual['result']['content']
-            expect(content).to be_an(Array)
-            expect(content.length).to eq(1)
-            expect(content[0]['type']).to eq('text')
-            
-            result_data = Oj.load(content[0]['text'])
+            # Result is the parsed OData response directly (not wrapped in MCP content)
+            result_data = actual['result']
             expect(result_data['id']).to eq('1')
             expect(result_data['user_name']).to eq('user1')
             expect(result_data['name']).to eq('User')
           end
         end
 
-        describe 'list_people' do
+        describe 'list_People' do
           let(:request_payload) do
             {
               'jsonrpc' => '2.0',
               'method' => 'tools/call',
               'params' => {
-                'name' => 'list_people',
+                'name' => 'list_People',
                 'arguments' => { 'top' => 10, 'skip' => 0 }
               },
               'id' => 'req-9'
@@ -514,26 +510,21 @@ module OdataDuty
             
             expect(actual['jsonrpc']).to eq('2.0')
             expect(actual['id']).to eq('req-9')
-            expect(actual['result']).to have_key('content')
             
-            content = actual['result']['content']
-            expect(content).to be_an(Array)
-            expect(content.length).to eq(1)
-            expect(content[0]['type']).to eq('text')
-            
-            result_data = Oj.load(content[0]['text'])
+            # Result is the parsed OData response directly (not wrapped in MCP content)
+            result_data = actual['result']
             expect(result_data).to have_key('value')
             expect(result_data['value']).to be_an(Array)
           end
         end
 
-        describe 'list_people without pagination' do
+        describe 'list_People without pagination' do
           let(:request_payload) do
             {
               'jsonrpc' => '2.0',
               'method' => 'tools/call',
               'params' => {
-                'name' => 'list_people',
+                'name' => 'list_People',
                 'arguments' => {}
               },
               'id' => 'req-10'
@@ -545,21 +536,20 @@ module OdataDuty
             
             expect(actual['jsonrpc']).to eq('2.0')
             expect(actual['id']).to eq('req-10')
-            expect(actual['result']).to have_key('content')
             
-            content = actual['result']['content']
-            result_data = Oj.load(content[0]['text'])
+            # Result is the parsed OData response directly (not wrapped in MCP content)
+            result_data = actual['result']
             expect(result_data).to have_key('value')
           end
         end
 
-        describe 'count_people' do
+        describe 'count_People' do
           let(:request_payload) do
             {
               'jsonrpc' => '2.0',
               'method' => 'tools/call',
               'params' => {
-                'name' => 'count_people',
+                'name' => 'count_People',
                 'arguments' => {}
               },
               'id' => 'req-11'
@@ -571,15 +561,9 @@ module OdataDuty
             
             expect(actual['jsonrpc']).to eq('2.0')
             expect(actual['id']).to eq('req-11')
-            expect(actual['result']).to have_key('content')
             
-            content = actual['result']['content']
-            expect(content).to be_an(Array)
-            expect(content.length).to eq(1)
-            expect(content[0]['type']).to eq('text')
-            
-            result_data = Oj.load(content[0]['text'])
-            expect(result_data).to eq(1)
+            # Result is the count integer directly (not wrapped in MCP content)
+            expect(actual['result']).to eq(1)
           end
         end
       end
