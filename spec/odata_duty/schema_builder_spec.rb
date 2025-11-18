@@ -407,60 +407,62 @@ module OdataDuty
 
         it 'returns available tools' do
           actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
-          
+
           expect(actual['jsonrpc']).to eq('2.0')
           expect(actual['id']).to eq('req-7')
           expect(actual['result']).to have_key('tools')
-          
+
           tools = actual['result']['tools']
           tool_names = tools.map { |t| t['name'] }
-          
+
           # Should have get_by_id, list, and count tools for People endpoint
           # Note: collection names preserve endpoint case (People, not people)
           expect(tool_names).to include('get_person_by_id')
           expect(tool_names).to include('list_People')
           expect(tool_names).to include('count_People')
-          
+
           # Verify get_person_by_id tool structure
           get_tool = tools.find { |t| t['name'] == 'get_person_by_id' }
           expect(get_tool['description']).to eq('Get a specific Person by ID')
           expect(get_tool['inputSchema']).to eq({
-            'type' => 'object',
-            'properties' => {
-              'id' => {
-                'type' => 'string',
-                'description' => 'Person ID'
-              }
-            },
-            'required' => ['id']
-          })
-          
+                                                  'type' => 'object',
+                                                  'properties' => {
+                                                    'id' => {
+                                                      'type' => 'string',
+                                                      'description' => 'Person ID'
+                                                    }
+                                                  },
+                                                  'required' => ['id']
+                                                })
+
           # Verify list_People tool structure
           list_tool = tools.find { |t| t['name'] == 'list_People' }
           expect(list_tool['description']).to eq('List People with pagination')
+          # rubocop:disable Layout/LineLength
           expect(list_tool['inputSchema']).to eq({
-            'type' => 'object',
-            'properties' => {
-              'top' => {
-                'type' => 'integer',
-                'description' => 'Number of records to return',
-                'minimum' => 0
-              },
-              'skip' => {
-                'type' => 'integer',
-                'description' => 'Number of records to skip',
-                'minimum' => 0
-              }
-            }
-          })
-          
+                                                   'type' => 'object',
+                                                   'properties' => {
+                                                     'top' => {
+                                                       'type' => 'integer',
+                                                       'description' => 'Number of records to return',
+                                                       'minimum' => 0
+                                                     },
+                                                     'skip' => {
+                                                       'type' => 'integer',
+                                                       'description' => 'Number of records to skip',
+                                                       'minimum' => 0
+                                                     }
+                                                   }
+                                                 })
+          # rubocop:enable Layout/LineLength
+
           # Verify count_People tool structure
           count_tool = tools.find { |t| t['name'] == 'count_People' }
           expect(count_tool['description']).to eq('Count People')
           expect(count_tool['inputSchema']).to eq({
-            'type' => 'object',
-            'properties' => {}
-          })
+                                                    'type' => 'object',
+                                                    'properties' => {}
+                                                  })
         end
       end
 
@@ -480,10 +482,10 @@ module OdataDuty
 
           it 'retrieves a person by ID' do
             actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
-            
+
             expect(actual['jsonrpc']).to eq('2.0')
             expect(actual['id']).to eq('req-8')
-            
+
             # Result is the parsed OData response directly (not wrapped in MCP content)
             result_data = actual['result']
             expect(result_data['id']).to eq('1')
@@ -507,10 +509,10 @@ module OdataDuty
 
           it 'lists people with pagination' do
             actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
-            
+
             expect(actual['jsonrpc']).to eq('2.0')
             expect(actual['id']).to eq('req-9')
-            
+
             # Result is the parsed OData response directly (not wrapped in MCP content)
             result_data = actual['result']
             expect(result_data).to have_key('value')
@@ -533,10 +535,10 @@ module OdataDuty
 
           it 'lists people without pagination parameters' do
             actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
-            
+
             expect(actual['jsonrpc']).to eq('2.0')
             expect(actual['id']).to eq('req-10')
-            
+
             # Result is the parsed OData response directly (not wrapped in MCP content)
             result_data = actual['result']
             expect(result_data).to have_key('value')
@@ -558,10 +560,10 @@ module OdataDuty
 
           it 'counts people' do
             actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
-            
+
             expect(actual['jsonrpc']).to eq('2.0')
             expect(actual['id']).to eq('req-11')
-            
+
             # Result is the count integer directly (not wrapped in MCP content)
             expect(actual['result']).to eq(1)
           end
