@@ -48,6 +48,8 @@ When editing, prefer extending these conventions over adding new public API surf
 
 ## Conventions
 
+- **The source code is the best source of truth.** Read it before relying on docs, comments, or this file — when they disagree, the code wins. Keep prose (docs, comments) minimal and let the code speak.
+- **Multi-line comments are banned everywhere** — in every language and file type (Ruby, shell, Dockerfile, YAML, Markdown front matter, etc.). A comment is at most one line. If something needs more than one line of explanation, the code isn't clear enough — rename, refactor, or restructure instead of writing a paragraph. This applies to consecutive single-line comments used as a block, too.
 - Tests must use only the gem's **public API** — do not test internal classes/methods directly (`AGENTS.md`).
 - Two-space indent, **99-char line limit**, Ruby 3 syntax. RuboCop metrics are tightened (see `.rubocop.yml`: `MethodLength` 13, `ClassLength`/`ModuleLength` 99, `AbcSize` 30) — keep methods small rather than adding inline disables.
 - Update `doc/` guides and `README.md` when external usage changes; bump `spec.version` in `odata_duty.gemspec` for releases.

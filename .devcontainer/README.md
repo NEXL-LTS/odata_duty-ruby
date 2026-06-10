@@ -1,6 +1,7 @@
 # Dev Container
 
-VS Code / Cursor dev container for `odata_duty`. Provides Ruby 3.3, Node.js
+VS Code / Cursor dev container for `odata_duty`. Built on a base Ubuntu image with
+**rbenv** (so any Ruby can be installed for version-specific debugging), Node.js
 (for the MCP inspector), the GitHub CLI, and the Claude Code CLI.
 
 ## Getting started
@@ -58,6 +59,28 @@ These are read by `devcontainer.json` and passed through as build args.
 macOS and Windows users on Docker Desktop don't need this — Docker Desktop
 handles UID translation for bind mounts on those platforms.
 
+## Ruby versions (rbenv)
+
+The image installs Ruby via [rbenv](https://github.com/rbenv/rbenv) + `ruby-build`
+rather than baking in a single fixed Ruby. The version pinned in `.ruby-version` is
+pre-built into the image, and on container start the entrypoint runs
+`rbenv install --skip-existing` so whatever `.ruby-version` pins is always present.
+
+To reproduce a **version-specific** issue (e.g. a CI matrix failure), install and
+switch to another Ruby — no rebuild needed:
+
+```sh
+rbenv install -l            # list installable versions
+rbenv install 3.4.4         # build another Ruby
+rbenv shell 3.4.4           # use it for this shell only
+ruby -v && bundle install   # reproduce against it
+```
+
+`rbenv local <version>` writes `.ruby-version` (don't commit that if you're only
+debugging); `rbenv global <version>` changes the default. The full `ruby-build`
+toolchain (compilers, `libssl-dev`, `rustc` for YJIT, …) is installed, so building
+arbitrary versions works offline of any prebuilt binaries.
+
 ## Git hooks
 
 The container enables this repo's checked-in git hooks automatically. The Dockerfile
@@ -78,8 +101,8 @@ git config core.hooksPath .githooks
 
 ## What's installed
 
-- Ruby 3.3 (matches `.ruby-version`) with Bundler
-- Node.js 18 + npm (from Debian Bookworm)
+- rbenv + ruby-build, with the `.ruby-version` Ruby pre-built (Bundler included)
+- Node.js 20 LTS + npm (from NodeSource)
 - `@anthropic-ai/claude-code` (run `claude` in the integrated terminal)
 - GitHub CLI (`gh`)
 - VS Code extensions: Ruby LSP, RuboCop, YAML, GitLens

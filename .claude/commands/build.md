@@ -16,7 +16,7 @@ Each task goes to a fresh subagent whose entire context you construct: the task 
 
 ## Continuous execution
 
-After the user approves the plan (the one checkpoint), execute **all** tasks without pausing to check in. Do not emit "Should I continue?" prompts or per-task progress summaries — the user asked you to build the PRD, so build it. Stop only for: a `BLOCKED` status you cannot resolve, a genuine ambiguity that prevents progress, or all tasks complete.
+There is **no approval checkpoint**. Once invoked, derive the plan from the PRD using the codebase's own best practices (below) and **go** — execute **all** tasks without pausing to check in. Do not present the plan for sign-off, and do not emit "Should I continue?" prompts or per-task progress summaries; the user already chose to build this PRD by running the command. Stop only for: a `BLOCKED` status you cannot resolve, a genuine ambiguity in the PRD that prevents correct work, or all tasks complete.
 
 ## This repo's hard rules (every subagent must honor)
 
@@ -37,11 +37,11 @@ Resolve `$ARGUMENTS` to a file in `doc/prds/` (try exact path, then `doc/prds/<a
 
 ### 2. Branch — never build on main
 
-Check the current branch with `git status`. If it's `main`, create and switch to a feature branch named after the PRD (e.g. `git checkout -b prd/orderby-support`) before any code changes. **Never** start implementation on `main`/`master` without explicit user consent. Confirm the working tree is clean enough to start; if there are unrelated uncommitted changes, surface them.
+Check the current branch with `git status`. If it's `main`, create and switch to a feature branch named after the PRD (e.g. `git checkout -b prd/orderby-support`) before any code changes — do this automatically; branching off `main` is itself the safeguard, so it needs no prompt. **Never** commit implementation work directly to `main`/`master`. If the working tree has unrelated uncommitted changes, note them and continue on the new branch.
 
-### 3. Derive the task plan
+### 3. Derive the task plan — then immediately execute it
 
-A PRD is a spec, not a task list — you must decompose it. Read the PRD's **External API**, **Behavior & expected I/O**, **Common error cases**, and **Scope** sections and produce an ordered list of small, independent, testable tasks. Good task boundaries for this repo:
+A PRD is a spec, not a task list — you must decompose it, guided by the codebase's own best practices: the **hard rules** above, the existing structure of `lib/` and the two spec trees, and how comparable features (e.g. `$search`, `$select`) are already split across the DSLs. Read the PRD's **External API**, **Behavior & expected I/O**, **Common error cases**, and **Scope** sections and produce an ordered list of small, independent, testable tasks. Good task boundaries for this repo:
 
 - One task per coherent slice of behavior (e.g. "parse and validate the new query option", "apply it in the collection path", "surface it in `$metadata`", "surface it in `$oas2`", "expose it over MCP").
 - **Split class-DSL and builder-DSL work into sibling tasks** when they're substantial, or keep them in one task when the change is small and symmetric — but the task text must always name *both* DSLs and *both* spec trees so nothing is half-done.
@@ -49,13 +49,11 @@ A PRD is a spec, not a task list — you must decompose it. Read the PRD's **Ext
 
 For each task, write down: the full task text, which files it likely touches (both DSLs), the exact PRD excerpt (API snippet + expected I/O) that defines "done", and how it depends on earlier tasks. Order so each task builds on green predecessors.
 
-Create a `TodoWrite` list with every task.
+**Write the plan to a file.** Save the full plan next to the PRD, named after it with a `-plan.md` ending — for `doc/prds/<slug>.md` write `doc/prds/<slug>-plan.md` (e.g. `doc/prds/orderby-support.md` → `doc/prds/orderby-support-plan.md`). The file links back to its PRD at the top and lists every task in order with, for each: a title, the full task text, likely files (both DSLs + both spec trees), the defining PRD excerpt, dependencies, and a status checkbox (`- [ ]` → `- [x]`). This file is the durable plan of record — each task's checkbox is ticked as that task lands (step 4d). If a `-plan.md` already exists, overwrite it with the freshly derived plan. Commit the new plan file on its own (e.g. `Add build plan for <slug>`) before starting task work, so each task commit stays focused on code.
 
-### 4. Approve the plan (the one checkpoint)
+Then mirror the plan into a `TodoWrite` list and proceed **directly** to execution — no sign-off, no pause. (You may briefly state the plan as you start, but as a status line, not a request for approval.)
 
-Show the user the branch name and the ordered task list (one line each). Ask via `AskUserQuestion`: **Approve / Revise**. Apply revisions, then proceed continuously.
-
-### 5. Execute each task — implement, then two-stage review
+### 4. Execute each task — implement, then two-stage review
 
 For each task in order:
 
@@ -71,17 +69,17 @@ Handle its final status:
 
 **c. Code-quality review second.** Dispatch a reviewer subagent with the *Code-quality reviewer prompt*. It checks TDD was followed (tests written first and meaningful, public-API-only, no mock-behavior tests), RuboCop is clean without gratuitous disables, methods stay within the metrics, names read like the surrounding code, and `bundle exec rake` is green. Implementer fixes, you re-review, loop until ✅.
 
-**d. Commit the task.** Once both reviews are ✅ and `bundle exec rake` is green, commit just this task's changes with a focused message referencing the PRD (e.g. `git add -A && git commit`). One commit per task — never bundle multiple tasks into one commit, and never leave a reviewed task uncommitted. End the commit message with the required co-author trailer:
+**d. Commit the task.** Once both reviews are ✅ and `bundle exec rake` is green, tick this task's checkbox in the `-plan.md` file (`- [ ]` → `- [x]`), then commit just this task's changes — including the plan-file tick — with a focused message referencing the PRD (e.g. `git add -A && git commit`). One commit per task — never bundle multiple tasks into one commit, and never leave a reviewed task uncommitted. End the commit message with the required co-author trailer:
 
 ```
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 ```
 
-**e. Mark the task complete** in `TodoWrite`. Next task.
+**e. Mark the task complete** in `TodoWrite` (its `-plan.md` checkbox was ticked and committed in step d). Next task.
 
-### 6. Final review
+### 5. Final review
 
-After all tasks: run `bundle exec rake` yourself to confirm the whole suite + RuboCop are green (recall CI runs `rake` four times to catch flaky tests — if you suspect flakiness, run it a couple more times). Then dispatch one final reviewer over the entire diff (`git diff main...HEAD`) checking the PRD as a whole is satisfied, both DSLs are in sync, docs were updated, every task is committed, and there are no loose ends or uncommitted changes (`git status` clean). Report what was built, the branch name, the commits, and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
+After all tasks: run `bundle exec rake` yourself to confirm the whole suite + RuboCop are green (recall CI runs `rake` four times to catch flaky tests — if you suspect flakiness, run it a couple more times). Then dispatch one final reviewer over the entire diff (`git diff main...HEAD`) checking the PRD as a whole is satisfied, both DSLs are in sync, docs were updated, every task is committed, the `-plan.md` checkboxes are all ticked, and there are no loose ends or uncommitted changes (`git status` clean). Report what was built, the branch name, the commits, and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
 
 ## Subagent prompt templates
 
@@ -128,7 +126,8 @@ Construct each subagent's prompt from these. Provide full text — never tell a 
 
 ## Red flags — never
 
-- Start implementation on `main`/`master` without consent.
+- Implement or commit on `main`/`master` (always branch first, automatically).
+- Pause to ask the user to approve or sign off on the plan (derive it and go).
 - Write implementation code yourself as the controller (dispatch a subagent).
 - Skip either review, or start quality review before spec review is ✅.
 - Move to the next task while a review has open issues, or skip the re-review after a fix.
