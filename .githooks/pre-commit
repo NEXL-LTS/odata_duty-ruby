@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Pre-commit gate: reject the commit unless the full suite is green.
+#
+# Runs `bundle exec rake` — RSpec *and* RuboCop, the exact check CI runs — and
+# blocks the commit if it fails. Activated in the dev container by a system-wide
+# core.hooksPath dispatcher (see .devcontainer/Dockerfile); outside the container,
+# enable it once with: git config core.hooksPath .githooks
+#
+# Bypass for a deliberate work-in-progress commit with: git commit --no-verify
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+echo "[pre-commit] Running 'bundle exec rake' (RSpec + RuboCop)…"
+if bundle exec rake; then
+  echo "[pre-commit] ✓ rake passed — proceeding with commit."
+else
+  status=$?
+  echo
+  echo "[pre-commit] ✗ 'bundle exec rake' failed — commit aborted."
+  echo "[pre-commit]   Fix the failures above, or bypass with: git commit --no-verify"
+  exit "$status"
+fi

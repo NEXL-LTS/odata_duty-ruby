@@ -24,9 +24,9 @@ module OdataDuty
       def to_oas2
         {
           'type' => 'object',
-          'properties' => properties.each_with_object({}) do |property, obj|
-            obj[property.name.to_s] = property.to_oas2
-          end
+          'properties' => properties.to_h do |property|
+                            [property.name.to_s, property.to_oas2]
+                          end
         }
       end
     end

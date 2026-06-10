@@ -39,14 +39,14 @@ module OdataDuty
         let(:entity_type) { entity_types['StringRef'] }
 
         it { expect(keys).to eq(['id']) }
-        it { expect(properties).to eq([name: 'id', nullable: 'false', type: 'Edm.String']) }
+        it { expect(properties).to eq([{ name: 'id', nullable: 'false', type: 'Edm.String' }]) }
       end
 
       describe 'IntegerRefEntity' do
         let(:entity_type) { entity_types['IntegerRef'] }
 
         it { expect(keys).to eq(['id']) }
-        it { expect(properties).to eq([name: 'id', nullable: 'false', type: 'Edm.Int64']) }
+        it { expect(properties).to eq([{ name: 'id', nullable: 'false', type: 'Edm.Int64' }]) }
       end
     end
   end

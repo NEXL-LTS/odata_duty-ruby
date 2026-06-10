@@ -41,12 +41,12 @@ module OdataDuty
 
       def metadata_types
         raw_types = properties.map(&:raw_type)
-        complex_meta = raw_types.select { |r| r.is_a?(Metadata) }
+        complex_meta = raw_types.grep(Metadata)
                                 .select { |m| m.metadata_type == :complex }
         complex_types = complex_meta.flat_map(&:metadata_types)
         ([complex_type] +
            complex_types +
-          raw_types.select { |r| r.is_a?(EnumType::Metadata) }.map(&:enum_type)).uniq
+          raw_types.grep(EnumType::Metadata).map(&:enum_type)).uniq
       end
 
       def scalar?
