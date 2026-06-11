@@ -2,9 +2,9 @@ require 'securerandom'
 
 module OdataDuty
   class MapperBuilder
-    def self.build(complex_type, selected: nil, &block)
+    def self.build(complex_type, selected: nil, &)
       mapper_class = build_class(complex_type, selected: selected)
-      mapper_class.new(complex_type, &block)
+      mapper_class.new(complex_type, &)
     end
 
     def self.build_class(complex_type, selected:)

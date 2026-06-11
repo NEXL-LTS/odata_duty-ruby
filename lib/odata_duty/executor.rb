@@ -3,12 +3,12 @@ require_relative 'parslet_search_expression'
 
 module OdataDuty
   class Executor # rubocop:disable Metrics/ClassLength
-    def self.execute(**kwargs)
-      new(**kwargs).execute
+    def self.execute(**)
+      new(**).execute
     end
 
-    def self.create(**kwargs)
-      new(**kwargs).create
+    def self.create(**)
+      new(**).create
     end
 
     attr_reader :schema, :url, :context, :query_options

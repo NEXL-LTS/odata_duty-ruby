@@ -101,9 +101,11 @@ module OdataDuty
               {
                 '@odata.context' => 'https://localhost/$metadata#NoInitArgs',
                 'value' => [
-                  '@odata.id' => 'https://localhost/NoInitArgs(\'1\')',
-                  'id' => '1',
-                  'arg' => nil
+                  {
+                    '@odata.id' => 'https://localhost/NoInitArgs(\'1\')',
+                    'id' => '1',
+                    'arg' => nil
+                  }
                 ]
               }
             )
@@ -118,9 +120,11 @@ module OdataDuty
               {
                 '@odata.context' => 'https://localhost/$metadata#OptionalInitKwArgDefault',
                 'value' => [
-                  '@odata.id' => 'https://localhost/OptionalInitKwArgDefault(\'1\')',
-                  'id' => '1',
-                  'arg' => 'default'
+                  {
+                    '@odata.id' => 'https://localhost/OptionalInitKwArgDefault(\'1\')',
+                    'id' => '1',
+                    'arg' => 'default'
+                  }
                 ]
               }
             )
@@ -135,9 +139,11 @@ module OdataDuty
               {
                 '@odata.context' => 'https://localhost/$metadata#OptionalInitKwArgChanged',
                 'value' => [
-                  '@odata.id' => 'https://localhost/OptionalInitKwArgChanged(\'1\')',
-                  'id' => '1',
-                  'arg' => 'changed'
+                  {
+                    '@odata.id' => 'https://localhost/OptionalInitKwArgChanged(\'1\')',
+                    'id' => '1',
+                    'arg' => 'changed'
+                  }
                 ]
               }
             )
@@ -152,9 +158,11 @@ module OdataDuty
               {
                 '@odata.context' => 'https://localhost/$metadata#OptionalInitPosArgDefault',
                 'value' => [
-                  '@odata.id' => 'https://localhost/OptionalInitPosArgDefault(\'1\')',
-                  'id' => '1',
-                  'arg' => 'default'
+                  {
+                    '@odata.id' => 'https://localhost/OptionalInitPosArgDefault(\'1\')',
+                    'id' => '1',
+                    'arg' => 'default'
+                  }
                 ]
               }
             )
@@ -169,9 +177,11 @@ module OdataDuty
               {
                 '@odata.context' => 'https://localhost/$metadata#OptionalInitPosArgChanged',
                 'value' => [
-                  '@odata.id' => 'https://localhost/OptionalInitPosArgChanged(\'1\')',
-                  'id' => '1',
-                  'arg' => 'changed'
+                  {
+                    '@odata.id' => 'https://localhost/OptionalInitPosArgChanged(\'1\')',
+                    'id' => '1',
+                    'arg' => 'changed'
+                  }
                 ]
               }
             )
@@ -186,9 +196,11 @@ module OdataDuty
               {
                 '@odata.context' => 'https://localhost/$metadata#OptionalInitPosArgArrayChanged',
                 'value' => [
-                  '@odata.id' => 'https://localhost/OptionalInitPosArgArrayChanged(\'1\')',
-                  'id' => '1',
-                  'arg' => 'array_changed'
+                  {
+                    '@odata.id' => 'https://localhost/OptionalInitPosArgArrayChanged(\'1\')',
+                    'id' => '1',
+                    'arg' => 'array_changed'
+                  }
                 ]
               }
             )

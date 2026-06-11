@@ -14,4 +14,4 @@ Gemfile.lock
 odata_profile.json
 simple_profile.json
 
-/.devcontainer/
+/.devcontainer/.env

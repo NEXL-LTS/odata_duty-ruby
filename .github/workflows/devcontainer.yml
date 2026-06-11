@@ -1,0 +1,35 @@
+name: Dev Container
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # Build context is .devcontainer/ so the Dockerfile's `COPY entrypoint.sh` resolves.
+    - name: Build dev container image
+      run: docker build -t odata_duty-devcontainer .devcontainer
+
+    # Mount the checked-out repo and run the commands inside the built image.
+    # Override the entrypoint (which scans /workspaces and runs bin/setup) so we
+    # invoke bundle install and claude --version explicitly. --user root sidesteps
+    # the host/container UID mismatch on the bind mount in CI.
+    - name: Run bundle install and claude --version in the image
+      run: |
+        docker run --rm \
+          --user root \
+          --entrypoint bash \
+          -v "${{ github.workspace }}:/workspace" \
+          -w /workspace \
+          odata_duty-devcontainer \
+          -c "bundle install && claude --version"

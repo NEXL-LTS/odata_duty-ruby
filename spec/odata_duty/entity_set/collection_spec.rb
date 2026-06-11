@@ -70,8 +70,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
           {
             '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollection',
             'value' => [
-              '@odata.id' => 'http://localhost:3000/api/SupportsCollection(\'1\')',
-              'id' => '1'
+              {
+                '@odata.id' => 'http://localhost:3000/api/SupportsCollection(\'1\')',
+                'id' => '1'
+              }
             ]
           }
         )

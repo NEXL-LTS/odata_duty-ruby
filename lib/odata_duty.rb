@@ -1,5 +1,3 @@
-require 'set'
-
 require 'odata_duty/errors'
 require 'odata_duty/set_resolver'
 require 'odata_duty/schema_builder'

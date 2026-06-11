@@ -141,8 +141,10 @@ module OdataDuty
             {
               '@odata.context' => 'https://localhost/$metadata#SupportsCollection',
               'value' => [
-                '@odata.id' => 'https://localhost/SupportsCollection(\'1\')',
-                'id' => '1'
+                {
+                  '@odata.id' => 'https://localhost/SupportsCollection(\'1\')',
+                  'id' => '1'
+                }
               ]
             }
           )

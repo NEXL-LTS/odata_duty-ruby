@@ -1,0 +1,49 @@
+{
+  "name": "odata_duty",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "USER_UID": "${localEnv:USER_UID:1000}",
+      "USER_GID": "${localEnv:USER_GID:1000}"
+    }
+  },
+  "runArgs": ["--env-file", ".devcontainer/.env"],
+  "otherPortsAttributes": {
+    "onAutoForward": "silent"
+  },
+  "portsAttributes": {
+    "9292": {
+      "label": "Rack (spec/config.ru)",
+      "onAutoForward": "notify"
+    },
+    "6274": {
+      "label": "MCP Inspector",
+      "onAutoForward": "silent"
+    }
+  },
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Shopify.ruby-lsp",
+        "rubocop.vscode-rubocop",
+        "kaiwood.endwise",
+        "redhat.vscode-yaml",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "[ruby]": {
+          "editor.defaultFormatter": "Shopify.ruby-lsp",
+          "editor.formatOnSave": true,
+          "editor.tabSize": 2,
+          "editor.insertSpaces": true,
+          "editor.rulers": [99]
+        },
+        "rubyLsp.formatter": "rubocop",
+        "rubyLsp.linters": ["rubocop"],
+        "files.trimTrailingWhitespace": true,
+        "files.insertFinalNewline": true
+      }
+    }
+  }
+}

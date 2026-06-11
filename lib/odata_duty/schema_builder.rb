@@ -59,7 +59,7 @@ module OdataDuty
       end
 
       def enum_types
-        all_types.select { |t| t.is_a?(EnumType) }
+        all_types.grep(EnumType)
       end
 
       def complex_types
@@ -67,19 +67,19 @@ module OdataDuty
       end
 
       def entity_types
-        all_types.select { |t| t.is_a?(EntityType) }
+        all_types.grep(EntityType)
       end
 
       def entity_sets
-        all_containers.select { |t| t.is_a?(EntitySet) }
+        all_containers.grep(EntitySet)
       end
 
       def collection_entity_sets
-        entity_sets.select { |t| t.resolver_class.instance_methods.include?(:collection) }
+        entity_sets.select { |t| t.resolver_class.method_defined?(:collection) }
       end
 
       def individual_entity_sets
-        entity_sets.select { |t| t.resolver_class.instance_methods.include?(:individual) }
+        entity_sets.select { |t| t.resolver_class.method_defined?(:individual) }
       end
 
       def execute(url, context:, query_options: {})
