@@ -1,10 +1,9 @@
-require 'cgi'
 require 'uri'
 
 module OdataDuty
   class MCPExecutor
-    def self.handle(**kwargs)
-      new(**kwargs).handle
+    def self.handle(**)
+      new(**).handle
     end
 
     attr_reader :request_hash, :schema, :context
@@ -51,7 +50,8 @@ module OdataDuty
     end
 
     def run_resources_read
-      query_options = CGI.parse(uri.query || '').transform_values(&:first)
+      query_options = {}
+      URI.decode_www_form(uri.query || '').each { |k, v| query_options[k] ||= v }
       Executor.execute(url: uri.path, context: @context,
                        query_options: query_options, schema: schema)
     end

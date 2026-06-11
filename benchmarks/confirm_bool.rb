@@ -10,8 +10,6 @@ def confirm_boolean_with_case(name, value)
   end
 end
 
-require 'set'
-
 VALID_BOOLEAN_VALUES = Set.new([true, false, nil]).freeze
 
 def confirm_boolean_with_set(name, value)

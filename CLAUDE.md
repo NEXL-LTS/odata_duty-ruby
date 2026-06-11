@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`odata_duty` is a Ruby gem (no Rails required) for defining structured data and operations once in a Ruby DSL, then exposing them as an [OData](doc/odata_crash_course.md) v4 service. From a single schema it generates: EDMX `$metadata` XML, an OData index document, OAS2/Swagger JSON, and an [MCP](doc/mcp_crash_course.md) server over JSON-RPC. Ruby 3.0+ is required.
+`odata_duty` is a Ruby gem (no Rails required) for defining structured data and operations once in a Ruby DSL, then exposing them as an [OData](doc/odata_crash_course.md) v4 service. From a single schema it generates: EDMX `$metadata` XML, an OData index document, OAS2/Swagger JSON, and an [MCP](doc/mcp_crash_course.md) server over JSON-RPC. Ruby 3.2+ is required.
 
 ## Commands
 

@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'odata_duty'
-  spec.version       = '0.14.0'
+  spec.version       = '0.14.1'
   spec.authors       = ['Grant Petersen-Speelman']
   spec.email         = ['grant@nexl.io']
 
@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description   =
     'A unified DSL for exposing structured data and operations across analytics tools (PowerBI), no-code platforms (PowerAutomate), and AI agents (via MCP).' # rubocop:disable Layout/LineLength
   # spec.homepage      = "TODO: Put your gem's website or public repo URL here."
-  spec.required_ruby_version = Gem::Requirement.new('>= 3.0.0')
+  spec.required_ruby_version = Gem::Requirement.new('>= 3.2.0')
 
   spec.metadata['homepage_uri'] = 'https://github.com/NEXL-LTS/odata_duty-ruby'
   spec.metadata['source_code_uri'] = 'https://github.com/NEXL-LTS/odata_duty-ruby'

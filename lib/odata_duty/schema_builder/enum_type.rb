@@ -10,8 +10,8 @@ module OdataDuty
         @members = []
       end
 
-      def member(*args)
-        @members << EnumMember.new(*args)
+      def member(*)
+        @members << EnumMember.new(*)
       end
 
       def scalar?

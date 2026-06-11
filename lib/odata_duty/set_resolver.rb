@@ -37,10 +37,7 @@ module OdataDuty
     end
 
     def handle_init_args_error(arg_error)
-      unless arg_error.backtrace[0].include?(':in `od_after_init') ||
-             arg_error.backtrace[0].include?(":in 'od_after_init'")
-        raise arg_error
-      end
+      raise arg_error unless arg_error.backtrace[0].include?("od_after_init'")
 
       err = InitArgsMismatchError.new(arg_error.message)
       err.set_backtrace(arg_error.backtrace.clone)

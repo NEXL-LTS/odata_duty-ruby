@@ -60,8 +60,8 @@ module OdataDuty
       @object = object
     end
 
-    def self.to_value(*args)
-      new(*args).__to_value
+    def self.to_value(*)
+      new(*).__to_value
     end
 
     def __to_value
