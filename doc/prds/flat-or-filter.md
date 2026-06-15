@@ -68,7 +68,11 @@ class PeopleResolver < OdataDuty::SetResolver
       when :eq then @records.where(p.property_name => p.value)
       when :ne then @records.where.not(p.property_name => p.value)
       when :gt then @records.where("#{p.property_name} > ?", p.value)
+      when :ge then @records.where("#{p.property_name} >= ?", p.value)
       when :lt then @records.where("#{p.property_name} < ?", p.value)
+      when :le then @records.where("#{p.property_name} <= ?", p.value)
+      else
+        raise ArgumentError, "Unsupported filter operation: #{p.operation.inspect}"
       end
     end
     @records = clauses.reduce(:or)
@@ -104,7 +108,7 @@ GET /People?$filter=status eq 'active' and name eq 'Alice'
 ```
 → still dispatches sequentially to `od_filter_eq`; `od_filter_or` is not called.
 
-**`$metadata`** — mirroring the `$search` precedent, a set advertises filter capability and that grouping is unsupported:
+**`$metadata`** — mirroring the `$search` precedent, a set advertises filter capability (the exact `FilterRestrictions` properties for OR support / grouping constraints are TBD; see Open questions):
 ```xml
 <EntitySet Name="People" EntityType="MySpace.PersonEntity">
   <Annotation Term="Capabilities.FilterRestrictions">
@@ -119,7 +123,7 @@ GET /People?$filter=status eq 'active' and name eq 'Alice'
 **`$oas2`** — no schema change; `$filter` remains a freeform string parameter (its description is updated to mention OR).
 
 ## Common error cases
-- **Mixed AND/OR** (`a eq 1 and b eq 2 or c eq 3`) → `NotYetSupportedError` ("mixed AND/OR not supported"), mirroring the `$search` restriction.
+- **Mixed AND/OR** (`a eq 1 and b eq 2 or c eq 3`) → `NotYetSupportedError` ("mixed AND/OR not supported"), consistent with the `$search` restriction.
 - **Parentheses / grouping** (`(a eq 1 or b eq 2) and c eq 3`) → `NotYetSupportedError` (existing parenthesis rejection).
 - **OR used but no `od_filter_or` implemented** → `NoImplementationError` ("OR filtering not supported"), mirroring the `and`-path message.
 - **Unknown property** in any predicate → `UnknownPropertyError` (unchanged).
