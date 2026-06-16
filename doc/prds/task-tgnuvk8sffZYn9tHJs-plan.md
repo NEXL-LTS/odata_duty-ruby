@@ -178,7 +178,7 @@ single quotes. Add specs in both spec trees.
 
 ## Task R4 — Add `doc/using_filter.md`
 
-- [ ] Done
+- [x] Done
 
 **Task text:** Add a `doc/using_filter.md` guide in the style of the other `using_*.md` files
 (overview → `od_filter_*`/`od_filter_or` contract → syntax examples → "Common Error Cases" →
