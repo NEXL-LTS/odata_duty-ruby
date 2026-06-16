@@ -25,7 +25,9 @@ class FilterOrPeopleSet < OdataDuty::EntitySet
   ALL_RECORDS = [
     OpenStruct.new(id: 1, name: 'Alice', status: 'active'),
     OpenStruct.new(id: 2, name: 'Bob', status: 'pending'),
-    OpenStruct.new(id: 3, name: 'Carol', status: 'archived')
+    OpenStruct.new(id: 3, name: 'Carol', status: 'archived'),
+    OpenStruct.new(id: 4, name: 'rock or roll', status: 'active'),
+    OpenStruct.new(id: 5, name: 'fish and chips', status: 'active')
   ].freeze
 
   def od_after_init
@@ -90,7 +92,7 @@ RSpec.describe OdataDuty::EntitySet, 'flat OR $filter' do
     json = schema.execute('FilterOrPeople', context: Context.new,
                                             query_options: { '$filter' =>
                                               "status eq 'active' or status eq 'pending'" })
-    expect(names(json)).to contain_exactly('Alice', 'Bob')
+    expect(names(json)).to contain_exactly('Alice', 'Bob', 'rock or roll', 'fish and chips')
   end
 
   it 'passes FilterPredicate objects with coerced values to od_filter_or' do
@@ -106,7 +108,7 @@ RSpec.describe OdataDuty::EntitySet, 'flat OR $filter' do
     json = schema.execute('FilterOrPeople', context: Context.new,
                                             query_options: { '$filter' =>
                                               'id lt 2 or id gt 2' })
-    expect(names(json)).to contain_exactly('Alice', 'Carol')
+    expect(names(json)).to contain_exactly('Alice', 'Carol', 'rock or roll', 'fish and chips')
   end
 
   it 'does not call od_filter_or for AND filters' do
@@ -115,6 +117,29 @@ RSpec.describe OdataDuty::EntitySet, 'flat OR $filter' do
                                               "status eq 'active' and name eq 'Alice'" })
     expect(names(json)).to contain_exactly('Alice')
     expect(FilterOrCapture.predicates).to be_empty
+  end
+
+  it 'treats a quoted value containing or as a single eq predicate' do
+    json = schema.execute('FilterOrPeople', context: Context.new,
+                                            query_options: { '$filter' =>
+                                              "name eq 'rock or roll'" })
+    expect(names(json)).to contain_exactly('rock or roll')
+    expect(FilterOrCapture.predicates).to be_empty
+  end
+
+  it 'treats a quoted value containing and as a single eq predicate' do
+    json = schema.execute('FilterOrPeople', context: Context.new,
+                                            query_options: { '$filter' =>
+                                              "name eq 'fish and chips'" })
+    expect(names(json)).to contain_exactly('fish and chips')
+    expect(FilterOrCapture.predicates).to be_empty
+  end
+
+  it 'splits on a real OR while preserving a quoted and inside a value' do
+    json = schema.execute('FilterOrPeople', context: Context.new,
+                                            query_options: { '$filter' =>
+                                              "name eq 'fish and chips' or status eq 'pending'" })
+    expect(names(json)).to contain_exactly('fish and chips', 'Bob')
   end
 
   it 'raises for mixed AND/OR' do

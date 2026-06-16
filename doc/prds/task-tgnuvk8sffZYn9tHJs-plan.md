@@ -164,7 +164,7 @@ inconsistent within the concern. Qualify them.
 
 ## Task R3 — Quote-aware OR/AND separator detection in `Filter`
 
-- [ ] Done
+- [x] Done
 
 **Task text:** `Filter.or?`/`Filter.parse`/`validate` detect and split on the literal substring
 `' or '` (and `' and '`) even inside single-quoted string literals, so `name eq 'rock or roll'`
