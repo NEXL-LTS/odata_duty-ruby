@@ -58,6 +58,8 @@ if Gem.loaded_specs['railties']
       active_record_concern_content = File.read(active_record_concern_path)
       expect(active_record_concern_content).to include('def od_filter_or(predicates)')
       expect(active_record_concern_content).to include('.reduce(:or)')
+      expect(active_record_concern_content)
+        .to include('\#{@records.table_name}.\#{p.property_name} > ?')
 
       # Validate Ruby syntax
       validate_ruby_syntax(entity_type_path)

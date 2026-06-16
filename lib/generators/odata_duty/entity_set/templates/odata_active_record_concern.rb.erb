@@ -87,10 +87,10 @@ module OdataActiveRecordConcern
       case p.operation
       when :eq then @records.where(p.property_name => p.value)
       when :ne then @records.where.not(p.property_name => p.value)
-      when :gt then @records.where("\#{p.property_name} > ?", p.value)
-      when :ge then @records.where("\#{p.property_name} >= ?", p.value)
-      when :lt then @records.where("\#{p.property_name} < ?", p.value)
-      when :le then @records.where("\#{p.property_name} <= ?", p.value)
+      when :gt then @records.where("\#{@records.table_name}.\#{p.property_name} > ?", p.value)
+      when :ge then @records.where("\#{@records.table_name}.\#{p.property_name} >= ?", p.value)
+      when :lt then @records.where("\#{@records.table_name}.\#{p.property_name} < ?", p.value)
+      when :le then @records.where("\#{@records.table_name}.\#{p.property_name} <= ?", p.value)
       else
         raise ArgumentError, "Unsupported filter operation: \#{p.operation.inspect}"
       end

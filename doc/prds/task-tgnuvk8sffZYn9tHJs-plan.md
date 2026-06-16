@@ -149,7 +149,7 @@ rather than the non-standard `String="SingleValue"`. Update `lib/metadata.xml.er
 
 ## Task R2 — Qualify columns in the generated concern's `od_filter_or`
 
-- [ ] Done
+- [x] Done
 
 **Task text:** In the generated ActiveRecord concern, the SQL fragments for `:gt/:ge/:lt/:le` in
 `od_filter_or` don't qualify the column with the table name, unlike `od_filter_gt`
