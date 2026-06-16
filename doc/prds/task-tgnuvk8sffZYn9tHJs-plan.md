@@ -135,7 +135,7 @@ Reviewer comments on the PR are addressed below; each lands as its own commit.
 
 ## Task R1 — Encode `AllowedExpressions` as `EnumMember`, not `String`
 
-- [ ] Done
+- [x] Done
 
 **Task text:** `AllowedExpressions` is an enum-valued capability in the OData Capabilities
 vocabulary, so it must be encoded with `EnumMember="Capabilities.FilterExpressionType/SingleValue"`

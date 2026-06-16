@@ -169,7 +169,9 @@ module OdataDuty
         expect(metadata_xml).to include('<EntitySet Name="FilterOrPeople"')
         expect(metadata_xml).to include('Term="Capabilities.FilterRestrictions"')
         expect(metadata_xml).to include('Property="Filterable" Bool="true"')
-        expect(metadata_xml).to include('Property="AllowedExpressions" String="SingleValue"')
+        allowed = 'Property="AllowedExpressions" ' \
+                  'EnumMember="Capabilities.FilterExpressionType/SingleValue"'
+        expect(metadata_xml).to include(allowed)
       end
 
       it 'does not include FilterRestrictions annotation for non-OR-filter entity sets' do
