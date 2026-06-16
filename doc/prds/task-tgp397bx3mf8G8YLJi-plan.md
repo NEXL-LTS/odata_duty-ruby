@@ -96,3 +96,38 @@ exercise `EntitySet::Metadata#supports_create?`.
   - Likely files: `doc/using_create.md` (new), `README.md`.
   - PRD excerpt: "Documentation impact" section.
   - Depends on: Tasks 1–3 (documents their behavior).
+
+---
+
+## Review follow-up (PR review comments — 2026-06-16)
+
+Four unresolved reviewer comments against the original implementation. Addressed as two tasks.
+
+- [ ] **Task R1 — Guard `handle_tools_call` against a nil endpoint**
+  - Task text: `handle_tools_call` can call `run_tool` with `endpoint == nil` when a client calls a
+    tool like `search_Unknown` (or `search_` with an empty suffix), raising `NoMethodError` on
+    `endpoint.url` instead of the intended "Unknown tool" error. Validate the endpoint and its
+    capability before dispatching for the `search_` prefix, mirroring the existing `create_` guard
+    (`endpoint&.supports_create?`). Add a failing test first (e.g. `tools/call` for `search_Unknown`
+    expects an "Unknown tool" error). Mirror the spec in both spec trees.
+  - Likely files: `lib/odata_duty/mcp_executor.rb`; specs
+    `spec/odata_duty/entity_set/create/mcp_spec.rb`,
+    `spec/odata_duty/schema_builder/entity_set/create/mcp_spec.rb` (or a sibling MCP spec).
+  - PRD excerpt: "MCP `tools/call` for `create_<EntitySet>` on a read-only set: the tool is not in
+    `tools/list`, so calling it raises the existing 'Unknown tool' error." The same must hold for an
+    unknown `search_` tool name.
+  - Depends on: original Task 3.
+
+- [ ] **Task R2 — Correct `doc/using_create.md` examples to match the implementation**
+  - Task text: Fix three doc inaccuracies in `doc/using_create.md`: (a) the MCP `tools/list`
+    `required` array must include the key `id` (built from all non-nullable properties, and
+    `property_ref` is always `nullable: false`) → `["id", "user_name", "emails"]`; (b) the
+    `NoImplementationError` message has no leading slash — `create not implemented for People`, since
+    it is built from `endpoint.url`; (c) the coercion/validation error bullet must name the classes
+    the create path actually raises: `CreateComplexTypeHashWrapper` rescues `InvalidValue` and raises
+    `OdataDuty::InvalidType`, and accessing an undefined field on the input raises
+    `OdataDuty::NoSuchPropertyError` (unknown body keys are otherwise ignored unless accessed) — drop
+    the nonexistent `UnknownPropertyError`/standalone `InvalidValue` framing.
+  - Likely files: `doc/using_create.md` (docs only — no code/tests).
+  - PRD excerpt: "Common error cases" and the MCP `tools/list` example in the PRD.
+  - Depends on: Task R1 (documents corrected behavior).
