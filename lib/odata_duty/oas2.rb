@@ -57,10 +57,9 @@ module OdataDuty
 
     def add_collection_paths
       schema.collection_entity_sets.each do |entity_set|
-        hash['paths']["/#{entity_set.url}"] = {
-          'get' => CollectionGetPath.new(entity_set, wrap_context(entity_set)).to_oas2,
-          'post' => CollectionPostPath.to_oas2(entity_set)
-        }
+        path = { 'get' => CollectionGetPath.new(entity_set, wrap_context(entity_set)).to_oas2 }
+        path['post'] = CollectionPostPath.to_oas2(entity_set) if entity_set.supports_create?
+        hash['paths']["/#{entity_set.url}"] = path
       end
     end
 

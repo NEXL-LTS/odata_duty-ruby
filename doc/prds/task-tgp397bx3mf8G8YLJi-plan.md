@@ -23,7 +23,7 @@ exercise `EntitySet::Metadata#supports_create?`.
 
 ## Tasks
 
-- [ ] **Task 1 — `$oas2`: gate the `post` collection path on create availability**
+- [x] **Task 1 — `$oas2`: gate the `post` collection path on create availability**
   - Task text: Add a `supports_create?` predicate to the builder `SchemaBuilder::EntitySet`
     (`resolver_class.method_defined?(:create)`), mirroring `supports_search?`. In
     `OAS2#add_collection_paths` (`lib/odata_duty/oas2.rb`), emit the `'post' =>
