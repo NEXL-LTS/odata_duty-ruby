@@ -40,6 +40,7 @@
             <EntityContainer Name="Container">
                 <EntitySet Name="People" EntityType="SampleSpace.Person">
                         
+                        
                     </EntitySet>
             </EntityContainer>
         </Schema>

@@ -45,6 +45,13 @@
                                 </Record>
                             </Annotation>
                         <% end %>
+                        <% if !entity_set.supports_create? %>
+                            <Annotation Term="Capabilities.InsertRestrictions">
+                                <Record>
+                                    <PropertyValue Property="Insertable" Bool="false" />
+                                </Record>
+                            </Annotation>
+                        <% end %>
                     </EntitySet>
                 <% end %>
             </EntityContainer>
