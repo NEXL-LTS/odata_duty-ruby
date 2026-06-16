@@ -86,7 +86,7 @@ exercise `EntitySet::Metadata#supports_create?`.
     `supports_create?`). Endpoint delegates to EntitySet; class-DSL `EntitySet::Metadata` is the
     endpoint object for the class schema.
 
-- [ ] **Task 4 — Documentation: `doc/using_create.md` + README cross-link**
+- [x] **Task 4 — Documentation: `doc/using_create.md` + README cross-link**
   - Task text: Add `doc/using_create.md` in the house style (purpose-first, example-driven, ending
     in a "Common Error Cases" section), covering: implementing `create` makes a set writable;
     omitting it makes the set read-only; and how that choice is reflected across `$oas2` (post
