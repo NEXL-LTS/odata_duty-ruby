@@ -47,7 +47,7 @@ class-based DSL and the builder DSL with no per-DSL code — but add specs in **
 
 ## Task 2 — `$metadata` `FilterRestrictions` annotation
 
-- [x] Done
+- [ ] Done
 
 **Task text:** Advertise OR-filter capability in `$metadata`, mirroring the `$search` precedent. Add
 a `supports_filter_or?` predicate to the metadata object of **both** DSLs — class DSL
@@ -73,7 +73,7 @@ trees (alongside the existing search metadata specs).
 
 ## Task 3 — `$oas2` `$filter` description mentions OR
 
-- [x] Done
+- [ ] Done
 
 **Task text:** Update the `$filter` OAS2 parameter description to mention OR support. No schema
 change — `$filter` stays a freeform query string. Update the existing `$filter` parameter
@@ -92,7 +92,7 @@ the `$filter` parameter description).
 
 ## Task 4 — Generator default `od_filter_or` in the AR concern
 
-- [x] Done
+- [ ] Done
 
 **Task text:** Ship a default `od_filter_or` in the generated ActiveRecord concern so freshly
 generated sets serve OR queries with no extra code. It builds a union across the operations the
@@ -114,7 +114,7 @@ lt, ge, le`), so freshly generated sets serve OR queries with no extra code."
 
 ## Task 5 — README mention of OR `$filter`
 
-- [x] Done
+- [ ] Done
 
 **Task text:** Mention flat OR `$filter` support and the `od_filter_or` hook in `README.md` near the
 existing `od_filter_*` example. Do **not** add `doc/using_filter.md` — the PRD gates the full guide

@@ -2,10 +2,19 @@ module OdataDuty
   class Filter
     def self.parse(str)
       validate(str)
-      str.split(' and ').map { |s| new(s) }
+      separator = or?(str) ? ' or ' : ' and '
+      str.split(separator).map { |s| new(s) }
+    end
+
+    def self.or?(str)
+      str.include?(' or ')
     end
 
     def self.validate(str)
+      if str.include?(' and ') && str.include?(' or ')
+        raise NotYetSupportedError, 'mixed AND/OR not supported'
+      end
+
       %w[add sub mul div mod].each do |operator|
         if str.include?(" #{operator} ")
           raise NotYetSupportedError,
