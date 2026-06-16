@@ -114,7 +114,7 @@ lt, ge, le`), so freshly generated sets serve OR queries with no extra code."
 
 ## Task 5 — README mention of OR `$filter`
 
-- [ ] Done
+- [x] Done
 
 **Task text:** Mention flat OR `$filter` support and the `od_filter_or` hook in `README.md` near the
 existing `od_filter_*` example. Do **not** add `doc/using_filter.md` — the PRD gates the full guide

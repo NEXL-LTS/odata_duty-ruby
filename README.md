@@ -61,7 +61,7 @@ See the [Entity Set Generator documentation](doc/entity_set_generator.md) for mo
 ### 🔧 Key Features
 
 - **Entity and property definition** using a simple DSL
-- **Filtering, paging, and count support**
+- **Filtering, paging, and count support** (`$filter` supports implicit `and` and flat single-operator `or`, e.g. `color eq 'red' or color eq 'blue'`, via the `od_filter_or` hook; mixing `and`/`or` or using parentheses is not supported)
 - **Complex types and enums**
 - **Individual item retrieval and creation**
 - **Schema introspection and OpenAPI generation**
@@ -193,6 +193,24 @@ class PeopleResolver < OdataDuty::SetResolver
 
   def od_filter_lt(property_name, value)
     @records = @records.where("#{property_name} < ?", value)
+  end
+
+  # Flat single-operator `or`, e.g. `color eq 'red' or color eq 'blue'`.
+  # Called once with every or'd predicate. Mixing `and`/`or` and parentheses are not supported.
+  def od_filter_or(predicates)
+    clauses = predicates.map do |p|
+      case p.operation
+      when :eq then @records.where(p.property_name => p.value)
+      when :ne then @records.where.not(p.property_name => p.value)
+      when :gt then @records.where("#{p.property_name} > ?", p.value)
+      when :ge then @records.where("#{p.property_name} >= ?", p.value)
+      when :lt then @records.where("#{p.property_name} < ?", p.value)
+      when :le then @records.where("#{p.property_name} <= ?", p.value)
+      else
+        raise ArgumentError, "Unsupported filter operation: #{p.operation.inspect}"
+      end
+    end
+    @records = clauses.reduce(:or)
   end
 
   def count
