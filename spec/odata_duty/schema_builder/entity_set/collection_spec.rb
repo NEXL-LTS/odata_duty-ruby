@@ -87,7 +87,7 @@ module OdataDuty
             expect(hashed_parameters['$filter']).to eq(
               'type' => 'string',
               'in' => 'query',
-              'description' => 'Filter the results'
+              'description' => 'Filter the results, supporting `and` and flat `or` combinations'
             )
           end
 

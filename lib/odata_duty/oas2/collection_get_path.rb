@@ -6,7 +6,7 @@ module OdataDuty
           'name' => '$filter',
           'in' => 'query',
           'type' => 'string',
-          'description' => 'Filter the results'
+          'description' => 'Filter the results, supporting `and` and flat `or` combinations'
         },
         {
           'name' => '$search',

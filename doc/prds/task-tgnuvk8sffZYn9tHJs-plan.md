@@ -73,7 +73,7 @@ trees (alongside the existing search metadata specs).
 
 ## Task 3 — `$oas2` `$filter` description mentions OR
 
-- [ ] Done
+- [x] Done
 
 **Task text:** Update the `$filter` OAS2 parameter description to mention OR support. No schema
 change — `$filter` stays a freeform query string. Update the existing `$filter` parameter
