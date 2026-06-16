@@ -197,7 +197,7 @@ The `Org.OData.Capabilities.V1` vocabulary (aliased `Capabilities`) is already r
           "name": { "type": "string" /* ... */ },
           "emails": { "type": "array" /* ... */ }
         },
-        "required": ["user_name", "emails"]
+        "required": ["id", "user_name", "emails"]
       }
     }
   ]
@@ -222,13 +222,13 @@ A read-only set advertises no `create_<Set>` tool, so calling one raises an "Unk
 ## Common Error Cases
 
 - **`POST` to a set without `create`:**
-  A `POST` to a read-only set raises `OdataDuty::NoImplementationError` with the message `create not implemented for <url>` (the set's URL, e.g. `create not implemented for /People`).
+  A `POST` to a read-only set raises `OdataDuty::NoImplementationError` with the message `create not implemented for <url>` (the set's URL, e.g. `create not implemented for People`).
 
 - **MCP `create_<Set>` for a read-only set:**
   Because the tool is never listed for a read-only set, calling it via `tools/call` raises an `"Unknown tool: create_<Set>"` error rather than `NoImplementationError`.
 
 - **Request body that fails coercion/validation:**
-  When the body cannot be coerced onto the entity type's properties, the standard creation errors propagate from the create path — for example `OdataDuty::InvalidType` or `OdataDuty::InvalidValue` for a value that does not match a property's type, and `OdataDuty::UnknownPropertyError` for a body field that is not a defined property.
+  When a body value cannot be coerced to a property's type, the input wrapper (`CreateComplexTypeHashWrapper`) rescues the internal `InvalidValue` and raises `OdataDuty::InvalidType` — so `OdataDuty::InvalidType` is what propagates for a wrong-typed value. Accessing a field that is not a defined property on the input object raises `OdataDuty::NoSuchPropertyError`; unknown keys in the request body are otherwise ignored unless your `create` accesses them via `input.<that_key>`.
 
 ## Summary
 

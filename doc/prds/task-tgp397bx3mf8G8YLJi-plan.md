@@ -118,7 +118,7 @@ Four unresolved reviewer comments against the original implementation. Addressed
     unknown `search_` tool name.
   - Depends on: original Task 3.
 
-- [ ] **Task R2 — Correct `doc/using_create.md` examples to match the implementation**
+- [x] **Task R2 — Correct `doc/using_create.md` examples to match the implementation**
   - Task text: Fix three doc inaccuracies in `doc/using_create.md`: (a) the MCP `tools/list`
     `required` array must include the key `id` (built from all non-nullable properties, and
     `property_ref` is always `nullable: false`) → `["id", "user_name", "emails"]`; (b) the
