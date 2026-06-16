@@ -126,3 +126,62 @@ only on request."
 **Likely files:** `README.md`.
 
 **Depends on:** Tasks 1–4.
+
+---
+
+# PR review follow-up
+
+Reviewer comments on the PR are addressed below; each lands as its own commit.
+
+## Task R1 — Encode `AllowedExpressions` as `EnumMember`, not `String`
+
+- [ ] Done
+
+**Task text:** `AllowedExpressions` is an enum-valued capability in the OData Capabilities
+vocabulary, so it must be encoded with `EnumMember="Capabilities.FilterExpressionType/SingleValue"`
+rather than the non-standard `String="SingleValue"`. Update `lib/metadata.xml.erb` and the
+`AllowedExpressions` assertions in both filter_or metadata specs.
+
+**Likely files:** `lib/metadata.xml.erb`, `spec/odata_duty/entity_set/filter_or_spec.rb`,
+`spec/odata_duty/schema_builder/entity_set/filter_or_spec.rb`.
+
+---
+
+## Task R2 — Qualify columns in the generated concern's `od_filter_or`
+
+- [ ] Done
+
+**Task text:** In the generated ActiveRecord concern, the SQL fragments for `:gt/:ge/:lt/:le` in
+`od_filter_or` don't qualify the column with the table name, unlike `od_filter_gt`
+(`#{@records.table_name}.#{property_name}`). This breaks joins (ambiguous column) and is
+inconsistent within the concern. Qualify them.
+
+**Likely files:**
+`lib/generators/odata_duty/entity_set/templates/odata_active_record_concern.rb.erb`,
+`spec/generators/entity_set_generator_spec.rb`.
+
+---
+
+## Task R3 — Quote-aware OR/AND separator detection in `Filter`
+
+- [ ] Done
+
+**Task text:** `Filter.or?`/`Filter.parse`/`validate` detect and split on the literal substring
+`' or '` (and `' and '`) even inside single-quoted string literals, so `name eq 'rock or roll'`
+is mis-parsed as an OR expression. Make separator detection and splitting ignore text inside
+single quotes. Add specs in both spec trees.
+
+**Likely files:** `lib/odata_duty/filter.rb`, `spec/odata_duty/entity_set/filter_or_spec.rb`,
+`spec/odata_duty/schema_builder/entity_set/filter_or_spec.rb`.
+
+---
+
+## Task R4 — Add `doc/using_filter.md`
+
+- [ ] Done
+
+**Task text:** Add a `doc/using_filter.md` guide in the style of the other `using_*.md` files
+(overview → `od_filter_*`/`od_filter_or` contract → syntax examples → "Common Error Cases" →
+"$metadata Integration"), now explicitly requested by the reviewer.
+
+**Likely files:** `doc/using_filter.md`.
