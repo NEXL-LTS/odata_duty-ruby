@@ -105,7 +105,7 @@ module OdataDuty
       query_options = request_hash['params']['arguments'] || {}
       endpoint = find_endpoint(tool_name[7..])
 
-      if tool_name.start_with?('search_')
+      if tool_name.start_with?('search_') && endpoint&.supports_search?
         run_tool(:execute, endpoint, query_options)
       elsif tool_name.start_with?('create_') && endpoint&.supports_create?
         run_tool(:create, endpoint, query_options)

@@ -103,7 +103,7 @@ exercise `EntitySet::Metadata#supports_create?`.
 
 Four unresolved reviewer comments against the original implementation. Addressed as two tasks.
 
-- [ ] **Task R1 — Guard `handle_tools_call` against a nil endpoint**
+- [x] **Task R1 — Guard `handle_tools_call` against a nil endpoint**
   - Task text: `handle_tools_call` can call `run_tool` with `endpoint == nil` when a client calls a
     tool like `search_Unknown` (or `search_` with an empty suffix), raising `NoMethodError` on
     `endpoint.url` instead of the intended "Unknown tool" error. Validate the endpoint and its

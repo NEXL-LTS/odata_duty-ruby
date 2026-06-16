@@ -74,6 +74,14 @@ module OdataDuty
           schema.handle_jsonrpc(request_payload, context: Context.new)
         end.to raise_error(/Unknown tool/)
       end
+
+      it 'raises Unknown tool for a search tool on an unknown set' do
+        request_payload['params']['name'] = 'search_Unknown'
+
+        expect do
+          schema.handle_jsonrpc(request_payload, context: Context.new)
+        end.to raise_error(/Unknown tool/)
+      end
     end
   end
 end
