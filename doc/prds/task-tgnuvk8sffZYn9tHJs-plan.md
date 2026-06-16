@@ -92,7 +92,7 @@ the `$filter` parameter description).
 
 ## Task 4 — Generator default `od_filter_or` in the AR concern
 
-- [ ] Done
+- [x] Done
 
 **Task text:** Ship a default `od_filter_or` in the generated ActiveRecord concern so freshly
 generated sets serve OR queries with no extra code. It builds a union across the operations the

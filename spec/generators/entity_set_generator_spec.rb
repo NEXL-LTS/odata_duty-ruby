@@ -54,6 +54,11 @@ if Gem.loaded_specs['railties']
       entity_set_content = File.read(entity_set_path)
       expect(entity_set_content).to include('include OdataActiveRecordConcern')
 
+      # Check that the concern ships a default od_filter_or union implementation
+      active_record_concern_content = File.read(active_record_concern_path)
+      expect(active_record_concern_content).to include('def od_filter_or(predicates)')
+      expect(active_record_concern_content).to include('.reduce(:or)')
+
       # Validate Ruby syntax
       validate_ruby_syntax(entity_type_path)
       validate_ruby_syntax(entity_set_path)
