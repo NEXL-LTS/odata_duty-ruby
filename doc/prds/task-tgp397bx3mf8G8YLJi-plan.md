@@ -59,7 +59,7 @@ exercise `EntitySet::Metadata#supports_create?`.
   - Depends on: Task 1 (builder `supports_create?` already present; this adds the class-DSL one and
     the shared template change).
 
-- [ ] **Task 3 — MCP: `create_<EntitySet>` tool in `tools/list` and `tools/call`**
+- [x] **Task 3 — MCP: `create_<EntitySet>` tool in `tools/list` and `tools/call`**
   - Task text: Add `supports_create?` to builder `SchemaBuilder::Endpoint` (delegating to
     `entity_set.supports_create?`), mirroring its `supports_search?` delegation. In
     `MCPExecutor#handle_tools_list`, additionally list a `create_<EntitySet>` tool for each endpoint
