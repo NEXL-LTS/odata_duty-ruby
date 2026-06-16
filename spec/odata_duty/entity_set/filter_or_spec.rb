@@ -164,4 +164,22 @@ RSpec.describe OdataDuty::EntitySet, 'flat OR $filter' do
                                          "id eq 1 or id gt 'abc'" })
     end.to raise_error(OdataDuty::InvalidFilterValue)
   end
+
+  describe '#metadata' do
+    let(:metadata_xml) { schema.metadata_xml }
+
+    it 'includes FilterRestrictions annotation for OR-filter-enabled entity sets' do
+      expect(metadata_xml).to include('<EntitySet Name="FilterOrPeople"')
+      expect(metadata_xml).to include('Term="Capabilities.FilterRestrictions"')
+      expect(metadata_xml).to include('Property="Filterable" Bool="true"')
+      expect(metadata_xml).to include('Property="AllowedExpressions" String="SingleValue"')
+    end
+
+    it 'does not include FilterRestrictions annotation for non-OR-filter entity sets' do
+      filterless_xml = metadata_xml
+                       .split('<EntitySet Name="FilterlessOrPeople"')[1]
+                       .split('</EntitySet>')[0]
+      expect(filterless_xml).not_to include('Capabilities.FilterRestrictions')
+    end
+  end
 end

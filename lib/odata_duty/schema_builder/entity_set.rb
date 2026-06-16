@@ -23,6 +23,10 @@ module OdataDuty
         # Check if the resolver class supports search by looking for the od_search method
         resolver_class.method_defined?(:od_search)
       end
+
+      def supports_filter_or?
+        resolver_class.method_defined?(:od_filter_or)
+      end
     end
   end
 end

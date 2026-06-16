@@ -106,6 +106,10 @@ module OdataDuty
         entity_set.method_defined?(:od_search)
       end
 
+      def supports_filter_or?
+        entity_set.method_defined?(:od_filter_or)
+      end
+
       private
 
       def converted_id(id, context)

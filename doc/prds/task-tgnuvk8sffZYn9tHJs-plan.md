@@ -47,7 +47,7 @@ class-based DSL and the builder DSL with no per-DSL code — but add specs in **
 
 ## Task 2 — `$metadata` `FilterRestrictions` annotation
 
-- [ ] Done
+- [x] Done
 
 **Task text:** Advertise OR-filter capability in `$metadata`, mirroring the `$search` precedent. Add
 a `supports_filter_or?` predicate to the metadata object of **both** DSLs — class DSL
