@@ -110,6 +110,11 @@ module OdataDuty
         entity_set.method_defined?(:od_filter_or)
       end
 
+      def supports_create?
+        # Check if the entity set class supports create by looking for the create method
+        entity_set.method_defined?(:create)
+      end
+
       private
 
       def converted_id(id, context)

@@ -529,12 +529,12 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         expect(names).to contain_exactly('John Doe', 'Jane Smith')
       end
 
-      it 'raises error for entity set that does not support search' do
+      it 'raises Unknown tool for entity set that does not support search' do
         request_payload['params']['name'] = 'search_SearchlessCollection'
 
         expect do
           mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-        end.to raise_error(OdataDuty::NoImplementationError)
+        end.to raise_error(/Unknown tool/)
       end
 
       it 'raises error for unknown tool' do

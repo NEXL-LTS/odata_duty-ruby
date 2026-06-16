@@ -57,6 +57,10 @@ module OdataDuty
         entity_set.supports_filter_or?
       end
 
+      def supports_create?
+        entity_set.supports_create?
+      end
+
       private
 
       def extend_error(err, set_builder, method_name)

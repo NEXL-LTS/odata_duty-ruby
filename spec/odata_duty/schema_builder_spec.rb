@@ -32,6 +32,17 @@ class PeopleResolver < OdataDuty::SetResolver
   def individual(id)
     @records.find { |record| record.id == id }
   end
+
+  def create(params)
+    address_info = params.address_info.map do |address|
+      AddressInfo.new(address.address,
+                      CountryCity.new(address.city.country_region,
+                                      address.city.name,
+                                      address.city.region))
+    end
+    Person.new('111', params.user_name, params.name, params.emails, address_info, params.gender,
+               params.concurrency)
+  end
 end
 
 module OdataDuty

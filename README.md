@@ -107,6 +107,8 @@ class SampleSchema < OdataDuty::Schema
 end
 ```
 
+Implementing `create` makes a set writable; omitting it keeps the set read-only. This single choice is reflected automatically across `$oas2`, `$metadata`, and MCP — see [Using `create`](doc/using_create.md).
+
 ---
 
 ## Rails Integration Example
@@ -235,6 +237,7 @@ end
 - [MCP Crash Course](doc/mcp_crash_course.md)
 - [Using `$select`](doc/using_select.md)
 - [Using `$search`](doc/using_search.md)
+- [Using `create`](doc/using_create.md)
 
 ---
 
