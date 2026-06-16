@@ -41,7 +41,7 @@ exercise `EntitySet::Metadata#supports_create?`.
     (`CreateWidgets`/`ListWidgets`). Scope: gating the OAS2 post path on create availability.
   - Depends on: none (introduces `supports_create?` on builder EntitySet).
 
-- [ ] **Task 2 — `$metadata`: `Capabilities.InsertRestrictions` (`Insertable=false`) for read-only sets**
+- [x] **Task 2 — `$metadata`: `Capabilities.InsertRestrictions` (`Insertable=false`) for read-only sets**
   - Task text: Add `supports_create?` to the class-DSL `OdataDuty::EntitySet::Metadata`
     (`entity_set.method_defined?(:create)`), mirroring its `supports_search?`. In the shared EDMX
     template `lib/metadata.xml.erb`, emit an `Annotation Term="Capabilities.InsertRestrictions"`
