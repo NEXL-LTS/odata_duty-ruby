@@ -53,6 +53,10 @@ module OdataDuty
         entity_set.supports_search?
       end
 
+      def supports_filter_or?
+        entity_set.supports_filter_or?
+      end
+
       def supports_create?
         entity_set.supports_create?
       end

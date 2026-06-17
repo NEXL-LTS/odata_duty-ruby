@@ -10,6 +10,7 @@ require 'odata_duty/enum_type'
 require 'odata_duty/complex_type'
 require 'odata_duty/entity_type'
 require 'odata_duty/filter'
+require 'odata_duty/filter_predicate'
 require 'odata_duty/create_complex_type_hash_wrapper'
 require 'odata_duty/railtie' if defined?(Rails::Railtie)
 
@@ -103,6 +104,10 @@ module OdataDuty
       def supports_search?
         # Check if the entity set class supports search by looking for the od_search method
         entity_set.method_defined?(:od_search)
+      end
+
+      def supports_filter_or?
+        entity_set.method_defined?(:od_filter_or)
       end
 
       def supports_create?

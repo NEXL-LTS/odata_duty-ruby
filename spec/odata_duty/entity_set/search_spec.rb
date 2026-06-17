@@ -385,6 +385,14 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         )
       end
 
+      it 'includes $filter parameter whose description mentions or' do
+        expect(hashed_parameters['$filter']).to eq(
+          'type' => 'string',
+          'in' => 'query',
+          'description' => 'Filter the results, supporting `and` and flat `or` combinations'
+        )
+      end
+
       it 'includes other standard parameters' do
         expect(hashed_parameters.keys).to include('$filter', '$select', '$search')
       end

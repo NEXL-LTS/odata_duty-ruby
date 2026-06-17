@@ -45,6 +45,21 @@
                                 </Record>
                             </Annotation>
                         <% end %>
+                        <% if entity_set.supports_filter_or? %>
+                            <Annotation Term="Capabilities.FilterRestrictions">
+                                <Record>
+                                    <PropertyValue Property="Filterable" Bool="true" />
+                                    <PropertyValue Property="FilterExpressionRestrictions">
+                                        <Collection>
+                                            <Record>
+                                                <PropertyValue Property="Property" PropertyPath="*" />
+                                                <PropertyValue Property="AllowedExpressions" EnumMember="Capabilities.FilterExpressionType/SingleValue" />
+                                            </Record>
+                                        </Collection>
+                                    </PropertyValue>
+                                </Record>
+                            </Annotation>
+                        <% end %>
                         <% if !entity_set.supports_create? %>
                             <Annotation Term="Capabilities.InsertRestrictions">
                                 <Record>

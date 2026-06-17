@@ -76,14 +76,35 @@ module OdataDuty
     def urls = points.map(&:url)
 
     def apply_filter(endpoint, set_builder, filter_string)
-      Filter.parse(filter_string).each do |filter|
-        property = endpoint.entity_type.properties.find { |p| p.name == filter.property_name }
-        assert_filter_valid_for_property(filter, property)
-
-        value = property.filter_convert(filter.value, set_builder.context)
-
-        _filter(filter, set_builder, value)
+      filters = Filter.parse(filter_string)
+      if Filter.or?(filter_string)
+        apply_or_filter(endpoint, set_builder, filters)
+      else
+        filters.each { |filter| apply_and_filter(endpoint, set_builder, filter) }
       end
+    end
+
+    def apply_and_filter(endpoint, set_builder, filter)
+      value = filter_value(endpoint, set_builder, filter)
+      _filter(filter, set_builder, value)
+    end
+
+    def apply_or_filter(endpoint, set_builder, filters)
+      unless set_builder.respond_to?(:od_filter_or)
+        raise NoImplementationError, 'OR filtering not supported'
+      end
+
+      predicates = filters.map do |filter|
+        FilterPredicate.new(property_name: filter.property_name, operation: filter.operation,
+                            value: filter_value(endpoint, set_builder, filter))
+      end
+      set_builder.od_filter_or(predicates)
+    end
+
+    def filter_value(endpoint, set_builder, filter)
+      property = endpoint.entity_type.properties.find { |p| p.name == filter.property_name }
+      assert_filter_valid_for_property(filter, property)
+      property.filter_convert(filter.value, set_builder.context)
     end
 
     def assert_filter_valid_for_property(filter, property)

@@ -24,6 +24,10 @@ module OdataDuty
         resolver_class.method_defined?(:od_search)
       end
 
+      def supports_filter_or?
+        resolver_class.method_defined?(:od_filter_or)
+      end
+
       def supports_create?
         # Check if the resolver class supports create by looking for the create method
         resolver_class.method_defined?(:create)
