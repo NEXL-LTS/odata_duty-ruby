@@ -15,3 +15,5 @@ odata_profile.json
 simple_profile.json
 
 /.devcontainer/.env
+
+/.claude/settings.local.json
