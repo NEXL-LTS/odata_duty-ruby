@@ -158,7 +158,7 @@ Depends on: Tasks 1–3 (all `handle_jsonrpc`-based specs must already be migrat
 ## Review follow-up (unresolved PR comments)
 
 ### Task 5 — Bump gem version to 0.17.0
-- [ ] **5**
+- [x] **5**
 
 Reviewer: "increase version to 0.17.0". Set `spec.version` in `odata_duty.gemspec` from
 `0.16.0` to `0.17.0`.
