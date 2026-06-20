@@ -135,7 +135,7 @@ Definition of done (PRD §5 resources shapes; §6 OData errors surfaced not cras
 Depends on: Task 1 (and shares the builder with Task 2).
 
 ### Task 4 — Remove the legacy path; migrate the canonical example to Streamable HTTP
-- [ ] **4**
+- [x] **4**
 
 Remove the old `handle_jsonrpc` entry point from both DSLs and delete
 `lib/odata_duty/mcp_executor.rb` (+ its `require`) and the now-dead skipped `tool.invoke`
