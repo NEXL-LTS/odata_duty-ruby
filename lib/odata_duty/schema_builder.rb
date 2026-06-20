@@ -94,6 +94,10 @@ module OdataDuty
         MCPExecutor.handle(request_hash: request_hash, schema: self, context: context)
       end
 
+      def to_mcp_server
+        McpServerBuilder.build(self)
+      end
+
       def metadata_xml
         EdmxSchema.metadata_xml(self)
       end

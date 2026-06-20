@@ -205,38 +205,30 @@ module OdataDuty
       end
 
       describe 'initialize' do
-        let(:context)      { Context.new }
-        let(:client_caps)  { { 'roots' => {}, 'sampling' => {} } }
-        let(:server_caps)  do
+        let(:server_caps) { { 'tools' => {}, 'resources' => {} } }
+
+        let(:request_payload) do
           {
-            'logging' => {},
-            'prompts' => { 'listChanged' => false },
-            'resources' => { 'subscribe' => false, 'listChanged' => false },
-            'tools' => { 'listChanged' => false }
+            'jsonrpc' => '2.0',
+            'id' => 'init-444',
+            'method' => 'initialize',
+            'params' => {
+              'protocolVersion' => protocol_version,
+              'capabilities' => { 'roots' => {}, 'sampling' => {} },
+              'clientInfo' => { 'name' => 'RSpecClient', 'version' => '0.0.1' }
+            }
           }
         end
 
         describe 'successful initialize' do
-          let(:request_payload) do
-            {
-              'jsonrpc' => '2.0',
-              'id' => 'init‑444',
-              'method' => 'initialize',
-              'params' => {
-                'protocolVersion' => '2024-11-05',
-                'capabilities' => client_caps,
-                'clientInfo' => { 'name' => 'RSpecClient', 'version' => '0.0.1' }
-              }
-            }
-          end
+          let(:protocol_version) { '2024-11-05' }
 
-          it 'it returns the version' do
-            raw = schema.handle_jsonrpc(request_payload, context: context)
-            response = Oj.load(raw)
+          it 'negotiates the version and echoes capabilities and serverInfo' do
+            response = Oj.load(schema.to_mcp_server.handle_json(Oj.dump(request_payload)))
 
             expect(response).to eq(
               'jsonrpc' => '2.0',
-              'id' => 'init‑444',
+              'id' => 'init-444',
               'result' => {
                 'protocolVersion' => '2024-11-05',
                 'capabilities' => server_caps,
@@ -246,21 +238,37 @@ module OdataDuty
             )
           end
         end
+
+        describe 'unsupported protocol version' do
+          let(:protocol_version) { '1999-01-01' }
+
+          it 'falls back to the latest supported version' do
+            response = Oj.load(schema.to_mcp_server.handle_json(Oj.dump(request_payload)))
+
+            expect(response['result']['protocolVersion']).to eq('2025-11-25')
+          end
+        end
+      end
+
+      describe 'unknown method' do
+        let(:request_payload) do
+          { 'jsonrpc' => '2.0', 'id' => 'u-1', 'method' => 'does/not/exist', 'params' => {} }
+        end
+
+        it 'returns a -32601 error' do
+          response = Oj.load(schema.to_mcp_server.handle_json(Oj.dump(request_payload)))
+
+          expect(response['error']['code']).to eq(-32_601)
+        end
       end
 
       describe 'notifications/initialized' do
         let(:request_payload) do
-          {
-            'jsonrpc' => '2.0',
-            'method' => 'notifications/initialized',
-            'params' => {},
-            'id' => 'req-4'
-          }
+          { 'jsonrpc' => '2.0', 'method' => 'notifications/initialized', 'params' => {} }
         end
 
         it 'returns an empty response' do
-          actual = mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-          expect(actual).to be_nil
+          expect(schema.to_mcp_server.handle_json(Oj.dump(request_payload))).to be_nil
         end
       end
 

@@ -54,7 +54,7 @@ scope (§7 "Streamable HTTP in the canonical example").
 ## Tasks
 
 ### Task 1 — Foundation: `mcp` dependency, shared server builder, `to_mcp_server`, protocol negotiation
-- [ ] **1**
+- [x] **1**
 
 Add `mcp` as a runtime dependency (`odata_duty.gemspec`, then `bundle install`). Create a
 shared `OdataDuty::McpServerBuilder` (new `lib/odata_duty/mcp_server_builder.rb`, required
