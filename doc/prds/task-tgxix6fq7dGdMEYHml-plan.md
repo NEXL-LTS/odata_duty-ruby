@@ -112,7 +112,7 @@ OData errors surfaced not crashing).
 Depends on: Task 1.
 
 ### Task 3 — Resources: `resources/list`, `resources/templates/list`, `resources/read`
-- [ ] **3**
+- [x] **3**
 
 In the shared builder, register per endpoint: an individual-by-id resource template
 (`<url>('{id}')`, name = entity-type name, "Retrieve a specific <EntityType> record by ID",

@@ -201,7 +201,13 @@ module OdataDuty
 
     describe 'mcp' do
       let(:mcp_server) do
-        schema # reuses existing OData schema setup
+        server = schema.to_mcp_server
+        server.server_context = { context: Context.new }
+        server
+      end
+
+      def call(payload)
+        Oj.load(mcp_server.handle_json(Oj.dump(payload)))
       end
 
       describe 'initialize' do
@@ -300,7 +306,7 @@ module OdataDuty
         end
 
         it 'returns direct resources' do
-          actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+          actual = call(request_payload)
           actual_indexed = actual['result']['resources'].to_h { |r| [r['uri'], r] }
           expected_indexed = expected['result']['resources'].to_h { |r| [r['uri'], r] }
           expect(actual_indexed.keys).to match_array(expected_indexed.keys)
@@ -344,7 +350,7 @@ module OdataDuty
         end
 
         it 'returns resource templates' do
-          actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+          actual = call(request_payload)
 
           actual_indexed = actual['result']['resourceTemplates'].to_h { |r| [r['uriTemplate'], r] }
           expected_indexed = expected['result']['resourceTemplates'].to_h do |r|
@@ -403,8 +409,7 @@ module OdataDuty
         end
 
         it 'retrieves a specific resource successfully' do
-          result = mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-          actual_response = Oj.load(result)
+          actual_response = call(request_payload)
           expect(actual_response.keys).to match_array(expected_response.keys)
           actual_contents = actual_response['result']['contents'][0]
           expected_contents = expected_response['result']['contents'][0]
