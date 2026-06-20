@@ -81,7 +81,7 @@ Definition of done (PRD §5): `initialize` with `protocolVersion:"2025-06-18"` �
 Depends on: none.
 
 ### Task 2 — Tools: `search_<Set>` / `create_<Set>` registration, `tools/list`, `tools/call`, error compliance
-- [ ] **2**
+- [x] **2**
 
 In the shared builder, register one `search_<Set>` tool per endpoint with `supports_search?`
 and one `create_<Set>` tool per endpoint with `supports_create?` — same names
