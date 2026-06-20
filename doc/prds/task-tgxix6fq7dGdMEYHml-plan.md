@@ -168,7 +168,7 @@ Likely files: `odata_duty.gemspec`. No spec (version constant has no behavioral 
 Depends on: none.
 
 ### Task 6 — `read_resource` content type-consistent and string-safe
-- [ ] **6**
+- [x] **6**
 
 Reviewer: `read_resource` always returns `mimeType: 'application/json'` and passes through the
 raw `Executor.execute` result. For `/$count` requests `Executor.execute` returns an integer

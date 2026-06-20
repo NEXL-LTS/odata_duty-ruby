@@ -117,5 +117,15 @@ RSpec.describe OdataDuty::EntitySet, 'MCP resources' do
       expect(contents['mimeType']).to eq('application/json')
       expect(Oj.load(contents['text'])).to include('id' => '1', 'name' => 'First')
     end
+
+    it 'reads a count resource as a text/plain string' do
+      request_payload['params']['uri'] = 'Widgets/$count'
+
+      contents = call(request_payload)['result']['contents'][0]
+
+      expect(contents['uri']).to eq('Widgets/$count')
+      expect(contents['mimeType']).to eq('text/plain')
+      expect(contents['text']).to eq('2')
+    end
   end
 end

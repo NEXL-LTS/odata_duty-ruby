@@ -58,11 +58,12 @@ module OdataDuty
       uri = URI.parse(uri_string)
       query_options = {}
       URI.decode_www_form(uri.query || '').each { |k, v| query_options[k] ||= v }
-      text = Executor.execute(url: uri.path, context: context,
-                              query_options: query_options, schema: schema)
-      [{ uri: uri_string, mimeType: 'application/json', text: text }]
+      result = Executor.execute(url: uri.path, context: context,
+                                query_options: query_options, schema: schema)
+      mime_type = uri.path.include?('/$count') ? 'text/plain' : 'application/json'
+      [{ uri: uri_string, mimeType: mime_type, text: result.to_s }]
     rescue OdataDuty::Error => e
-      [{ uri: uri_string, mimeType: 'application/json', text: e.message }]
+      [{ uri: uri_string, mimeType: 'text/plain', text: e.message.to_s }]
     end
 
     def register_search_tool(server, schema, endpoint)
