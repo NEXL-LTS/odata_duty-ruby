@@ -152,3 +152,35 @@ Definition of done (PRD §3 compat break accepted; §5 Transport; §7 Streamable
 canonical example).
 
 Depends on: Tasks 1–3 (all `handle_jsonrpc`-based specs must already be migrated).
+
+---
+
+## Review follow-up (unresolved PR comments)
+
+### Task 5 — Bump gem version to 0.17.0
+- [ ] **5**
+
+Reviewer: "increase version to 0.17.0". Set `spec.version` in `odata_duty.gemspec` from
+`0.16.0` to `0.17.0`.
+
+Likely files: `odata_duty.gemspec`. No spec (version constant has no behavioral test).
+
+Depends on: none.
+
+### Task 6 — `read_resource` content type-consistent and string-safe
+- [ ] **6**
+
+Reviewer: `read_resource` always returns `mimeType: 'application/json'` and passes through the
+raw `Executor.execute` result. For `/$count` requests `Executor.execute` returns an integer
+(not JSON), and `resources/list` advertises `text/plain` for `/$count`; error `e.message` is
+plain text. Return a `mimeType` matching the advertised one (`text/plain` for `/$count` and for
+errors, `application/json` otherwise) and always coerce `text` to a String so the MCP content
+contract (`text` must be a string) is never violated.
+
+Likely files: `lib/odata_duty/mcp_server_builder.rb` (shared by both DSLs). Specs under BOTH
+`spec/odata_duty/entity_set/**` and `spec/odata_duty/schema_builder/**` asserting a `/$count`
+`resources/read` returns `mimeType: 'text/plain'` with a String `text` equal to the count.
+
+Definition of done: PRD §5 resources shapes; reviewer comment above.
+
+Depends on: none.
