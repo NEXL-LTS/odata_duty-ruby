@@ -6,6 +6,7 @@ require_relative '../lib/odata_duty'
 # `npx @modelcontextprotocol/inspector@0.14.3 -e PORT=9292`
 # `bundle exec rerun -- bundle exec rackup spec/config.ru`
 # MCP is served over a single Streamable HTTP endpoint at POST/GET/DELETE /mcp.
+# See doc/using_mcp.md for MCP setup and usage.
 
 class TestPersonResolver < OdataDuty::SetResolver
   def od_after_init

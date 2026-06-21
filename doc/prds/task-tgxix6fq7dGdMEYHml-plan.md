@@ -184,3 +184,19 @@ Likely files: `lib/odata_duty/mcp_server_builder.rb` (shared by both DSLs). Spec
 Definition of done: PRD §5 resources shapes; reviewer comment above.
 
 Depends on: none.
+
+### Task 7 — Add `doc/using_mcp.md` consumer guide
+- [x] **7**
+
+Reviewer: "add a md to doc folder called, using_mcp.md that describes setup and usage steps".
+Add the consumer guide deferred in PRD §8: purpose-first, example-driven, ending in "Common
+Error Cases" — how to obtain a server via `to_mcp_server`, mount it over Streamable HTTP
+(both DSLs), which tools/resources the schema produces, protocol-version negotiation, and the
+error contract. Link it from the README's "Further Documentation" list and point
+`spec/config.ru`'s header comment at it.
+
+Likely files: `doc/using_mcp.md` (new), `README.md`, `spec/config.ru`. Docs-only — no specs.
+
+Definition of done: PRD §8 documentation impact; reviewer comment above.
+
+Depends on: Tasks 1–6 (documents the shipped behavior).

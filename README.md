@@ -235,6 +235,7 @@ end
 
 - [OData Crash Course](doc/odata_crash_course.md)
 - [MCP Crash Course](doc/mcp_crash_course.md)
+- [Using MCP](doc/using_mcp.md)
 - [Using `$select`](doc/using_select.md)
 - [Using `$search`](doc/using_search.md)
 - [Using `create`](doc/using_create.md)
