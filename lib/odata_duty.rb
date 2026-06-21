@@ -3,7 +3,7 @@ require 'odata_duty/set_resolver'
 require 'odata_duty/schema_builder'
 require 'odata_duty/edmx_schema'
 require 'odata_duty/executor'
-require 'odata_duty/mcp_executor'
+require 'odata_duty/mcp_server_builder'
 require 'odata_duty/oas2'
 require 'odata_duty/property'
 require 'odata_duty/enum_type'
@@ -263,8 +263,8 @@ module OdataDuty
       Executor.create(url: url, context: context, query_options: query_options, schema: self)
     end
 
-    def self.handle_jsonrpc(request_hash, context:)
-      MCPExecutor.handle(request_hash: request_hash, schema: self, context: context)
+    def self.to_mcp_server
+      McpServerBuilder.build(self)
     end
   end
 end

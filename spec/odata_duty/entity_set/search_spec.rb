@@ -452,27 +452,31 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
   end
 
   describe 'mcp' do
-    let(:mcp_server) { schema }
+    let(:mcp_server) do
+      server = schema.to_mcp_server
+      server.server_context = { context: Context.new }
+      server
+    end
+
+    def call(payload)
+      Oj.load(mcp_server.handle_json(Oj.dump(payload)))
+    end
 
     describe 'tools/list' do
       let(:request_payload) do
-        {
-          'jsonrpc' => '2.0',
-          'method' => 'tools/list',
-          'params' => {},
-          'id' => 'tools-list-1'
-        }
+        { 'jsonrpc' => '2.0', 'method' => 'tools/list', 'params' => {}, 'id' => 'tools-list-1' }
       end
 
       it 'returns search tools for entity sets that support search' do
-        actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+        tools = call(request_payload)['result']['tools']
 
-        expect(actual['result']['tools']).to include(
+        expect(tools).to include(
           {
             'name' => 'search_SupportsCollectionSearch',
             'description' =>
             'Search SupportsCollectionSearch using expressions with AND, OR, NOT operators',
             'inputSchema' => {
+              '$schema' => 'https://json-schema.org/draft/2020-12/schema',
               'type' => 'object',
               'properties' => {
                 '$search' => {
@@ -487,70 +491,63 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
       end
 
       it 'does not return search tools for entity sets that do not support search' do
-        actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
-
-        tool_names = actual['result']['tools'].map { |tool| tool['name'] }
+        tool_names = call(request_payload)['result']['tools'].map { |tool| tool['name'] }
         expect(tool_names).not_to include('search_SearchlessCollection')
       end
     end
 
     describe 'tools/call for search' do
       let(:request_payload) do
-        {
-          'jsonrpc' => '2.0',
-          'method' => 'tools/call',
-          'params' => {
-            'name' => 'search_SupportsCollectionSearch',
-            'arguments' => {
-              '$search' => 'Doe'
-            }
-          },
-          'id' => 'tools-call-1'
-        }
+        { 'jsonrpc' => '2.0', 'method' => 'tools/call',
+          'params' => { 'name' => 'search_SupportsCollectionSearch',
+                        'arguments' => { '$search' => 'Doe' } },
+          'id' => 'tools-call-1' }
+      end
+
+      def search_value(payload)
+        Oj.load(call(payload)['result']['content'][0]['text'])
       end
 
       it 'executes search on entity set that supports search' do
-        actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+        result = call(request_payload)['result']
+        response = Oj.load(result['content'][0]['text'])
 
-        expect(actual['result']['value']).to be_an(Array)
-        expect(actual['result']['value'].length).to eq(1)
-        expect(actual['result']['value'].first['name']).to eq('John Doe')
-        expect(actual['result']['@odata.context']).to include('SupportsCollectionSearch')
+        expect(result['isError']).to be(false)
+        expect(response['value']).to be_an(Array)
+        expect(response['value'].length).to eq(1)
+        expect(response['value'].first['name']).to eq('John Doe')
+        expect(response['@odata.context']).to include('SupportsCollectionSearch')
       end
 
       it 'supports complex search expressions' do
         request_payload['params']['arguments']['$search'] = 'Doe OR Jane'
+        response = search_value(request_payload)
 
-        actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
-
-        expect(actual['result']['value']).to be_an(Array)
-        expect(actual['result']['value'].length).to eq(2)
-        names = actual['result']['value'].map { |v| v['name'] }
+        expect(response['value'].length).to eq(2)
+        names = response['value'].map { |v| v['name'] }
         expect(names).to contain_exactly('John Doe', 'Jane Smith')
       end
 
-      it 'raises Unknown tool for entity set that does not support search' do
+      it 'returns a tool-not-found error for a search tool on a non-searchable set' do
         request_payload['params']['name'] = 'search_SearchlessCollection'
 
-        expect do
-          mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-        end.to raise_error(/Unknown tool/)
+        error = call(request_payload)['error']
+        expect(error['code']).to eq(-32_602)
       end
 
-      it 'raises error for unknown tool' do
+      it 'returns a tool-not-found error for an unknown tool' do
         request_payload['params']['name'] = 'unknown_tool'
 
-        expect do
-          mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-        end.to raise_error(/Unknown tool/)
+        error = call(request_payload)['error']
+        expect(error['code']).to eq(-32_602)
       end
 
-      it 'handles search expression parsing errors' do
+      it 'returns a tool-error result for search expression parsing errors' do
         request_payload['params']['arguments']['$search'] = 'apple AND orange OR peach'
 
-        expect do
-          mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-        end.to raise_error(%r{Mixed AND/OR operators are not supported})
+        result = call(request_payload)['result']
+        expect(result['isError']).to be(true)
+        expect(result['content'][0]['text']).to match(%r{Mixed AND/OR operators are not supported})
       end
     end
   end

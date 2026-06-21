@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = 'odata_duty'
-  spec.version       = '0.16.0'
+  spec.version       = '0.17.0'
   spec.authors       = ['Grant Petersen-Speelman']
   spec.email         = ['grant@nexl.io']
 
@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'mcp', '>= 0.20.0', '< 1.0.0'
   spec.add_dependency 'oj', '>= 3.0.0', '< 5.0.0'
   spec.add_dependency 'parslet', '~> 2.0'
   spec.add_dependency 'uri', '>= 1.0.0', '< 2.0.0'

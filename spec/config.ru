@@ -5,6 +5,8 @@ require_relative '../lib/odata_duty'
 # Run :
 # `npx @modelcontextprotocol/inspector@0.14.3 -e PORT=9292`
 # `bundle exec rerun -- bundle exec rackup spec/config.ru`
+# MCP is served over a single Streamable HTTP endpoint at POST/GET/DELETE /mcp.
+# See doc/using_mcp.md for MCP setup and usage.
 
 class TestPersonResolver < OdataDuty::SetResolver
   def od_after_init
@@ -75,7 +77,7 @@ class TestPersonResolver < OdataDuty::SetResolver
   end
 end
 
-# rubocop:disable Metrics/MethodLength,Metrics/AbcSize,Metrics/CyclomaticComplexity,Layout/LineLength
+# rubocop:disable Metrics/MethodLength,Metrics/CyclomaticComplexity,Layout/LineLength
 class TestApiApp
   def initialize
     @schema = OdataDuty::SchemaBuilder.build(namespace: 'TestSpace', host: 'localhost:9292',
@@ -91,21 +93,20 @@ class TestApiApp
       s.add_entity_set(url: 'People', entity_type: person_entity,
                        resolver: 'TestPersonResolver')
     end
-    @queue = Queue.new
+    # Stateless Streamable HTTP keeps this demo self-contained (no session storage).
+    @mcp_server = @schema.to_mcp_server
+    @mcp_server.server_context = { context: self }
+    @mcp_transport = MCP::Server::Transports::StreamableHTTPTransport.new(
+      @mcp_server, stateless: true, enable_json_response: true
+    )
   end
 
   def call(env)
     request = Rack::Request.new(env)
 
     case request.path_info
-    when '/events'
-      sse_response(env)
-    when '/jsonrpc'
-      data = request.body.read
-      puts "Received JSON-RPC data: #{data.inspect}"
-      response = @schema.handle_jsonrpc(JSON.parse(data), context: self)
-      @queue << { event: 'message', data: response } if response
-      [202, { 'content-type' => 'application/json' }, [JSON.generate({ status: 'accepted' })]]
+    when '/mcp'
+      @mcp_transport.handle_request(request)
     when '/api'
       [200, { 'content-type' => 'application/json' }, [JSON.generate(
         OdataDuty::EdmxSchema.index_hash(@schema)
@@ -154,32 +155,7 @@ class TestApiApp
       end
     end
   end
-
-  private
-
-  def sse_response(_env)
-    body = proc do |stream|
-      @queue << { event: 'endpoint', data: '/jsonrpc' }
-      Thread.new do
-        loop do
-          sleep 10
-          @queue << { event: 'ping', data: Time.now.to_s }
-        end
-      end
-      loop do
-        message = @queue.pop
-        puts "Sending SSE message: #{message.inspect}"
-        stream.write "event: #{message[:event]}\n"
-        data = message[:data].is_a?(String) ? message[:data] : JSON.generate(message[:data])
-        stream.write "data: #{data}\n\n"
-      end
-    ensure
-      stream.close
-    end
-
-    [200, { 'content-type' => 'text/event-stream' }, body]
-  end
 end
-# rubocop:enable Metrics/MethodLength,Metrics/AbcSize,Metrics/CyclomaticComplexity,Layout/LineLength
+# rubocop:enable Metrics/MethodLength,Metrics/CyclomaticComplexity,Layout/LineLength
 
 run TestApiApp.new

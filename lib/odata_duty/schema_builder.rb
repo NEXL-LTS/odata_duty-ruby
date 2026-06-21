@@ -90,8 +90,8 @@ module OdataDuty
         Executor.create(url: url, context: context, query_options: query_options, schema: self)
       end
 
-      def handle_jsonrpc(request_hash, context:)
-        MCPExecutor.handle(request_hash: request_hash, schema: self, context: context)
+      def to_mcp_server
+        McpServerBuilder.build(self)
       end
 
       def metadata_xml

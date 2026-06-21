@@ -201,42 +201,40 @@ module OdataDuty
 
     describe 'mcp' do
       let(:mcp_server) do
-        schema # reuses existing OData schema setup
+        server = schema.to_mcp_server
+        server.server_context = { context: Context.new }
+        server
+      end
+
+      def call(payload)
+        Oj.load(mcp_server.handle_json(Oj.dump(payload)))
       end
 
       describe 'initialize' do
-        let(:context)      { Context.new }
-        let(:client_caps)  { { 'roots' => {}, 'sampling' => {} } }
-        let(:server_caps)  do
+        let(:server_caps) { { 'tools' => {}, 'resources' => {} } }
+
+        let(:request_payload) do
           {
-            'logging' => {},
-            'prompts' => { 'listChanged' => false },
-            'resources' => { 'subscribe' => false, 'listChanged' => false },
-            'tools' => { 'listChanged' => false }
+            'jsonrpc' => '2.0',
+            'id' => 'init-444',
+            'method' => 'initialize',
+            'params' => {
+              'protocolVersion' => protocol_version,
+              'capabilities' => { 'roots' => {}, 'sampling' => {} },
+              'clientInfo' => { 'name' => 'RSpecClient', 'version' => '0.0.1' }
+            }
           }
         end
 
         describe 'successful initialize' do
-          let(:request_payload) do
-            {
-              'jsonrpc' => '2.0',
-              'id' => 'init‑444',
-              'method' => 'initialize',
-              'params' => {
-                'protocolVersion' => '2024-11-05',
-                'capabilities' => client_caps,
-                'clientInfo' => { 'name' => 'RSpecClient', 'version' => '0.0.1' }
-              }
-            }
-          end
+          let(:protocol_version) { '2024-11-05' }
 
-          it 'it returns the version' do
-            raw = schema.handle_jsonrpc(request_payload, context: context)
-            response = Oj.load(raw)
+          it 'negotiates the version and echoes capabilities and serverInfo' do
+            response = Oj.load(schema.to_mcp_server.handle_json(Oj.dump(request_payload)))
 
             expect(response).to eq(
               'jsonrpc' => '2.0',
-              'id' => 'init‑444',
+              'id' => 'init-444',
               'result' => {
                 'protocolVersion' => '2024-11-05',
                 'capabilities' => server_caps,
@@ -246,21 +244,37 @@ module OdataDuty
             )
           end
         end
+
+        describe 'unsupported protocol version' do
+          let(:protocol_version) { '1999-01-01' }
+
+          it 'falls back to the latest supported version' do
+            response = Oj.load(schema.to_mcp_server.handle_json(Oj.dump(request_payload)))
+
+            expect(response['result']['protocolVersion']).to eq('2025-11-25')
+          end
+        end
+      end
+
+      describe 'unknown method' do
+        let(:request_payload) do
+          { 'jsonrpc' => '2.0', 'id' => 'u-1', 'method' => 'does/not/exist', 'params' => {} }
+        end
+
+        it 'returns a -32601 error' do
+          response = Oj.load(schema.to_mcp_server.handle_json(Oj.dump(request_payload)))
+
+          expect(response['error']['code']).to eq(-32_601)
+        end
       end
 
       describe 'notifications/initialized' do
         let(:request_payload) do
-          {
-            'jsonrpc' => '2.0',
-            'method' => 'notifications/initialized',
-            'params' => {},
-            'id' => 'req-4'
-          }
+          { 'jsonrpc' => '2.0', 'method' => 'notifications/initialized', 'params' => {} }
         end
 
         it 'returns an empty response' do
-          actual = mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-          expect(actual).to be_nil
+          expect(schema.to_mcp_server.handle_json(Oj.dump(request_payload))).to be_nil
         end
       end
 
@@ -292,7 +306,7 @@ module OdataDuty
         end
 
         it 'returns direct resources' do
-          actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+          actual = call(request_payload)
           actual_indexed = actual['result']['resources'].to_h { |r| [r['uri'], r] }
           expected_indexed = expected['result']['resources'].to_h { |r| [r['uri'], r] }
           expect(actual_indexed.keys).to match_array(expected_indexed.keys)
@@ -336,7 +350,7 @@ module OdataDuty
         end
 
         it 'returns resource templates' do
-          actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+          actual = call(request_payload)
 
           actual_indexed = actual['result']['resourceTemplates'].to_h { |r| [r['uriTemplate'], r] }
           expected_indexed = expected['result']['resourceTemplates'].to_h do |r|
@@ -395,98 +409,13 @@ module OdataDuty
         end
 
         it 'retrieves a specific resource successfully' do
-          result = mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-          actual_response = Oj.load(result)
+          actual_response = call(request_payload)
           expect(actual_response.keys).to match_array(expected_response.keys)
           actual_contents = actual_response['result']['contents'][0]
           expected_contents = expected_response['result']['contents'][0]
           expect(actual_contents.keys).to match_array(expected_contents.keys)
           expect(Oj.load(actual_contents['text'])).to eq(Oj.load(expected_contents['text']))
           expect(actual_contents).to eq(expected_contents)
-        end
-      end
-
-      describe 'tool.invoke (createPerson)' do
-        let(:request_payload) do
-          {
-            'jsonrpc' => '2.0',
-            'method' => 'tool.invoke',
-            'params' => {
-              'name' => 'createPerson',
-              'arguments' => {
-                'user_name' => 'janedoe',
-                'name' => 'Jane Doe',
-                'emails' => ['jane@example.com'],
-                'gender' => 'Female',
-                'concurrency' => 1,
-                'address_info' => [{
-                  'address' => '123 Lane',
-                  'city' => {
-                    'country_region' => 'CountryX',
-                    'name' => 'CityX',
-                    'region' => 'RegionX'
-                  }
-                }]
-              }
-            },
-            'id' => 'req-2'
-          }
-        end
-
-        let(:expected_response) do
-          {
-            'jsonrpc' => '2.0',
-            'id' => 'req-2',
-            'result' => hash_including(
-              'id' => kind_of(String), # id generated by server
-              'user_name' => 'janedoe',
-              'name' => 'Jane Doe',
-              'emails' => ['jane@example.com'],
-              'gender' => 'Female',
-              'concurrency' => 1,
-              'address_info' => [{
-                'address' => '123 Lane',
-                'city' => {
-                  'country_region' => 'CountryX',
-                  'name' => 'CityX',
-                  'region' => 'RegionX'
-                }
-              }]
-            )
-          }
-        end
-
-        it 'creates a new person resource' do
-          skip
-          actual_response = Oj.load(
-            mcp_server.handle_jsonrpc(Oj.dump(request_payload))
-          )
-          expect(actual_response).to match(expected_response)
-        end
-      end
-
-      describe 'tool.invoke (errors)' do
-        let(:request_payload_invalid_method) do
-          {
-            'jsonrpc' => '2.0',
-            'method' => 'tool.invoke',
-            'params' => {
-              'name' => 'nonExistentTool',
-              'arguments' => {}
-            },
-            'id' => 'req-3'
-          }
-        end
-
-        it 'handles invalid tool errors' do
-          skip
-          actual_response = Oj.load(
-            mcp_server.handle_jsonrpc(Oj.dump(request_payload_invalid_method))
-          )
-          expect(actual_response['error']).to include(
-            'code' => -32_601, # JSON-RPC method not found
-            'message' => 'Method nonExistentTool not found.'
-          )
         end
       end
     end

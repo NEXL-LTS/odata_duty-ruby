@@ -235,9 +235,16 @@ end
 
 - [OData Crash Course](doc/odata_crash_course.md)
 - [MCP Crash Course](doc/mcp_crash_course.md)
+- [Using MCP](doc/using_mcp.md)
 - [Using `$select`](doc/using_select.md)
 - [Using `$search`](doc/using_search.md)
 - [Using `create`](doc/using_create.md)
+
+> **Documentation convention:** Every externally-facing feature (a new DSL option,
+> query option, or protocol surface) ships with a `doc/using_*.md` guide and a link
+> from the Further Documentation list above. Lead integration examples with the
+> Rails-controller pattern (the primary audience); show raw Rack only as a secondary,
+> runnable reference.
 
 ---
 

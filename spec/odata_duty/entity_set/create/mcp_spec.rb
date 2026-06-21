@@ -36,22 +36,29 @@ class CreateMcpSchema < OdataDuty::Schema
 end
 
 RSpec.describe OdataDuty::EntitySet, 'MCP create tool' do
-  subject(:mcp_server) { CreateMcpSchema }
+  let(:mcp_server) do
+    server = CreateMcpSchema.to_mcp_server
+    server.server_context = { context: Context.new }
+    server
+  end
+
+  def call(payload)
+    Oj.load(mcp_server.handle_json(Oj.dump(payload)))
+  end
 
   describe 'tools/list' do
     let(:request_payload) do
       { 'jsonrpc' => '2.0', 'method' => 'tools/list', 'params' => {}, 'id' => 'tl-1' }
     end
 
-    let(:tools) do
-      Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))['result']['tools']
-    end
+    let(:tools) { call(request_payload)['result']['tools'] }
 
     it 'includes a create tool for entity sets that support create' do
       expect(tools).to include(
         'name' => 'create_Widgets',
         'description' => 'Create a new Widgets record',
         'inputSchema' => {
+          '$schema' => 'https://json-schema.org/draft/2020-12/schema',
           'type' => 'object',
           'properties' => {
             'id' => { 'type' => 'string' },
@@ -70,30 +77,29 @@ RSpec.describe OdataDuty::EntitySet, 'MCP create tool' do
   describe 'tools/call for create' do
     let(:request_payload) do
       { 'jsonrpc' => '2.0', 'method' => 'tools/call',
-        'params' => { 'name' => 'create_Widgets', 'arguments' => { 'name' => 'Gadget' } },
+        'params' => { 'name' => 'create_Widgets',
+                      'arguments' => { 'id' => 'w1', 'name' => 'Gadget' } },
         'id' => 'tc-1' }
     end
 
     it 'creates the record and returns it as structured JSON' do
-      actual = Oj.load(mcp_server.handle_jsonrpc(request_payload, context: Context.new))
+      result = call(request_payload)['result']
+      record = Oj.load(result['content'][0]['text'])
 
-      expect(actual['result']).to include('id' => 'w1', 'name' => 'Gadget')
+      expect(result['isError']).to be(false)
+      expect(record).to include('id' => 'w1', 'name' => 'Gadget')
     end
 
-    it 'raises Unknown tool for a create tool on a read-only set' do
+    it 'returns a tool-not-found error for a create tool on a read-only set' do
       request_payload['params']['name'] = 'create_People'
 
-      expect do
-        mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-      end.to raise_error(/Unknown tool/)
+      expect(call(request_payload)['error']['code']).to eq(-32_602)
     end
 
-    it 'raises Unknown tool for a search tool on an unknown set' do
+    it 'returns a tool-not-found error for a search tool on an unknown set' do
       request_payload['params']['name'] = 'search_Unknown'
 
-      expect do
-        mcp_server.handle_jsonrpc(request_payload, context: Context.new)
-      end.to raise_error(/Unknown tool/)
+      expect(call(request_payload)['error']['code']).to eq(-32_602)
     end
   end
 end
