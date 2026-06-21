@@ -72,24 +72,35 @@ server = schema.to_mcp_server
 
 ### 3. Mount it over Streamable HTTP
 
-The server is transport-agnostic; wrap it in the SDK's Streamable HTTP transport and forward
-incoming requests to it. Supply the OData context per request via `server_context`:
+In Rails, build the server per request inside a controller and hand the request to the SDK's
+Streamable HTTP transport. Set `server_context` to the controller (`self`) so your entity sets /
+resolvers receive it in `od_after_init`:
 
 ```ruby
-server = schema.to_mcp_server
-server.server_context = { context: my_request_context }
-transport = MCP::Server::Transports::StreamableHTTPTransport.new(server)
-transport.handle_request(request) # `request` is a Rack::Request
+class McpController < ActionController::API
+  def create
+    server = MySchema.to_mcp_server # builder DSL: build the schema per request, then schema.to_mcp_server
+    server.server_context = { context: self }
+    # No `MCP-Session-Id` is shared across requests, so run stateless.
+    transport = MCP::Server::Transports::StreamableHTTPTransport.new(server, stateless: true)
+    status, headers, body = transport.handle_request(request)
+    render(json: body.first, status: status, headers: headers)
+  end
+end
 ```
 
-`my_request_context` is whatever object your entity sets / resolvers expect in `od_after_init`
-(often the controller or a per-request object). It is read back out of `server_context[:context]`
-inside every tool and resource handler and forwarded into the normal OData execution path.
+```ruby
+# config/routes.rb
+post '/mcp' => 'mcp#create'
+```
 
-A complete, runnable Rack example lives in [`spec/config.ru`](../spec/config.ru). It serves a
-single Streamable HTTP endpoint at `POST/GET/DELETE /mcp` alongside the REST endpoints. Because that
-demo's context is the stateless app instance itself, it sets `server_context` once at boot; a typical
-web app sets it per request instead.
+`server_context[:context]` is read back inside every tool and resource handler and forwarded into
+the normal OData execution path — it's the same `context:` you pass to `schema.execute` in your REST
+controller.
+
+A complete, runnable Rack version lives in [`spec/config.ru`](../spec/config.ru): a single Streamable
+HTTP endpoint at `POST/GET/DELETE /mcp` alongside the REST endpoints. Because that demo's context is
+the stateless app instance itself, it sets `server_context` once at boot rather than per request.
 
 ### 4. Point an MCP client at it
 
