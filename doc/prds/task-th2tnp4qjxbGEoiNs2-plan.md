@@ -75,7 +75,7 @@ input schema consumes `property.to_oas2`).
   - Depends on: Tasks 1–2 (MCP exclusion must land first so `to_oas2` readOnly does not leak into
     the MCP create input schema).
 
-- [ ] **Task 5 — Documentation.**
+- [x] **Task 5 — Documentation.**
   New guide `doc/using_computed.md` modeled on `doc/using_create.md` (purpose → both DSLs →
   reflected contracts: GET, `$metadata`, `$oas2`, MCP → common errors), linked from the README's
   "Further Documentation". State the broader convention: the gem adopts OData Core vocabulary
