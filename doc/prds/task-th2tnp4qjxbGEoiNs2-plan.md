@@ -63,7 +63,7 @@ input schema consumes `property.to_oas2`).
     Bool="true" />` on `created_at` and on the `id` key property.
   - Depends on: Task 1.
 
-- [ ] **Task 4 — `$oas2` `readOnly: true` on computed properties.**
+- [x] **Task 4 — `$oas2` `readOnly: true` on computed properties.**
   Add `'readOnly' => true` to a computed property's OAS2 representation so the shared entity
   definition (used by GET responses and the POST `$ref`) marks it read-only. POST body keeps
   referencing `#/definitions/<Entity>`.

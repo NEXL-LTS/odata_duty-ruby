@@ -88,7 +88,9 @@ module OdataDuty
       end
 
       def to_oas2
-        nullable ? to_oas2_type.merge('x-nullable' => true) : to_oas2_type
+        oas2 = to_oas2_type
+        oas2 = oas2.merge('readOnly' => true) if computed?
+        nullable ? oas2.merge('x-nullable' => true) : oas2
       end
 
       def to_oas2_type
