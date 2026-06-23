@@ -4,6 +4,9 @@
     <edmx:Reference Uri="https://docs.oasis-open.org/odata/odata-vocabularies/v4.0/vocabularies/Org.OData.Capabilities.V1.xml">
         <edmx:Include Namespace="Org.OData.Capabilities.V1" Alias="Capabilities" />
     </edmx:Reference>
+    <edmx:Reference Uri="https://docs.oasis-open.org/odata/odata-vocabularies/v4.0/vocabularies/Org.OData.Core.V1.xml">
+        <edmx:Include Namespace="Org.OData.Core.V1" Alias="Core" />
+    </edmx:Reference>
     <edmx:DataServices>
         <Schema Namespace="SampleSpace" xmlns="http://docs.oasis-open.org/odata/ns/edm">
             <Annotation Term="SampleSpace.Version" String="1.2.3" />
@@ -27,7 +30,9 @@
                 <Key>
                     <PropertyRef Name="id" />
                 </Key>
-                <Property Name="id" Nullable="false" Type="Edm.String" />
+                <Property Name="id" Nullable="false" Type="Edm.String">
+                    <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+                </Property>
                 <Property Name="user_name" Nullable="false" Type="Edm.String" />
                 <Property Name="name" Nullable="true" Type="Edm.String" />
                 <Property Name="emails" Nullable="false" Type="Collection(Edm.String)" />

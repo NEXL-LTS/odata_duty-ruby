@@ -10,8 +10,8 @@ module OdataDuty
         @property_refs = []
       end
 
-      def property_ref(*args)
-        property(*args, nullable: false).tap do |property|
+      def property_ref(*args, computed: true, **kwargs)
+        property(*args, nullable: false, computed: computed, **kwargs).tap do |property|
           raise 'Multiple Property Reference not yet supported' if property_refs.size.positive?
 
           property_refs << property

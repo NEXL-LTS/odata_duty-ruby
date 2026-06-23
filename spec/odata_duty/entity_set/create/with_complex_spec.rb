@@ -14,7 +14,7 @@ class CreateTestComplex < OdataDuty::ComplexType
 end
 
 class CreateComplexTestEntity < OdataDuty::EntityType
-  property_ref 'id', String
+  property_ref 'id', String, computed: false
   property 'complex', CreateTestComplex
 end
 

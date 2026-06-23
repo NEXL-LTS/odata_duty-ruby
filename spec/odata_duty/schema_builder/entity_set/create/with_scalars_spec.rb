@@ -18,7 +18,7 @@ module OdataDuty
     subject(:schema) do
       SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '') do |s|
         collection_entity = s.add_entity_type(name: 'CreateScalarsTestEntity') do |et|
-          et.property_ref 'id', String
+          et.property_ref 'id', String, computed: false
           et.property 'string', String
           et.property 'string_list', [String]
           et.property 'number', Integer

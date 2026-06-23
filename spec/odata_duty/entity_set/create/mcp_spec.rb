@@ -1,17 +1,21 @@
 require 'spec_helper'
 
 class CreateMcpStruct
-  attr_reader :id, :name
+  attr_reader :id, :name, :sku, :created_at
 
-  def initialize(id:, name:)
+  def initialize(id:, name:, sku:)
     @id = id
     @name = name
+    @sku = sku
+    @created_at = '2026-06-23'
   end
 end
 
 class CreateMcpWidgetEntity < OdataDuty::EntityType
   property_ref 'id', String
   property 'name', String
+  property 'sku', String, nullable: false
+  property 'created_at', String, computed: true
 end
 
 class CreateMcpWidgetSet < OdataDuty::EntitySet
@@ -20,7 +24,7 @@ class CreateMcpWidgetSet < OdataDuty::EntitySet
   url 'Widgets'
 
   def create(params)
-    CreateMcpStruct.new(id: 'w1', name: params.name)
+    CreateMcpStruct.new(id: 'w1', name: params.name, sku: params.sku)
   end
 end
 
@@ -61,10 +65,10 @@ RSpec.describe OdataDuty::EntitySet, 'MCP create tool' do
           '$schema' => 'https://json-schema.org/draft/2020-12/schema',
           'type' => 'object',
           'properties' => {
-            'id' => { 'type' => 'string' },
-            'name' => { 'type' => 'string', 'x-nullable' => true }
+            'name' => { 'type' => 'string', 'x-nullable' => true },
+            'sku' => { 'type' => 'string' }
           },
-          'required' => ['id']
+          'required' => ['sku']
         }
       )
     end
@@ -78,7 +82,7 @@ RSpec.describe OdataDuty::EntitySet, 'MCP create tool' do
     let(:request_payload) do
       { 'jsonrpc' => '2.0', 'method' => 'tools/call',
         'params' => { 'name' => 'create_Widgets',
-                      'arguments' => { 'id' => 'w1', 'name' => 'Gadget' } },
+                      'arguments' => { 'name' => 'Gadget', 'sku' => 'SKU1' } },
         'id' => 'tc-1' }
     end
 

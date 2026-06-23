@@ -24,6 +24,7 @@ module OdataDuty
     private
 
     def __load(matching_prop, method_name, value)
+      return nil if matching_prop.computed?
       return nil if value.nil?
       return matching_prop.to_value(value, @context) if matching_prop.scalar?
 
