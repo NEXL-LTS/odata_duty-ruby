@@ -107,8 +107,9 @@ module OdataDuty
     end
 
     def create_input_schema(entity_type)
-      properties = entity_type.properties.to_h { |p| [p.name.to_s, p.to_oas2] }
-      required = entity_type.properties.reject(&:nullable).map { |p| p.name.to_s }
+      writable = entity_type.properties.reject(&:computed?)
+      properties = writable.to_h { |p| [p.name.to_s, p.to_oas2] }
+      required = writable.reject(&:nullable).map { |p| p.name.to_s }
       { 'type' => 'object', 'properties' => properties, 'required' => required }
     end
   end

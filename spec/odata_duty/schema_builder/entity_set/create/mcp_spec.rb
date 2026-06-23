@@ -2,7 +2,7 @@ require 'spec_helper'
 
 class CreateMcpWidgetResolver < OdataDuty::SetResolver
   def create(params)
-    Struct.new(:id, :name).new('w1', params.name)
+    Struct.new(:id, :name, :sku, :created_at).new('w1', params.name, params.sku, '2026-06-23')
   end
 end
 
@@ -16,6 +16,8 @@ module OdataDuty
         entity = s.add_entity_type(name: 'CreateMcpWidgetEntity') do |et|
           et.property_ref 'id', String
           et.property 'name', String
+          et.property 'sku', String, nullable: false
+          et.property 'created_at', String, computed: true
         end
 
         s.add_entity_set(name: 'Widgets', entity_type: entity,
@@ -50,10 +52,10 @@ module OdataDuty
             '$schema' => 'https://json-schema.org/draft/2020-12/schema',
             'type' => 'object',
             'properties' => {
-              'id' => { 'type' => 'string' },
-              'name' => { 'type' => 'string', 'x-nullable' => true }
+              'name' => { 'type' => 'string', 'x-nullable' => true },
+              'sku' => { 'type' => 'string' }
             },
-            'required' => ['id']
+            'required' => ['sku']
           }
         )
       end
@@ -67,7 +69,7 @@ module OdataDuty
       let(:request_payload) do
         { 'jsonrpc' => '2.0', 'method' => 'tools/call',
           'params' => { 'name' => 'create_Widgets',
-                        'arguments' => { 'id' => 'w1', 'name' => 'Gadget' } },
+                        'arguments' => { 'name' => 'Gadget', 'sku' => 'SKU1' } },
           'id' => 'tc-1' }
       end
 

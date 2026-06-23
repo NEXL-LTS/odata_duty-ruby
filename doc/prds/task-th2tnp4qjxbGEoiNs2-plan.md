@@ -42,7 +42,7 @@ input schema consumes `property.to_oas2`).
     `computed: true`; `property_ref 'id', String, computed: false` opts back in.
   - Depends on: none.
 
-- [ ] **Task 2 — MCP `create_<Set>` tool excludes computed properties.**
+- [x] **Task 2 — MCP `create_<Set>` tool excludes computed properties.**
   In `create_input_schema`, exclude computed properties from both `properties` and `required`.
   - Files: `lib/odata_duty/mcp_server_builder.rb`.
   - Specs (both trees): `spec/odata_duty/entity_set/create/mcp_spec.rb`, schema_builder equivalent.
