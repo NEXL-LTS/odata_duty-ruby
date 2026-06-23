@@ -51,7 +51,7 @@ input schema consumes `property.to_oas2`).
     `required`.
   - Depends on: Task 1.
 
-- [ ] **Task 3 — `$metadata` Core.Computed annotation + vocabulary reference.**
+- [x] **Task 3 — `$metadata` Core.Computed annotation + vocabulary reference.**
   Render `<Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />` inside each computed
   `<Property>` (entity and complex), and add the `edmx:Reference` for the
   `Org.OData.Core.V1` vocabulary (Alias `Core`), mirroring the existing Capabilities reference.
