@@ -1,6 +1,6 @@
 # Using `computed` (read-only) properties with OdataDuty
 
-A **computed** property is one the server generates — an auto-incrementing key, a `created_at` timestamp, a derived field. It still appears in every read response, but clients must not (and cannot) set it when creating a record. OdataDuty marks such a property with the `computed:` keyword on `property`. A computed property renders normally in `GET`/`collection`/`individual`/`create` responses but is excluded from the **create input** surface across all three contracts.
+A **computed** property is one that the server generates — an auto-incrementing key, a `created_at` timestamp, a derived field. It still appears in every read response, but clients must not (and cannot) set it when creating a record. OdataDuty marks such a property with the `computed:` keyword on `property`. A computed property renders normally in `GET`/`collection`/`individual`/`create` responses but is excluded from the **create input** surface across all three contracts.
 
 This guide explains how to declare a computed property in both DSLs and how the read-only distinction is reflected in the generated `$metadata`, `$oas2`, MCP, and the typed `create` input.
 

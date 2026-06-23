@@ -21,9 +21,13 @@
             <% metadata.complex_types.each do |complex_type| %>
                 <ComplexType Name="<%= complex_type.name %>">
                     <% complex_type.properties.each do |property| %>
-                        <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>"<% if property.computed? %>>
-                            <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
-                        </Property><% else %> /><% end %>
+                        <% if property.computed? %>
+                            <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>">
+                                <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+                            </Property>
+                        <% else %>
+                            <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>" />
+                        <% end %>
                     <% end %>
                 </ComplexType>
             <% end %>
@@ -35,9 +39,13 @@
                         <% end %>
                     </Key>
                     <% entity_type.properties.each do |property| %>
-                        <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>"<% if property.computed? %>>
-                            <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
-                        </Property><% else %> /><% end %>
+                        <% if property.computed? %>
+                            <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>">
+                                <Annotation Term="Org.OData.Core.V1.Computed" Bool="true" />
+                            </Property>
+                        <% else %>
+                            <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>" />
+                        <% end %>
                     <% end %>
                 </EntityType>
             <% end %>

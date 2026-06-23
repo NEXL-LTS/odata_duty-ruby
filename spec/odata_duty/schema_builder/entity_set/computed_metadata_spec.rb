@@ -45,5 +45,15 @@ module OdataDuty
         '<edmx:Include Namespace="Org.OData.Core.V1" Alias="Core" />'
       )
     end
+
+    it 'produces well-formed XML' do
+      doc = Nokogiri::XML(metadata_xml)
+      expect(doc.errors).to be_empty
+    end
+
+    it 'renders a non-computed property as a clean element with no stray markup' do
+      expect(property_xml('name')).not_to include('> />')
+      expect(property_xml('name')).not_to include('></Property>')
+    end
   end
 end

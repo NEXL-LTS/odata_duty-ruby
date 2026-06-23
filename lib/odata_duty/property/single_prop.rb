@@ -88,9 +88,10 @@ module OdataDuty
       end
 
       def to_oas2
-        oas2 = to_oas2_type
-        oas2 = oas2.merge('readOnly' => true) if computed?
-        nullable ? oas2.merge('x-nullable' => true) : oas2
+        to_oas2_type.dup.tap do |oas2|
+          oas2.merge!('readOnly' => true) if computed?
+          oas2.merge!('x-nullable' => true) if nullable
+        end
       end
 
       def to_oas2_type
