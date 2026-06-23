@@ -39,7 +39,7 @@ module OdataDuty
         end
 
         collection_entity = s.add_entity_type(name: 'CreateComplexTestEntity') do |et|
-          et.property_ref 'id', String
+          et.property_ref 'id', String, computed: false
           et.property 'complex', complex_type
         end
 

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 class CreateScalarsTestEntity < OdataDuty::EntityType
-  property_ref 'id', String
+  property_ref 'id', String, computed: false
   property 'string', String
   property 'string_list', [String]
   property 'number', Integer

@@ -2,17 +2,23 @@ module OdataDuty
   module Property
     class SingleProp
       attr_reader :name, :nullable, :calling_method, :line__defined__at, :raw_type, :type,
-                  :set_type, :method_name
+                  :set_type, :method_name, :computed
 
-      def initialize(name, type = String, line__defined__at: nil, nullable: true, method: nil)
+      def initialize(name, type = String, line__defined__at: nil, nullable: true, method: nil,
+                     computed: false)
         @line__defined__at = line__defined__at
         @name = name.to_str.to_sym
         @calling_method = method.respond_to?(:call) ? method : nil
         method = nil if method.respond_to?(:call)
         @method_name = (method || name).to_sym
         @nullable = nullable ? true : false
+        @computed = computed ? true : false
 
         load_type_instance_vars(type)
+      end
+
+      def computed?
+        computed
       end
 
       def calling_method?

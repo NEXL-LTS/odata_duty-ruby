@@ -4,7 +4,8 @@ require 'odata_duty/property/collection_prop'
 
 module OdataDuty
   module Property
-    def self.new(name, type = String, line__defined__at: nil, nullable: true, method: nil)
+    def self.new(name, type = String, line__defined__at: nil, nullable: true, method: nil,
+                 computed: false)
       unless valid_name?(name)
         raise InvalidNCNamesError, "\"#{name}\" is not a valid property name"
       end
@@ -13,7 +14,8 @@ module OdataDuty
       prop_class.new(name, type,
                      line__defined__at: line__defined__at,
                      nullable: nullable,
-                     method: method)
+                     method: method,
+                     computed: computed)
     end
 
     def self.valid_name?(name)

@@ -23,7 +23,7 @@ input schema consumes `property.to_oas2`).
 
 ## Tasks
 
-- [ ] **Task 1 — DSL `computed:` flag + create-input exclusion.**
+- [x] **Task 1 — DSL `computed:` flag + create-input exclusion.**
   Add a `computed:` keyword (default `false`) to property definition in both DSLs and store it on
   the shared `Property` representation with a `computed?` predicate. Make `property_ref` default to
   `computed: true` (overridable via `computed: false`) in both DSLs. In the create-input wrapper,
