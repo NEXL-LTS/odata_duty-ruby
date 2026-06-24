@@ -82,6 +82,13 @@
                                 </Record>
                             </Annotation>
                         <% end %>
+                        <% if !entity_set.supports_update? %>
+                            <Annotation Term="Capabilities.UpdateRestrictions">
+                                <Record>
+                                    <PropertyValue Property="Updatable" Bool="false" />
+                                </Record>
+                            </Annotation>
+                        <% end %>
                     </EntitySet>
                 <% end %>
             </EntityContainer>

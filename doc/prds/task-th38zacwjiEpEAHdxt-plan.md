@@ -63,7 +63,7 @@ The `$oas2` individual path key encoding (`/Set({id})`) is reused as-is; `update
 
   Dependencies: none. Establishes `supports_update?` used by Tasks 2–4.
 
-- [ ] **Task 2 — `$metadata` `UpdateRestrictions` annotation (both DSLs)**
+- [x] **Task 2 — `$metadata` `UpdateRestrictions` annotation (both DSLs)**
 
   Emit a `Capabilities.UpdateRestrictions` / `Updatable=false` annotation for sets **without**
   `update`, paralleling the existing `InsertRestrictions` block; updatable sets get no annotation.

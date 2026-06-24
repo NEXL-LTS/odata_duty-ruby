@@ -44,10 +44,12 @@
 
             <EntityContainer Name="Container">
                 <EntitySet Name="People" EntityType="SampleSpace.Person">
-                        
-                        
-                        
-                    </EntitySet>
+                    <Annotation Term="Capabilities.UpdateRestrictions">
+                        <Record>
+                            <PropertyValue Property="Updatable" Bool="false" />
+                        </Record>
+                    </Annotation>
+                </EntitySet>
             </EntityContainer>
         </Schema>
     </edmx:DataServices>
