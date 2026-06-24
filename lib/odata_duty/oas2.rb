@@ -65,9 +65,9 @@ module OdataDuty
 
     def add_individual_paths
       schema.individual_entity_sets.each do |entity_set|
-        hash['paths']["/#{entity_set.url}({id})"] = {
-          'get' => IndividualGetPath.new(entity_set).to_oas2
-        }
+        path = { 'get' => IndividualGetPath.new(entity_set).to_oas2 }
+        path['patch'] = IndividualPatchPath.to_oas2(entity_set) if entity_set.supports_update?
+        hash['paths']["/#{entity_set.url}({id})"] = path
       end
     end
 
@@ -91,3 +91,4 @@ end
 require 'odata_duty/oas2/collection_get_path'
 require 'odata_duty/oas2/collection_post_path'
 require 'odata_duty/oas2/individual_get_path'
+require 'odata_duty/oas2/individual_patch_path'

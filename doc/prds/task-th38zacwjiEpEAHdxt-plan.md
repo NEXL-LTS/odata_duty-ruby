@@ -77,7 +77,7 @@ The `$oas2` individual path key encoding (`/Set({id})`) is reused as-is; `update
 
   Dependencies: Task 1 (`supports_update?`).
 
-- [ ] **Task 3 — `$oas2` `patch` on the individual path (both DSLs)**
+- [x] **Task 3 — `$oas2` `patch` on the individual path (both DSLs)**
 
   Add a `patch` to an updatable set's individual path object alongside `get`. `operationId`
   `Update<Set>`; parameters = the `id` path param (as `get` uses) **plus** a required `body` param
