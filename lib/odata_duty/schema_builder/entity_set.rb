@@ -32,6 +32,11 @@ module OdataDuty
         # Check if the resolver class supports create by looking for the create method
         resolver_class.method_defined?(:create)
       end
+
+      def supports_update?
+        # Check if the resolver class supports update by looking for the update method
+        resolver_class.method_defined?(:update)
+      end
     end
   end
 end

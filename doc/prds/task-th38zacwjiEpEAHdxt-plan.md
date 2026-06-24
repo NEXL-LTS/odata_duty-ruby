@@ -63,7 +63,7 @@ The `$oas2` individual path key encoding (`/Set({id})`) is reused as-is; `update
 
   Dependencies: none. Establishes `supports_update?` used by Tasks 2–4.
 
-- [x] **Task 2 — `$metadata` `UpdateRestrictions` annotation (both DSLs)**
+- [ ] **Task 2 — `$metadata` `UpdateRestrictions` annotation (both DSLs)**
 
   Emit a `Capabilities.UpdateRestrictions` / `Updatable=false` annotation for sets **without**
   `update`, paralleling the existing `InsertRestrictions` block; updatable sets get no annotation.
@@ -77,7 +77,7 @@ The `$oas2` individual path key encoding (`/Set({id})`) is reused as-is; `update
 
   Dependencies: Task 1 (`supports_update?`).
 
-- [x] **Task 3 — `$oas2` `patch` on the individual path (both DSLs)**
+- [ ] **Task 3 — `$oas2` `patch` on the individual path (both DSLs)**
 
   Add a `patch` to an updatable set's individual path object alongside `get`. `operationId`
   `Update<Set>`; parameters = the `id` path param (as `get` uses) **plus** a required `body` param
@@ -93,7 +93,7 @@ The `$oas2` individual path key encoding (`/Set({id})`) is reused as-is; `update
 
   Dependencies: Task 1.
 
-- [x] **Task 4 — MCP `update_<Set>` tool (both DSLs)**
+- [ ] **Task 4 — MCP `update_<Set>` tool (both DSLs)**
 
   Register an `update_<Set>` tool for each updatable set, mirroring `create_<Set>`. `name`
   `update_<Set>`; `description` `"Update an existing <Set> record"`; `inputSchema` properties =
@@ -111,7 +111,7 @@ The `$oas2` individual path key encoding (`/Set({id})`) is reused as-is; `update
 
   Dependencies: Task 1.
 
-- [x] **Task 5 — Documentation: fold `create` + `update` into a write-operations guide**
+- [ ] **Task 5 — Documentation: fold `create` + `update` into a write-operations guide**
 
   Evolve `doc/using_create.md` into a combined write-operations guide (Overview → both DSLs → How
   it works → `$oas2`/`$metadata`/MCP reflection → Common Error Cases), presenting `update`

@@ -101,6 +101,14 @@ module OdataDuty
         mapper.obj_to_hash(result, context)
       end
 
+      def update(id, context:)
+        wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context)
+        result = entity_set.new(context: context).update(converted_id(id, context), wrapper)
+        raise ResourceNotFoundError, "No such entity #{id}" unless result
+
+        entity_type.mapper(context, selected: nil).obj_to_hash(result, context)
+      end
+
       def supports_search?
         # Check if the entity set class supports search by looking for the od_search method
         entity_set.method_defined?(:od_search)
@@ -113,6 +121,11 @@ module OdataDuty
       def supports_create?
         # Check if the entity set class supports create by looking for the create method
         entity_set.method_defined?(:create)
+      end
+
+      def supports_update?
+        # Check if the entity set class supports update by looking for the update method
+        entity_set.method_defined?(:update)
       end
 
       private
@@ -261,6 +274,10 @@ module OdataDuty
 
     def self.create(url, context:, query_options: {})
       Executor.create(url: url, context: context, query_options: query_options, schema: self)
+    end
+
+    def self.update(url, context:, query_options: {})
+      Executor.update(url: url, context: context, query_options: query_options, schema: self)
     end
 
     def self.to_mcp_server

@@ -90,6 +90,10 @@ module OdataDuty
         Executor.create(url: url, context: context, query_options: query_options, schema: self)
       end
 
+      def update(url, context:, query_options: {})
+        Executor.update(url: url, context: context, query_options: query_options, schema: self)
+      end
+
       def to_mcp_server
         McpServerBuilder.build(self)
       end
