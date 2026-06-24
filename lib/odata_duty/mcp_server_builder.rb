@@ -1,5 +1,6 @@
 require 'mcp'
 require 'uri'
+require 'odata_duty/mcp_input_schemas'
 
 module OdataDuty
   module McpServerBuilder
@@ -14,11 +15,14 @@ module OdataDuty
         resource_templates: resource_templates(schema)
       )
       register_resources_read(server, schema)
-      schema.endpoints.each do |endpoint|
-        register_search_tool(server, schema, endpoint) if endpoint.supports_search?
-        register_create_tool(server, schema, endpoint) if endpoint.supports_create?
-      end
+      schema.endpoints.each { |endpoint| register_endpoint_tools(server, schema, endpoint) }
       server
+    end
+
+    def register_endpoint_tools(server, schema, endpoint)
+      register_search_tool(server, schema, endpoint) if endpoint.supports_search?
+      register_create_tool(server, schema, endpoint) if endpoint.supports_create?
+      register_update_tool(server, schema, endpoint) if endpoint.supports_update?
     end
 
     def direct_resources(schema)
@@ -70,20 +74,29 @@ module OdataDuty
       description = "Search #{endpoint.name} using expressions with AND, OR, NOT operators"
       define_tool(server, schema, endpoint, :execute,
                   name: "search_#{endpoint.name}", description: description,
-                  input_schema: search_input_schema)
+                  input_schema: McpInputSchemas.search_input_schema)
     end
 
     def register_create_tool(server, schema, endpoint)
       define_tool(server, schema, endpoint, :create,
                   name: "create_#{endpoint.name}",
                   description: "Create a new #{endpoint.name} record",
-                  input_schema: create_input_schema(endpoint.entity_type))
+                  input_schema: McpInputSchemas.create_input_schema(endpoint.entity_type))
     end
 
-    def define_tool(server, schema, endpoint, action, **tool_args)
-      url = endpoint.url
+    def register_update_tool(server, schema, endpoint)
+      key_name = endpoint.entity_type.property_refs.first.name.to_sym
+      define_tool(server, schema, endpoint, :update,
+                  url_for: ->(args) { "#{endpoint.url}('#{args[key_name]}')" },
+                  name: "update_#{endpoint.name}",
+                  description: "Update an existing #{endpoint.name} record",
+                  input_schema: McpInputSchemas.update_input_schema(endpoint.entity_type))
+    end
+
+    def define_tool(server, schema, endpoint, action, url_for: nil, **tool_args)
+      url_for ||= ->(_args) { endpoint.url }
       server.define_tool(**tool_args) do |server_context:, **args|
-        McpServerBuilder.run_tool(action, url: url, schema: schema,
+        McpServerBuilder.run_tool(action, url: url_for.call(args), schema: schema,
                                           context: server_context[:context],
                                           query_options: args.transform_keys(&:to_s))
       end
@@ -95,22 +108,6 @@ module OdataDuty
       MCP::Tool::Response.new([{ type: 'text', text: json }])
     rescue OdataDuty::Error => e
       MCP::Tool::Response.new([{ type: 'text', text: e.message }], error: true)
-    end
-
-    def search_input_schema
-      { 'type' => 'object',
-        'properties' => { '$search' => {
-          'type' => 'string',
-          'description' => 'Search query using expressions with AND, OR, NOT operators'
-        } },
-        'required' => ['$search'] }
-    end
-
-    def create_input_schema(entity_type)
-      writable = entity_type.properties.reject(&:computed?)
-      properties = writable.to_h { |p| [p.name.to_s, p.to_oas2] }
-      required = writable.reject(&:nullable).map { |p| p.name.to_s }
-      { 'type' => 'object', 'properties' => properties, 'required' => required }
     end
   end
 end

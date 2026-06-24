@@ -93,7 +93,7 @@ The `$oas2` individual path key encoding (`/Set({id})`) is reused as-is; `update
 
   Dependencies: Task 1.
 
-- [ ] **Task 4 — MCP `update_<Set>` tool (both DSLs)**
+- [x] **Task 4 — MCP `update_<Set>` tool (both DSLs)**
 
   Register an `update_<Set>` tool for each updatable set, mirroring `create_<Set>`. `name`
   `update_<Set>`; `description` `"Update an existing <Set> record"`; `inputSchema` properties =
