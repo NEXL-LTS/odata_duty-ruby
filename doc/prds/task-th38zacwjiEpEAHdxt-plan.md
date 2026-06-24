@@ -111,7 +111,7 @@ The `$oas2` individual path key encoding (`/Set({id})`) is reused as-is; `update
 
   Dependencies: Task 1.
 
-- [ ] **Task 5 — Documentation: fold `create` + `update` into a write-operations guide**
+- [x] **Task 5 — Documentation: fold `create` + `update` into a write-operations guide**
 
   Evolve `doc/using_create.md` into a combined write-operations guide (Overview → both DSLs → How
   it works → `$oas2`/`$metadata`/MCP reflection → Common Error Cases), presenting `update`
