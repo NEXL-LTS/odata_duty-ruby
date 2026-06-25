@@ -94,7 +94,7 @@ PRD excerpt (`$oas2`):
 
 Dependencies: Tasks 1, 2 (`supports_delete?`).
 
-### - [ ] Task 4 — MCP `delete_<Set>` tool
+### - [x] Task 4 — MCP `delete_<Set>` tool
 
 `tools/list` includes a `delete_<Set>` tool for each deletable set: `name` `delete_<Set>`,
 `description` `"Delete an existing <Set> record"`, `inputSchema` an object whose `properties`

@@ -23,6 +23,7 @@ module OdataDuty
       register_search_tool(server, schema, endpoint) if endpoint.supports_search?
       register_create_tool(server, schema, endpoint) if endpoint.supports_create?
       register_update_tool(server, schema, endpoint) if endpoint.supports_update?
+      register_delete_tool(server, schema, endpoint) if endpoint.supports_delete?
     end
 
     def direct_resources(schema)
@@ -85,12 +86,20 @@ module OdataDuty
     end
 
     def register_update_tool(server, schema, endpoint)
-      key_name = endpoint.entity_type.property_refs.first.name.to_sym
-      define_tool(server, schema, endpoint, :update,
-                  url_for: ->(args) { "#{endpoint.url}('#{args[key_name]}')" },
-                  name: "update_#{endpoint.name}",
-                  description: "Update an existing #{endpoint.name} record",
-                  input_schema: McpInputSchemas.update_input_schema(endpoint.entity_type))
+      register_key_tool(server, schema, endpoint, :update, 'Update an existing')
+    end
+
+    def register_delete_tool(server, schema, endpoint)
+      register_key_tool(server, schema, endpoint, :delete, 'Delete an existing')
+    end
+
+    def register_key_tool(server, schema, endpoint, action, verb)
+      key = endpoint.entity_type.property_refs.first.name.to_sym
+      input_schema = McpInputSchemas.public_send("#{action}_input_schema", endpoint.entity_type)
+      define_tool(server, schema, endpoint, action,
+                  url_for: ->(args) { "#{endpoint.url}('#{args[key]}')" },
+                  name: "#{action}_#{endpoint.name}",
+                  description: "#{verb} #{endpoint.name} record", input_schema: input_schema)
     end
 
     def define_tool(server, schema, endpoint, action, url_for: nil, **tool_args)
