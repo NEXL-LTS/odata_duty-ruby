@@ -107,7 +107,7 @@ class SampleSchema < OdataDuty::Schema
 end
 ```
 
-Implementing `create` makes a set writable; omitting it keeps the set read-only. This single choice is reflected automatically across `$oas2`, `$metadata`, and MCP — see [Using `create`](doc/using_create.md).
+Implementing `create` makes a set insertable and `update` makes it updatable; omitting them keeps the set read-only. Each choice is reflected automatically across `$oas2`, `$metadata`, and MCP — see [Using `create` and `update`](doc/using_create_and_update.md).
 
 ---
 
@@ -238,7 +238,7 @@ end
 - [Using MCP](doc/using_mcp.md)
 - [Using `$select`](doc/using_select.md)
 - [Using `$search`](doc/using_search.md)
-- [Using `create`](doc/using_create.md)
+- [Using `create` and `update`](doc/using_create_and_update.md)
 - [Using `computed` (read-only) properties](doc/using_computed.md)
 
 > **Documentation convention:** Every externally-facing feature (a new DSL option,

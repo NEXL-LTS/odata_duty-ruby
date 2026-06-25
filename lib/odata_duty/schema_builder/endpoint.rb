@@ -57,8 +57,20 @@ module OdataDuty
         entity_set.supports_filter_or?
       end
 
+      def update(id, context:)
+        wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context)
+        result = new_entity_set(context: context).update(converted_id(id, context), wrapper)
+        raise ResourceNotFoundError, "No such entity #{id}" unless result
+
+        entity_type.mapper(context, selected: nil).obj_to_hash(result, context)
+      end
+
       def supports_create?
         entity_set.supports_create?
+      end
+
+      def supports_update?
+        entity_set.supports_update?
       end
 
       private

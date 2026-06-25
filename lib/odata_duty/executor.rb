@@ -11,6 +11,10 @@ module OdataDuty
       new(**).create
     end
 
+    def self.update(**)
+      new(**).update
+    end
+
     attr_reader :schema, :url, :context, :query_options
 
     def initialize(schema:, url:, context:, query_options:)
@@ -47,6 +51,19 @@ module OdataDuty
               mode: :compat)
     rescue NoMethodError
       raise NoImplementationError, "create not implemented for #{endpoint.url}"
+    end
+
+    def update
+      entity_id = extract_value_from_brackets(url)
+      Oj.dump(endpoint
+          .update(entity_id, context: wrapped_context)
+          .merge(
+            '@odata.context': wrapped_context.od_full_url('$metadata',
+                                                          anchor: "#{endpoint.name}/$entity")
+          ),
+              mode: :compat)
+    rescue NoMethodError
+      raise NoImplementationError, "update not implemented for #{endpoint.url}"
     end
 
     def prepare_builder(endpoint, context, query_options)

@@ -122,7 +122,7 @@ by hand.
   [`od_search`](using_search.md). Its input schema requires a single `$search` string. Calling it
   runs the same `$search` execution as the OData endpoint and returns the collection JSON.
 - **`create_<Set>`** — registered for every writable set (one that implements
-  [`create`](using_create.md)). Its input schema is built from the entity type's properties;
+  [`create`](using_create_and_update.md)). Its input schema is built from the entity type's properties;
   non-nullable properties become `required`.
 
 `tools/list` returns these with their derived names, descriptions, and input schemas. A successful
