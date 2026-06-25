@@ -26,4 +26,14 @@ class <%= class_name %>Resolver < OdataDuty::SetResolver
     @<%= file_name.pluralize %> << new_<%= file_name %>
     new_<%= file_name %>
   end
+
+  # Optional: Implement delete method to support DELETE operations
+  def delete(id)
+    # Find and remove the entity by id; return truthy on success, falsey if not found
+    <%= file_name %> = @<%= file_name.pluralize %>.find { |item| item.<%= attributes.first.name %> == id }
+    return nil unless <%= file_name %>
+
+    @<%= file_name.pluralize %>.delete(<%= file_name %>)
+    <%= file_name %>
+  end
 end

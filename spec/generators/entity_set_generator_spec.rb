@@ -54,6 +54,13 @@ if Gem.loaded_specs['railties']
       entity_set_content = File.read(entity_set_path)
       expect(entity_set_content).to include('include OdataActiveRecordConcern')
 
+      # Check that entity_set scaffolds a delete method
+      expect(entity_set_content).to include('def delete(id)')
+
+      # Check that the entity_set spec scaffolds a #delete example
+      entity_set_spec_content = File.read(entity_set_spec_path)
+      expect(entity_set_spec_content).to include('#delete')
+
       # Check that the concern ships a default od_filter_or union implementation
       active_record_concern_content = File.read(active_record_concern_path)
       expect(active_record_concern_content).to include('def od_filter_or(predicates)')

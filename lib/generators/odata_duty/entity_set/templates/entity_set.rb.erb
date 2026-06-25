@@ -9,4 +9,12 @@ class <%= class_name %>Set < OdataDuty::EntitySet
   def create(data)
     <%= class_name %>.create!(<% attributes.each do |attr| %><%= attr.name %>: data.<%= attr.name %>,<% end %>)
   end
+
+  def delete(id)
+    record = @records.find_by(<%= attributes.first.name %>: id)
+    return nil unless record
+
+    record.destroy!
+    record
+  end
 end

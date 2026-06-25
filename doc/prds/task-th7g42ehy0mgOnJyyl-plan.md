@@ -146,7 +146,7 @@ delete '*url' => 'api#destroy'
 
 Dependencies: Task 1.
 
-### - [ ] Task 6 — Rails `entity_set` generator: scaffold `delete(id)` + spec example
+### - [x] Task 6 — Rails `entity_set` generator: scaffold `delete(id)` + spec example
 
 `resolver.rb.erb` (builder) and `entity_set.rb.erb` (class) gain an optional, ready-to-edit
 `delete(id)` method alongside `create`. The generated specs gain a `#delete` example covering the

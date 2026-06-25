@@ -30,4 +30,21 @@ RSpec.describe <%= class_name %>Resolver do
       expect(subject.individual('non_existent_id')).to be_nil
     end
   end
+
+  describe '#delete' do
+    let(:test_entity) { OpenStruct.new(<%= attributes.first.name %>: 'test_id') }
+
+    before do
+      subject.instance_variable_set(:@<%= file_name.pluralize %>, [test_entity])
+    end
+
+    it 'removes an existing entity by id' do
+      expect(subject.delete('test_id')).to eq(test_entity)
+      expect(subject.instance_variable_get(:@<%= file_name.pluralize %>)).not_to include(test_entity)
+    end
+
+    it 'returns a falsey value when the entity is not found' do
+      expect(subject.delete('non_existent_id')).to be_falsey
+    end
+  end
 end
