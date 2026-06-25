@@ -46,8 +46,28 @@ class ModelNameSet < OdataDuty::EntitySet
   def create(data)
     ModelName.create!(field1: data.field1, field2: data.field2, field3: data.field3)
   end
+
+  def delete(id)
+    record = @records.find_by(id: id)
+    return nil unless record
+
+    record.destroy!
+    record
+  end
 end
 ```
+
+The generated set scaffolds both a `create` method (making the set insertable) and a `delete(id)`
+method (making it deletable). `delete` receives the coerced entity key, removes the matching record,
+and returns a truthy value on success — returning falsey (when no record matches) makes OdataDuty
+raise a `ResourceNotFoundError`. Delete what you don't need: removing the `delete` method drops the
+set's `DELETE` support across `$oas2`, `$metadata`, and MCP. See
+[Using `create`, `update`, and `delete`](using_create_update_and_delete.md) for the full write-operation
+contract.
+
+The companion `odata_duty:install` generator wires the matching Rails endpoints — a `destroy`
+controller action that calls `schema.delete(...)` and responds `204 No Content`, plus a
+`delete '*url' => 'api#destroy'` route alongside the `get`/`post` routes.
 
 ## Examples
 

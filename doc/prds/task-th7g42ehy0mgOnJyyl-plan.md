@@ -171,7 +171,7 @@ end
 
 Dependencies: Task 1.
 
-### - [ ] Task 7 — Documentation
+### - [x] Task 7 — Documentation
 
 Extend `doc/using_create_and_update.md` to cover `delete` as the third write operation (retitle to
 cover create / update / delete), preserving its purpose-first, example-driven, "Common Error Cases"
