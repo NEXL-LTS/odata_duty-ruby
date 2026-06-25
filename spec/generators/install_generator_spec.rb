@@ -27,6 +27,18 @@ if Gem.loaded_specs['railties']
       routes = File.read(File.join(destination, 'config/routes.rb'))
       expect(routes).to include("scope '/api'")
     end
+
+    it 'generates a delete route and destroy action' do
+      described_class.start([], destination_root: destination)
+
+      routes = File.read(File.join(destination, 'config/routes.rb'))
+      expect(routes).to include("delete '*url' => 'api#destroy'")
+
+      controller = File.read(File.join(destination, 'app/controllers/api_controller.rb'))
+      expect(controller).to include('def destroy')
+      expect(controller).to include('schema.delete(')
+      expect(controller).to include('head :no_content')
+    end
   end
 else
   RSpec.describe 'OdataDuty install generator' do

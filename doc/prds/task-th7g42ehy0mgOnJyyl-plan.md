@@ -123,7 +123,7 @@ PRD excerpt (MCP):
 
 Dependencies: Tasks 1, 2 (`supports_delete?`).
 
-### - [ ] Task 5 — Rails `install` generator: `destroy` action + `delete` route
+### - [x] Task 5 — Rails `install` generator: `destroy` action + `delete` route
 
 The generated controller gains a `destroy` action calling `schema.delete(...)` then
 `head :no_content`; `route_contents` adds `delete '*url' => '<controller>#destroy'` to the

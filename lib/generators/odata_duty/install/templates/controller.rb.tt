@@ -19,6 +19,11 @@ class <%= controller_class %> < ApplicationController
     render json: schema.create(params[:url], context: self, query_options: query_options)
   end
 
+  def destroy
+    schema.delete(params[:url], context: self, query_options: query_options)
+    head :no_content
+  end
+
   private
 
   def query_options
