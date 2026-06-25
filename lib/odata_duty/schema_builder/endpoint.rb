@@ -65,6 +65,13 @@ module OdataDuty
         entity_type.mapper(context, selected: nil).obj_to_hash(result, context)
       end
 
+      def delete(id, context:)
+        result = new_entity_set(context: context).delete(converted_id(id, context))
+        raise ResourceNotFoundError, "No such entity #{id}" unless result
+
+        result
+      end
+
       def supports_create?
         entity_set.supports_create?
       end

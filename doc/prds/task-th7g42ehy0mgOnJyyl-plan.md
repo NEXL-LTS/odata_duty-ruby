@@ -42,7 +42,7 @@ PRD excerpt (External API + Behavior + Common error cases):
 
 Dependencies: none (foundational).
 
-### - [x] Task 2 — `$metadata` `DeleteRestrictions` annotation + `supports_delete?` predicates
+### - [ ] Task 2 — `$metadata` `DeleteRestrictions` annotation + `supports_delete?` predicates
 
 Add `supports_delete?` predicates (class DSL `EntitySet::Metadata`, builder
 `SchemaBuilder::EntitySet` + delegating `Endpoint`) detecting the `delete` method, and emit a
@@ -68,7 +68,7 @@ A fully writable set (create + update + delete) carries none of the three restri
 
 Dependencies: Task 1.
 
-### - [x] Task 3 — `$oas2` `delete` operation on the individual path
+### - [ ] Task 3 — `$oas2` `delete` operation on the individual path
 
 A deletable set's individual path gains a `delete` alongside `get` (and `patch` if updatable).
 `operationId` is `Delete<Set>`; its only parameter is the `id` path parameter (no body); success
@@ -94,7 +94,7 @@ PRD excerpt (`$oas2`):
 
 Dependencies: Tasks 1, 2 (`supports_delete?`).
 
-### - [x] Task 4 — MCP `delete_<Set>` tool
+### - [ ] Task 4 — MCP `delete_<Set>` tool
 
 `tools/list` includes a `delete_<Set>` tool for each deletable set: `name` `delete_<Set>`,
 `description` `"Delete an existing <Set> record"`, `inputSchema` an object whose `properties`
@@ -123,7 +123,7 @@ PRD excerpt (MCP):
 
 Dependencies: Tasks 1, 2 (`supports_delete?`).
 
-### - [x] Task 5 — Rails `install` generator: `destroy` action + `delete` route
+### - [ ] Task 5 — Rails `install` generator: `destroy` action + `delete` route
 
 The generated controller gains a `destroy` action calling `schema.delete(...)` then
 `head :no_content`; `route_contents` adds `delete '*url' => '<controller>#destroy'` to the
@@ -146,7 +146,7 @@ delete '*url' => 'api#destroy'
 
 Dependencies: Task 1.
 
-### - [x] Task 6 — Rails `entity_set` generator: scaffold `delete(id)` + spec example
+### - [ ] Task 6 — Rails `entity_set` generator: scaffold `delete(id)` + spec example
 
 `resolver.rb.erb` (builder) and `entity_set.rb.erb` (class) gain an optional, ready-to-edit
 `delete(id)` method alongside `create`. The generated specs gain a `#delete` example covering the
@@ -171,7 +171,7 @@ end
 
 Dependencies: Task 1.
 
-### - [x] Task 7 — Documentation
+### - [ ] Task 7 — Documentation
 
 Extend `doc/using_create_and_update.md` to cover `delete` as the third write operation (retitle to
 cover create / update / delete), preserving its purpose-first, example-driven, "Common Error Cases"
