@@ -68,7 +68,7 @@ A fully writable set (create + update + delete) carries none of the three restri
 
 Dependencies: Task 1.
 
-### - [ ] Task 3 — `$oas2` `delete` operation on the individual path
+### - [x] Task 3 — `$oas2` `delete` operation on the individual path
 
 A deletable set's individual path gains a `delete` alongside `get` (and `patch` if updatable).
 `operationId` is `Delete<Set>`; its only parameter is the `id` path parameter (no body); success
