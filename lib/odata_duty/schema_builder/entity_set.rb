@@ -37,6 +37,11 @@ module OdataDuty
         # Check if the resolver class supports update by looking for the update method
         resolver_class.method_defined?(:update)
       end
+
+      def supports_delete?
+        # Check if the resolver class supports delete by looking for the delete method
+        resolver_class.method_defined?(:delete)
+      end
     end
   end
 end

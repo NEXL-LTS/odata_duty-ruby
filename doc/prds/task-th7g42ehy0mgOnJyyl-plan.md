@@ -42,7 +42,7 @@ PRD excerpt (External API + Behavior + Common error cases):
 
 Dependencies: none (foundational).
 
-### - [ ] Task 2 — `$metadata` `DeleteRestrictions` annotation + `supports_delete?` predicates
+### - [x] Task 2 — `$metadata` `DeleteRestrictions` annotation + `supports_delete?` predicates
 
 Add `supports_delete?` predicates (class DSL `EntitySet::Metadata`, builder
 `SchemaBuilder::EntitySet` + delegating `Endpoint`) detecting the `delete` method, and emit a

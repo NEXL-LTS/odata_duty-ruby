@@ -80,6 +80,10 @@ module OdataDuty
         entity_set.supports_update?
       end
 
+      def supports_delete?
+        entity_set.supports_delete?
+      end
+
       private
 
       def extend_error(err, set_builder, method_name)

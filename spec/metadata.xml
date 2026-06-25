@@ -49,6 +49,11 @@
                             <PropertyValue Property="Updatable" Bool="false" />
                         </Record>
                     </Annotation>
+                    <Annotation Term="Capabilities.DeleteRestrictions">
+                        <Record>
+                            <PropertyValue Property="Deletable" Bool="false" />
+                        </Record>
+                    </Annotation>
                 </EntitySet>
             </EntityContainer>
         </Schema>

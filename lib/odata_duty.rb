@@ -135,6 +135,11 @@ module OdataDuty
         entity_set.method_defined?(:update)
       end
 
+      def supports_delete?
+        # Check if the entity set class supports delete by looking for the delete method
+        entity_set.method_defined?(:delete)
+      end
+
       private
 
       def converted_id(id, context)
