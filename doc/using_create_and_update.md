@@ -12,7 +12,7 @@ This guide explains how to implement `create` and `update`, and how each choice 
 ## Overview
 
 - **Purpose:** Allow clients to create new records through OData `POST` and modify existing records through OData `PATCH` (and the equivalent MCP tools).
-- **Mechanism:** OdataDuty checks whether your data class / resolver defines `create` and / or `update`. Each method, independently, makes the corresponding operation available; absence keeps it read-only.
+- **Mechanism:** OdataDuty checks whether your data class / resolver defines `create` and / or `update`. Each method, independently, makes the corresponding operation available; omitting one drops only that capability, and the set is fully read-only only when both `create` and `update` are absent.
 - **No new declaration:** Writability is inferred from the method, just like `collection`, `individual`, and `od_search`.
 - **Typed input:** Both methods receive a coerced input object built from the request body and mapped onto the entity type's properties. Read fields via `input.property_name`. `update` additionally receives the entity key as its first argument.
 - **PATCH partial-merge:** `update` uses partial-merge semantics — properties omitted from the request body read as `nil`, so the consumer cannot distinguish "field omitted" from "field explicitly null".
