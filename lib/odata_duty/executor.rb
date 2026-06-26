@@ -71,11 +71,13 @@ module OdataDuty
     end
 
     def delete
+      unless endpoint.supports_delete?
+        raise NoImplementationError, "delete not implemented for #{endpoint.url}"
+      end
+
       entity_id = extract_value_from_brackets(url)
       endpoint.delete(entity_id, context: wrapped_context)
       Oj.dump({ '@odata.context': wrapped_context.od_full_url('$metadata') }, mode: :compat)
-    rescue NoMethodError
-      raise NoImplementationError, "delete not implemented for #{endpoint.url}"
     end
 
     def prepare_builder(endpoint, context, query_options)

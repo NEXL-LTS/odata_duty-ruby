@@ -17,6 +17,12 @@ end
 class DoesNotSupportDeleteResolver < OdataDuty::SetResolver
 end
 
+class DeleteRaisesTestResolver < OdataDuty::SetResolver
+  def delete(_id)
+    nil.genuinely_undefined_method_inside_delete
+  end
+end
+
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can delete' do
     subject(:schema) do
@@ -36,6 +42,8 @@ module OdataDuty
                          resolver: 'DeleteIntegerTestResolver')
         s.add_entity_set(name: 'DoesNotSupportDelete', entity_type: string_entity,
                          resolver: 'DoesNotSupportDeleteResolver')
+        s.add_entity_set(name: 'DeleteRaisesTest', entity_type: string_entity,
+                         resolver: 'DeleteRaisesTestResolver')
       end
     end
 
@@ -72,6 +80,14 @@ module OdataDuty
           expect do
             schema.delete("DoesNotSupportDelete('1')", context: Context.new, query_options: {})
           end.to raise_error(NoImplementationError)
+        end
+      end
+
+      context 'genuine NoMethodError inside delete' do
+        it 'is not masked as NoImplementationError' do
+          expect do
+            schema.delete("DeleteRaisesTest('1')", context: Context.new, query_options: {})
+          end.to raise_error(NoMethodError, /genuinely_undefined_method_inside_delete/)
         end
       end
     end

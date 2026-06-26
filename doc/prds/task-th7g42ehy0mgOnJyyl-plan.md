@@ -186,7 +186,7 @@ Dependencies: Tasks 1–6 (documents the shipped behavior).
 
 ## PR review follow-up
 
-### - [ ] Task 8 — Gate `Executor#delete` on `supports_delete?` instead of rescuing `NoMethodError`
+### - [x] Task 8 — Gate `Executor#delete` on `supports_delete?` instead of rescuing `NoMethodError`
 
 Reviewer comment: `Executor#delete` rescues `NoMethodError` to detect missing `delete`
 support. This can accidentally convert real bugs inside a consumer's `delete` implementation

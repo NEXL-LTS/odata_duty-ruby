@@ -32,9 +32,18 @@ class DoesNotSupportDeleteSet < OdataDuty::EntitySet
   entity_type DeleteScalarsTestEntity
 end
 
+class DeleteRaisesTestSet < OdataDuty::EntitySet
+  entity_type DeleteScalarsTestEntity
+
+  def delete(_id)
+    nil.genuinely_undefined_method_inside_delete
+  end
+end
+
 class DeleteTestSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
-  entity_sets [DeleteScalarsTestSet, DeleteIntegerTestSet, DoesNotSupportDeleteSet]
+  entity_sets [DeleteScalarsTestSet, DeleteIntegerTestSet, DoesNotSupportDeleteSet,
+               DeleteRaisesTestSet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'Can delete' do
@@ -73,6 +82,14 @@ RSpec.describe OdataDuty::EntitySet, 'Can delete' do
         expect do
           schema.delete("DoesNotSupportDelete('1')", context: Context.new, query_options: {})
         end.to raise_error(OdataDuty::NoImplementationError)
+      end
+    end
+
+    context 'genuine NoMethodError inside delete' do
+      it 'is not masked as NoImplementationError' do
+        expect do
+          schema.delete("DeleteRaisesTest('1')", context: Context.new, query_options: {})
+        end.to raise_error(NoMethodError, /genuinely_undefined_method_inside_delete/)
       end
     end
   end
