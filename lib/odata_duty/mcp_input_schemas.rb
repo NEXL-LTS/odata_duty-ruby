@@ -25,5 +25,11 @@ module OdataDuty
       writable.each { |p| properties[p.name.to_s] = p.to_oas2 }
       { 'type' => 'object', 'properties' => properties, 'required' => [key.name.to_s] }
     end
+
+    def delete_input_schema(entity_type)
+      key = entity_type.property_refs.first
+      properties = { key.name.to_s => key.to_oas2 }
+      { 'type' => 'object', 'properties' => properties, 'required' => [key.name.to_s] }
+    end
   end
 end

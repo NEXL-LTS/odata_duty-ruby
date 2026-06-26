@@ -109,6 +109,13 @@ module OdataDuty
         entity_type.mapper(context, selected: nil).obj_to_hash(result, context)
       end
 
+      def delete(id, context:)
+        result = entity_set.new(context: context).delete(converted_id(id, context))
+        raise ResourceNotFoundError, "No such entity #{id}" unless result
+
+        result
+      end
+
       def supports_search?
         # Check if the entity set class supports search by looking for the od_search method
         entity_set.method_defined?(:od_search)
@@ -126,6 +133,11 @@ module OdataDuty
       def supports_update?
         # Check if the entity set class supports update by looking for the update method
         entity_set.method_defined?(:update)
+      end
+
+      def supports_delete?
+        # Check if the entity set class supports delete by looking for the delete method
+        entity_set.method_defined?(:delete)
       end
 
       private
@@ -278,6 +290,10 @@ module OdataDuty
 
     def self.update(url, context:, query_options: {})
       Executor.update(url: url, context: context, query_options: query_options, schema: self)
+    end
+
+    def self.delete(url, context:, query_options: {})
+      Executor.delete(url: url, context: context, query_options: query_options, schema: self)
     end
 
     def self.to_mcp_server

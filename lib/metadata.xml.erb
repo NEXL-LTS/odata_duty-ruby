@@ -89,6 +89,13 @@
                                 </Record>
                             </Annotation>
                         <% end %>
+                        <% if !entity_set.supports_delete? %>
+                            <Annotation Term="Capabilities.DeleteRestrictions">
+                                <Record>
+                                    <PropertyValue Property="Deletable" Bool="false" />
+                                </Record>
+                            </Annotation>
+                        <% end %>
                     </EntitySet>
                 <% end %>
             </EntityContainer>

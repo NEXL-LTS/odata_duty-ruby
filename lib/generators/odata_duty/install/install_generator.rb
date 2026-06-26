@@ -51,6 +51,7 @@ module OdataDuty
             get '$oas2' => '#{route_controller}#oas2'
             get '*url' => '#{route_controller}#show'
             post '*url' => '#{route_controller}#create'
+            delete '*url' => '#{route_controller}#destroy'
           end
         RUBY
       end

@@ -94,6 +94,10 @@ module OdataDuty
         Executor.update(url: url, context: context, query_options: query_options, schema: self)
       end
 
+      def delete(url, context:, query_options: {})
+        Executor.delete(url: url, context: context, query_options: query_options, schema: self)
+      end
+
       def to_mcp_server
         McpServerBuilder.build(self)
       end

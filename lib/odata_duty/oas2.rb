@@ -67,6 +67,7 @@ module OdataDuty
       schema.individual_entity_sets.each do |entity_set|
         path = { 'get' => IndividualGetPath.new(entity_set).to_oas2 }
         path['patch'] = IndividualPatchPath.to_oas2(entity_set) if entity_set.supports_update?
+        path['delete'] = IndividualDeletePath.to_oas2(entity_set) if entity_set.supports_delete?
         hash['paths']["/#{entity_set.url}({id})"] = path
       end
     end
@@ -92,3 +93,4 @@ require 'odata_duty/oas2/collection_get_path'
 require 'odata_duty/oas2/collection_post_path'
 require 'odata_duty/oas2/individual_get_path'
 require 'odata_duty/oas2/individual_patch_path'
+require 'odata_duty/oas2/individual_delete_path'
