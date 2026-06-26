@@ -183,3 +183,29 @@ Likely files: `doc/using_create_and_update.md` (possibly renamed), `doc/entity_s
 `README.md`, and any internal links to the renamed guide.
 
 Dependencies: Tasks 1–6 (documents the shipped behavior).
+
+## PR review follow-up
+
+### - [ ] Task 8 — Gate `Executor#delete` on `supports_delete?` instead of rescuing `NoMethodError`
+
+Reviewer comment: `Executor#delete` rescues `NoMethodError` to detect missing `delete`
+support. This can accidentally convert real bugs inside a consumer's `delete` implementation
+(also `NoMethodError`) into a misleading `NoImplementationError`, making debugging difficult.
+Prefer using the existing `supports_delete?` predicate to gate the operation and let genuine
+exceptions bubble up.
+
+In `lib/odata_duty/executor.rb`, replace the `rescue NoMethodError` in `#delete` with an
+explicit guard that raises `NoImplementationError` (`delete not implemented for <url>`) when
+`endpoint.supports_delete?` is false, then dispatches to `endpoint.delete`, letting any
+genuine `NoMethodError` raised inside a consumer's `delete` bubble up unchanged. The
+`Executor` is shared by both DSLs and `endpoint.supports_delete?` exists for both (class DSL
+`lib/odata_duty.rb`, builder DSL `lib/odata_duty/schema_builder/endpoint.rb`), so one fix
+covers both.
+
+Specs (both trees): keep the existing "does not support delete → `NoImplementationError`"
+behavior, and add a test proving a genuine `NoMethodError` raised inside a deletable set's
+own `delete` is **not** masked as `NoImplementationError`.
+- `spec/odata_duty/entity_set/delete/with_scalars_spec.rb`
+- `spec/odata_duty/schema_builder/entity_set/delete/with_scalars_spec.rb`
+
+Dependencies: Task 1.
