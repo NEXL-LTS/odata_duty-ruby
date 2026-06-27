@@ -46,6 +46,10 @@ module OdataDuty
     end
 
     def create
+      unless endpoint.supports_create?
+        raise NoImplementationError, "create not implemented for #{endpoint.url}"
+      end
+
       Oj.dump(endpoint
           .create(context: wrapped_context)
           .merge(
@@ -53,8 +57,6 @@ module OdataDuty
                                                           anchor: "#{endpoint.name}/$entity")
           ),
               mode: :compat)
-    rescue NoMethodError
-      raise NoImplementationError, "create not implemented for #{endpoint.url}"
     end
 
     def update

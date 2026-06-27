@@ -49,7 +49,7 @@ already exist for both DSLs.
   `spec/odata_duty/entity_set/delete/with_scalars_spec.rb:88` and
   `spec/odata_duty/schema_builder/entity_set/delete/with_scalars_spec.rb:86`.
 
-- [x] **Task 2 — Fix `update`: gate on `supports_update?`, stop masking `NoMethodError`**
+- [ ] **Task 2 — Fix `update`: gate on `supports_update?`, stop masking `NoMethodError`**
 
   Task text: Change `Executor#update` (`lib/odata_duty/executor.rb`) the same way as Task 1:
   raise `NoImplementationError, "update not implemented for #{endpoint.url}"` up front when
@@ -77,7 +77,7 @@ already exist for both DSLs.
 
   Dependencies: Task 1 (same file `#create` already gated — keep `#update` symmetric).
 
-- [x] **Task 3 — Documentation note + patch version bump**
+- [ ] **Task 3 — Documentation note + patch version bump**
 
   Task text: Extend `doc/using_create_update_and_delete.md` **Common Error Cases** section with a
   note (parallel to the existing "not implemented" bullet) clarifying that a `NoMethodError`

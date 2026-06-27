@@ -13,6 +13,12 @@ end
 class DoesNotSupportCreateResolver < OdataDuty::SetResolver
 end
 
+class CreateRaisesTestResolver < OdataDuty::SetResolver
+  def create(_input)
+    nil.genuinely_undefined_method_inside_create
+  end
+end
+
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can create' do
     subject(:schema) do
@@ -35,6 +41,8 @@ module OdataDuty
                          resolver: 'CreateScalarsTestResolver')
         s.add_entity_set(name: 'DoesNotSupportCreate', entity_type: collection_entity,
                          resolver: 'DoesNotSupportCreateResolver')
+        s.add_entity_set(name: 'CreateRaisesTest', entity_type: collection_entity,
+                         resolver: 'CreateRaisesTestResolver')
       end
     end
 
@@ -239,6 +247,15 @@ module OdataDuty
             schema.create('DoesNotSupportCreate', context: Context.new,
                                                   query_options: { 'id' => '1' })
           end.to raise_error(OdataDuty::NoImplementationError)
+        end
+      end
+
+      context 'genuine NoMethodError inside create' do
+        it 'is not masked as NoImplementationError' do
+          expect do
+            schema.create('CreateRaisesTest', context: Context.new,
+                                              query_options: { 'id' => '1' })
+          end.to raise_error(NoMethodError, /genuinely_undefined_method_inside_create/)
         end
       end
     end
