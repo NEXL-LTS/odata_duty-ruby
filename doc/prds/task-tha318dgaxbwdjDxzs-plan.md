@@ -77,7 +77,7 @@ already exist for both DSLs.
 
   Dependencies: Task 1 (same file `#create` already gated — keep `#update` symmetric).
 
-- [ ] **Task 3 — Documentation note + patch version bump**
+- [x] **Task 3 — Documentation note + patch version bump**
 
   Task text: Extend `doc/using_create_update_and_delete.md` **Common Error Cases** section with a
   note (parallel to the existing "not implemented" bullet) clarifying that a `NoMethodError`
