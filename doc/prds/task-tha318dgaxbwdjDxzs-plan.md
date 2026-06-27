@@ -49,7 +49,7 @@ already exist for both DSLs.
   `spec/odata_duty/entity_set/delete/with_scalars_spec.rb:88` and
   `spec/odata_duty/schema_builder/entity_set/delete/with_scalars_spec.rb:86`.
 
-- [ ] **Task 2 — Fix `update`: gate on `supports_update?`, stop masking `NoMethodError`**
+- [x] **Task 2 — Fix `update`: gate on `supports_update?`, stop masking `NoMethodError`**
 
   Task text: Change `Executor#update` (`lib/odata_duty/executor.rb`) the same way as Task 1:
   raise `NoImplementationError, "update not implemented for #{endpoint.url}"` up front when

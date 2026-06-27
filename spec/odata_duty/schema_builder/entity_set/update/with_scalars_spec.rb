@@ -17,6 +17,12 @@ end
 class DoesNotSupportUpdateResolver < OdataDuty::SetResolver
 end
 
+class UpdateRaisesTestResolver < OdataDuty::SetResolver
+  def update(_id, _input)
+    nil.genuinely_undefined_method_inside_update
+  end
+end
+
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can update' do
     subject(:schema) do
@@ -37,6 +43,8 @@ module OdataDuty
                          resolver: 'UpdateIntegerTestResolver')
         s.add_entity_set(name: 'DoesNotSupportUpdate', entity_type: string_entity,
                          resolver: 'DoesNotSupportUpdateResolver')
+        s.add_entity_set(name: 'UpdateRaisesTest', entity_type: string_entity,
+                         resolver: 'UpdateRaisesTestResolver')
       end
     end
 
@@ -97,6 +105,14 @@ module OdataDuty
           expect do
             schema.update("DoesNotSupportUpdate('1')", context: Context.new, query_options: {})
           end.to raise_error(OdataDuty::NoImplementationError)
+        end
+      end
+
+      context 'genuine NoMethodError inside update' do
+        it 'is not masked as NoImplementationError' do
+          expect do
+            schema.update("UpdateRaisesTest('1')", context: Context.new, query_options: {})
+          end.to raise_error(NoMethodError, /genuinely_undefined_method_inside_update/)
         end
       end
     end

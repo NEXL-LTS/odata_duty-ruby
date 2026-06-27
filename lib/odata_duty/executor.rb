@@ -60,6 +60,10 @@ module OdataDuty
     end
 
     def update
+      unless endpoint.supports_update?
+        raise NoImplementationError, "update not implemented for #{endpoint.url}"
+      end
+
       entity_id = extract_value_from_brackets(url)
       Oj.dump(endpoint
           .update(entity_id, context: wrapped_context)
@@ -68,8 +72,6 @@ module OdataDuty
                                                           anchor: "#{endpoint.name}/$entity")
           ),
               mode: :compat)
-    rescue NoMethodError
-      raise NoImplementationError, "update not implemented for #{endpoint.url}"
     end
 
     def delete
