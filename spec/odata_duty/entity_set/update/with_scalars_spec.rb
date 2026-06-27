@@ -33,9 +33,18 @@ class DoesNotSupportUpdateSet < OdataDuty::EntitySet
   entity_type UpdateScalarsTestEntity
 end
 
+class UpdateRaisesTestSet < OdataDuty::EntitySet
+  entity_type UpdateScalarsTestEntity
+
+  def update(_id, _input)
+    nil.genuinely_undefined_method_inside_update
+  end
+end
+
 class UpdateTestSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
-  entity_sets [UpdateScalarsTestSet, UpdateIntegerTestSet, DoesNotSupportUpdateSet]
+  entity_sets [UpdateScalarsTestSet, UpdateIntegerTestSet, DoesNotSupportUpdateSet,
+               UpdateRaisesTestSet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'Can update' do
@@ -98,6 +107,14 @@ RSpec.describe OdataDuty::EntitySet, 'Can update' do
         expect do
           schema.update("DoesNotSupportUpdate('1')", context: Context.new, query_options: {})
         end.to raise_error(OdataDuty::NoImplementationError)
+      end
+    end
+
+    context 'genuine NoMethodError inside update' do
+      it 'is not masked as NoImplementationError' do
+        expect do
+          schema.update("UpdateRaisesTest('1')", context: Context.new, query_options: {})
+        end.to raise_error(NoMethodError, /genuinely_undefined_method_inside_update/)
       end
     end
   end

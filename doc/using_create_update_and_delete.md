@@ -432,7 +432,10 @@ A read-only set advertises none of these tools, so calling one raises an "Unknow
 ## Common Error Cases
 
 - **`POST` to a set without `create` / `PATCH` to a set without `update` / `DELETE` to a set without `delete`:**
-  Raises `OdataDuty::NoImplementationError` with the message `create not implemented for <url>`, `update not implemented for <url>`, or `delete not implemented for <url>` respectively (the set's URL, e.g. `delete not implemented for People`).
+  Raises `OdataDuty::NoImplementationError` with the message `create not implemented for <url>`, `update not implemented for <url>`, or `delete not implemented for <url>` respectively (the set's URL, e.g. `delete not implemented for People`). This `NoImplementationError` is raised only when the set genuinely does not define the operation, determined up front by a capability check.
+
+- **A `NoMethodError` raised *inside* your `create` / `update`:**
+  A `NoMethodError` that originates within your own `create` or `update` implementation (a typo, a call to an undefined method, a `nil` where an object was expected) propagates unchanged — with its original message and backtrace — and is **not** rewritten to `NoImplementationError`. So a real bug in your implementation surfaces as the real `NoMethodError`, consistent with how `delete` already behaves.
 
 - **`PATCH` / `DELETE` for a key that doesn't exist:**
   When your `update` or `delete` cannot find the record and returns a falsey value, the framework raises `OdataDuty::ResourceNotFoundError` (`No such entity <id>`), the same way `individual` does for a missing record.

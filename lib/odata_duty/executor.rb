@@ -46,6 +46,10 @@ module OdataDuty
     end
 
     def create
+      unless endpoint.supports_create?
+        raise NoImplementationError, "create not implemented for #{endpoint.url}"
+      end
+
       Oj.dump(endpoint
           .create(context: wrapped_context)
           .merge(
@@ -53,11 +57,13 @@ module OdataDuty
                                                           anchor: "#{endpoint.name}/$entity")
           ),
               mode: :compat)
-    rescue NoMethodError
-      raise NoImplementationError, "create not implemented for #{endpoint.url}"
     end
 
     def update
+      unless endpoint.supports_update?
+        raise NoImplementationError, "update not implemented for #{endpoint.url}"
+      end
+
       entity_id = extract_value_from_brackets(url)
       Oj.dump(endpoint
           .update(entity_id, context: wrapped_context)
@@ -66,8 +72,6 @@ module OdataDuty
                                                           anchor: "#{endpoint.name}/$entity")
           ),
               mode: :compat)
-    rescue NoMethodError
-      raise NoImplementationError, "update not implemented for #{endpoint.url}"
     end
 
     def delete
