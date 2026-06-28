@@ -1,5 +1,8 @@
 module OdataDuty
   module Property
+    CORE_ANNOTATION_TERMS = { computed: 'Org.OData.Core.V1.Computed',
+                              immutable: 'Org.OData.Core.V1.Immutable' }.freeze
+
     class SingleProp
       attr_reader :name, :nullable, :calling_method, :line__defined__at, :raw_type, :type,
                   :set_type, :method_name, :mutability
@@ -22,6 +25,10 @@ module OdataDuty
 
       def immutable?
         mutability == :immutable
+      end
+
+      def core_annotation_term
+        CORE_ANNOTATION_TERMS[mutability]
       end
 
       def settable_on_create?
@@ -103,11 +110,7 @@ module OdataDuty
       end
 
       def to_oas2_type
-        if scalar? && !enum?
-          raw_type.to_oas2(is_collection: false)
-        else
-          ref_oas2
-        end
+        scalar? && !enum? ? raw_type.to_oas2(is_collection: false) : ref_oas2
       end
 
       def collection?

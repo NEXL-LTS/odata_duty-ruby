@@ -97,7 +97,7 @@ property/metadata to keep the ERB clean). Specs:
 
 **Depends on:** Task 1.
 
-- [ ] Done
+- [x] Done
 
 ## Task 4 — MCP: `create_<Set>` includes immutable, `update_<Set>` excludes it
 
