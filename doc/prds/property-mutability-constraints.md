@@ -33,7 +33,7 @@ it notes the flag is "forward-compatible with a future update path." This PRD is
 - *As a gem consumer, I can declare* `property 'created_at', DateTime, mutability: :immutable`
   *so the field is accepted on create, ignored on update, and advertised as immutable
   everywhere.*
-- *As a gem consumer, I can declare* `property 'status', String, mutability: :update_only`
+- *As a gem consumer, I can declare* `property 'status', String, mutability: :non_insertable`
   *so the field is ignored on create, accepted on PATCH, and advertised as insert-restricted.*
 - *As a gem consumer, I keep* `mutability: :computed` *(or the existing `computed: true`
   alias) for server-generated fields — behavior is unchanged.*
@@ -56,7 +56,7 @@ A new keyword on `property` and `property_ref`, taking one of four symbols:
 |---|:---:|:---:|:---:|---|
 | `:read_write` (**default**) | ✅ | ✅ | ✅ | *(none)* |
 | `:immutable` | ✅ | ❌ | ✅ | `Core.Immutable` |
-| `:update_only` | ❌ | ✅ | ✅ | `Capabilities.InsertRestrictions/NonInsertableProperties` |
+| `:non_insertable` | ❌ | ✅ | ✅ | `Capabilities.InsertRestrictions/NonInsertableProperties` |
 | `:computed` | ❌ | ❌ | ✅ | `Core.Computed` |
 
 - The default is `:read_write` (a plain writable property), matching today's default.
@@ -73,11 +73,11 @@ A new keyword on `property` and `property_ref`, taking one of four symbols:
 
 ```ruby
 class OrderEntity < OdataDuty::EntityType
-  property_ref 'id', String                                   # key: :computed by default
-  property 'account_number', String, mutability: :immutable    # set on create, frozen after
-  property 'status',         String, mutability: :update_only  # not on create, set later
-  property 'created_at',     DateTime, mutability: :computed    # server-assigned, read-only
-  property 'note',           String                            # :read_write (default)
+  property_ref 'id', String                                # key: :computed by default
+  property 'account_number', String, mutability: :immutable        # set on create, frozen
+  property 'status', String, mutability: :non_insertable           # not on create, set later
+  property 'created_at', DateTime, mutability: :computed           # server-assigned, read-only
+  property 'note', String                                  # :read_write (default)
 end
 ```
 
@@ -89,7 +89,7 @@ Identical keyword on the builder's `property` / `property_ref`:
 order_entity = s.add_entity_type(name: 'Order') do |et|
   et.property_ref 'id', String                                   # key: :computed by default
   et.property 'account_number', String, mutability: :immutable
-  et.property 'status',         String, mutability: :update_only
+  et.property 'status',         String, mutability: :non_insertable
   et.property 'created_at',     DateTime, mutability: :computed
   et.property 'note',           String
 end
@@ -100,7 +100,7 @@ end
 No new hooks. The existing `create(input)` and `update(id, input)` are unchanged in
 signature; what changes is **which fields carry a value** on the typed `input` object:
 
-- Inside `create(input)`, a property not settable on create (`:computed`, `:update_only`)
+- Inside `create(input)`, a property not settable on create (`:computed`, `:non_insertable`)
   reads back as `nil` regardless of the request body.
 - Inside `update(id, input)`, a property not settable on update (`:computed`, `:immutable`)
   reads back as `nil` regardless of the request body — over and above the existing
@@ -125,7 +125,7 @@ inside `create`:
 ```ruby
 def create(input)
   input.account_number  # => "A-100"  (:immutable — settable on create)
-  input.status          # => nil       (:update_only — ignored on create)
+  input.status          # => nil       (:non_insertable — ignored on create)
   input.created_at      # => nil       (:computed — ignored on create)
   input.note            # => nil       (:read_write, absent from body)
   # assign id/status/created_at on the server, persist, return the record
@@ -143,7 +143,7 @@ inside `update`:
 ```ruby
 def update(id, input)
   input.account_number  # => nil       (:immutable — frozen on update, ignored)
-  input.status          # => "closed"  (:update_only — settable on update)
+  input.status          # => "closed"  (:non_insertable — settable on update)
   input.note            # => "done"    (:read_write)
   input.created_at      # => nil       (:computed — ignored on update)
 end
@@ -164,7 +164,7 @@ exactly as today.
 </Property>
 ```
 
-- `:update_only` → the entity set's `Capabilities.InsertRestrictions` annotation gains a
+- `:non_insertable` → the entity set's `Capabilities.InsertRestrictions` annotation gains a
   `NonInsertableProperties` collection listing the property path. This composes with the
   existing set-level `Insertable: false` annotation (emitted when there is no `create`):
 
@@ -211,20 +211,20 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
 
 - `:computed` → `readOnly: true` (unchanged) **and** `x-ms-mutability: ["read"]`.
 - `:immutable` → `x-ms-mutability: ["create", "read"]` (no `readOnly`).
-- `:update_only` → `x-ms-mutability: ["read", "update"]` (no `readOnly`).
+- `:non_insertable` → `x-ms-mutability: ["read", "update"]` (no `readOnly`).
 - `:read_write` → neither key (unchanged).
 
 ### MCP
 
 - `create_<Set>` `inputSchema` lists only properties **settable on create** (`:read_write` +
-  `:immutable`); `:computed` and `:update_only` are absent from both `properties` and
+  `:immutable`); `:computed` and `:non_insertable` are absent from both `properties` and
   `required`. `required` is the non-nullable subset of those.
 - `update_<Set>` `inputSchema` lists the key plus only properties **settable on update**
-  (`:read_write` + `:update_only`); `:computed` and `:immutable` are absent. `required` is
+  (`:read_write` + `:non_insertable`); `:computed` and `:immutable` are absent. `required` is
   the key only (partial-merge), and the key keeps `readOnly: true`.
 
 ```jsonc
-// tools/list — create tool: status (:update_only) and created_at/id (:computed) absent
+// tools/list — create tool: status (:non_insertable) and created_at/id (:computed) absent
 {
   "name": "create_Order",
   "inputSchema": {
@@ -258,11 +258,11 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
 
 - **Disallowed value supplied → silently ignored.** A value for a property not settable in
   the current operation (an `:immutable`/`:computed` field on PATCH, an
-  `:update_only`/`:computed` field on POST) is dropped — no error, and no
+  `:non_insertable`/`:computed` field on POST) is dropped — no error, and no
   `OdataDuty::InvalidType` even for a wrong-typed value. The typed input reads it as `nil`.
   This matches today's `computed:` behavior exactly.
 - **Unknown `mutability:` value → declaration-time error.** Passing a symbol outside
-  `{:read_write, :immutable, :update_only, :computed}` (e.g. `mutability: :frozen`) raises
+  `{:read_write, :immutable, :non_insertable, :computed}` (e.g. `mutability: :frozen`) raises
   an `ArgumentError` when the schema is defined, naming the property and the bad value.
 - **Both `mutability:` and `computed:` on one property → declaration-time error.** Specifying
   both keywords raises an `ArgumentError` (they control the same axis); pick one.
