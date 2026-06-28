@@ -35,7 +35,7 @@ it notes the flag is "forward-compatible with a future update path." This PRD is
   everywhere.*
 - *As a gem consumer, I can declare* `property 'status', String, mutability: :update_only`
   *so the field is ignored on create, accepted on PATCH, and advertised as insert-restricted.*
-- *As a gem consumer, I keep* `mutability: :read_only` *(or the existing `computed: true`
+- *As a gem consumer, I keep* `mutability: :computed` *(or the existing `computed: true`
   alias) for server-generated fields — behavior is unchanged.*
 - *As an MCP client / agent, the `create_<Set>` and `update_<Set>` tool input schemas only
   ever list the fields actually settable for that operation,* so I cannot be misled into
@@ -57,12 +57,13 @@ A new keyword on `property` and `property_ref`, taking one of four symbols:
 | `:read_write` (**default**) | ✅ | ✅ | ✅ | *(none)* |
 | `:immutable` | ✅ | ❌ | ✅ | `Core.Immutable` |
 | `:update_only` | ❌ | ✅ | ✅ | `Capabilities.InsertRestrictions/NonInsertableProperties` |
-| `:read_only` | ❌ | ❌ | ✅ | `Core.Computed` |
+| `:computed` | ❌ | ❌ | ✅ | `Core.Computed` |
 
 - The default is `:read_write` (a plain writable property), matching today's default.
-- **`computed: true` is retained as a backwards-compatible alias for `mutability: :read_only`**;
-  `computed: false` aliases `:read_write`. Existing schemas keep working unchanged.
-- **`property_ref` (keys) default to `mutability: :read_only`** — exactly today's
+- **`computed: true` is retained as a backwards-compatible alias for `mutability: :computed`**
+  (same word — the boolean keyword and the enum value name match); `computed: false` aliases
+  `:read_write`. Existing schemas keep working unchanged.
+- **`property_ref` (keys) default to `mutability: :computed`** — exactly today's
   "keys are computed by default." Opt a key into client-supplied with
   `property_ref 'id', String, mutability: :read_write` (equivalently `computed: false`).
 - Specifying **both** `mutability:` and `computed:` on the same property is an error
@@ -72,10 +73,10 @@ A new keyword on `property` and `property_ref`, taking one of four symbols:
 
 ```ruby
 class OrderEntity < OdataDuty::EntityType
-  property_ref 'id', String                                   # key: :read_only by default
+  property_ref 'id', String                                   # key: :computed by default
   property 'account_number', String, mutability: :immutable    # set on create, frozen after
   property 'status',         String, mutability: :update_only  # not on create, set later
-  property 'created_at',     DateTime, mutability: :read_only   # server-assigned (== computed)
+  property 'created_at',     DateTime, mutability: :computed    # server-assigned, read-only
   property 'note',           String                            # :read_write (default)
 end
 ```
@@ -86,10 +87,10 @@ Identical keyword on the builder's `property` / `property_ref`:
 
 ```ruby
 order_entity = s.add_entity_type(name: 'Order') do |et|
-  et.property_ref 'id', String                                   # key: :read_only by default
+  et.property_ref 'id', String                                   # key: :computed by default
   et.property 'account_number', String, mutability: :immutable
   et.property 'status',         String, mutability: :update_only
-  et.property 'created_at',     DateTime, mutability: :read_only
+  et.property 'created_at',     DateTime, mutability: :computed
   et.property 'note',           String
 end
 ```
@@ -99,9 +100,9 @@ end
 No new hooks. The existing `create(input)` and `update(id, input)` are unchanged in
 signature; what changes is **which fields carry a value** on the typed `input` object:
 
-- Inside `create(input)`, a property not settable on create (`:read_only`, `:update_only`)
+- Inside `create(input)`, a property not settable on create (`:computed`, `:update_only`)
   reads back as `nil` regardless of the request body.
-- Inside `update(id, input)`, a property not settable on update (`:read_only`, `:immutable`)
+- Inside `update(id, input)`, a property not settable on update (`:computed`, `:immutable`)
   reads back as `nil` regardless of the request body — over and above the existing
   partial-merge rule (omitted fields already read as `nil`).
 
@@ -125,7 +126,7 @@ inside `create`:
 def create(input)
   input.account_number  # => "A-100"  (:immutable — settable on create)
   input.status          # => nil       (:update_only — ignored on create)
-  input.created_at      # => nil       (:read_only — ignored on create)
+  input.created_at      # => nil       (:computed — ignored on create)
   input.note            # => nil       (:read_write, absent from body)
   # assign id/status/created_at on the server, persist, return the record
 end
@@ -144,7 +145,7 @@ def update(id, input)
   input.account_number  # => nil       (:immutable — frozen on update, ignored)
   input.status          # => "closed"  (:update_only — settable on update)
   input.note            # => "done"    (:read_write)
-  input.created_at      # => nil       (:read_only — ignored on update)
+  input.created_at      # => nil       (:computed — ignored on update)
 end
 ```
 
@@ -154,7 +155,7 @@ exactly as today.
 
 ### `$metadata` (EDMX)
 
-- `:read_only` → `Org.OData.Core.V1.Computed` on the `<Property>` (unchanged from today).
+- `:computed` → `Org.OData.Core.V1.Computed` on the `<Property>` (unchanged from today).
 - `:immutable` → `Org.OData.Core.V1.Immutable` on the `<Property>`:
 
 ```xml
@@ -208,7 +209,7 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
 }
 ```
 
-- `:read_only` → `readOnly: true` (unchanged) **and** `x-ms-mutability: ["read"]`.
+- `:computed` → `readOnly: true` (unchanged) **and** `x-ms-mutability: ["read"]`.
 - `:immutable` → `x-ms-mutability: ["create", "read"]` (no `readOnly`).
 - `:update_only` → `x-ms-mutability: ["read", "update"]` (no `readOnly`).
 - `:read_write` → neither key (unchanged).
@@ -216,14 +217,14 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
 ### MCP
 
 - `create_<Set>` `inputSchema` lists only properties **settable on create** (`:read_write` +
-  `:immutable`); `:read_only` and `:update_only` are absent from both `properties` and
+  `:immutable`); `:computed` and `:update_only` are absent from both `properties` and
   `required`. `required` is the non-nullable subset of those.
 - `update_<Set>` `inputSchema` lists the key plus only properties **settable on update**
-  (`:read_write` + `:update_only`); `:read_only` and `:immutable` are absent. `required` is
+  (`:read_write` + `:update_only`); `:computed` and `:immutable` are absent. `required` is
   the key only (partial-merge), and the key keeps `readOnly: true`.
 
 ```jsonc
-// tools/list — create tool: status (:update_only) and created_at/id (:read_only) absent
+// tools/list — create tool: status (:update_only) and created_at/id (:computed) absent
 {
   "name": "create_Order",
   "inputSchema": {
@@ -238,7 +239,7 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
 ```
 
 ```jsonc
-// tools/list — update tool: account_number (:immutable) and created_at (:read_only) absent
+// tools/list — update tool: account_number (:immutable) and created_at (:computed) absent
 {
   "name": "update_Order",
   "inputSchema": {
@@ -256,12 +257,12 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
 ## Common error cases
 
 - **Disallowed value supplied → silently ignored.** A value for a property not settable in
-  the current operation (an `:immutable`/`:read_only` field on PATCH, an
-  `:update_only`/`:read_only` field on POST) is dropped — no error, and no
+  the current operation (an `:immutable`/`:computed` field on PATCH, an
+  `:update_only`/`:computed` field on POST) is dropped — no error, and no
   `OdataDuty::InvalidType` even for a wrong-typed value. The typed input reads it as `nil`.
   This matches today's `computed:` behavior exactly.
 - **Unknown `mutability:` value → declaration-time error.** Passing a symbol outside
-  `{:read_write, :immutable, :update_only, :read_only}` (e.g. `mutability: :frozen`) raises
+  `{:read_write, :immutable, :update_only, :computed}` (e.g. `mutability: :frozen`) raises
   an `ArgumentError` when the schema is defined, naming the property and the bad value.
 - **Both `mutability:` and `computed:` on one property → declaration-time error.** Specifying
   both keywords raises an `ArgumentError` (they control the same axis); pick one.
@@ -276,8 +277,8 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
 **In scope**
 
 - A `mutability:` keyword on `property` and `property_ref` in **both** DSLs (class-based and
-  builder), with `computed:` retained as a `:read_only`/`:read_write` alias and keys
-  defaulting to `:read_only`.
+  builder), with `computed:` retained as a `:computed`/`:read_write` alias and keys
+  defaulting to `:computed`.
 - Enforcement (silent drop) in the typed `create` and `update` input objects.
 - Reflection across `$metadata` (`Core.Immutable`, `Core.Computed`,
   `Capabilities.InsertRestrictions/NonInsertableProperties`), `$oas2` (`readOnly` +
@@ -298,7 +299,7 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
 Add a new guide **`doc/using_mutability.md`** in the house style covering the full four-state
 `mutability:` axis, the create/update/read matrix, and the reflection across all four
 contracts. Update **`doc/using_computed.md`** to state that `computed:` is now the
-`:read_only` alias of `mutability:` and link to the new guide (it already flags itself as
+`:computed` alias of `mutability:` and link to the new guide (it already flags itself as
 forward-compatible with the update path). Cross-reference from
 **`doc/using_create_update_and_delete.md`** where it discusses the typed create/update input.
 Refresh the `## Features` index in `CLAUDE.md` with a one-line entry pointing at the new
