@@ -1,5 +1,25 @@
 # PRD: Per-property mutability (`create`-only and `update`-only fields)
 
+> **Umbrella / overview.** This is the big-picture spec. It is **delivered as three smaller,
+> independently shippable PRDs** (tracer-bullet style — each a reviewable PR with visible
+> value), in dependency order:
+>
+> 1. [`property-mutability-immutable.md`](property-mutability-immutable.md) — **Part A**: the
+>    `mutability:` keyword/enum foundation (`computed:` alias, validation) + `:immutable`
+>    (create-only) fields, reflected in the typed input, `$metadata`, and MCP.
+> 2. [`property-mutability-non-insertable.md`](property-mutability-non-insertable.md) —
+>    **Part B**: `:non_insertable` (update-only) fields, reflected in the typed input,
+>    `$metadata`, and MCP. Depends on A.
+> 3. [`property-mutability-oas2-bodies.md`](property-mutability-oas2-bodies.md) — **Part C**:
+>    per-operation `$oas2` request bodies (`<Entity>Create` / `<Entity>Update`), making the
+>    constraints visible in Swagger / Power Automate. Depends on A and B.
+>
+> **Interim gap:** Parts A and B intentionally leave `$oas2` unchanged, so between A/B and C
+> the Swagger contract still advertises immutable/non-insertable fields as writable. Runtime
+> enforcement (A/B) is the real guarantee; Part C closes the cosmetic gap. Build A → B → C.
+> The sections below are the consolidated reference; the buildable detail lives in the three
+> child PRDs.
+
 ## Summary
 
 Give gem consumers a single per-property `mutability:` keyword that controls **when** a
