@@ -72,7 +72,7 @@ frozen on update, ignored), `input.note # => "done"`. POST inside `create`:
 
 **Depends on:** Task 1.
 
-- [ ] Done
+- [x] Done
 
 ## Task 3 — `$metadata` (EDMX) `Core.Immutable` annotation
 
