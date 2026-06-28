@@ -117,7 +117,7 @@ absent, only `id`/`note`. create tool — `account_number` (immutable) present, 
 
 **Depends on:** Task 1.
 
-- [ ] Done
+- [x] Done
 
 ## Task 5 — Documentation + `## Features` index
 
