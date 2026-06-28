@@ -48,7 +48,7 @@ default to `mutability: :computed` … Opt back in with `mutability: :read_write
 
 **Depends on:** nothing.
 
-- [ ] Done
+- [x] Done
 
 ## Task 2 — `:immutable` enforcement: silent drop on update in the typed input
 
