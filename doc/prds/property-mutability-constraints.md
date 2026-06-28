@@ -74,8 +74,8 @@ A new keyword on `property` and `property_ref`, taking one of four symbols:
 ```ruby
 class OrderEntity < OdataDuty::EntityType
   property_ref 'id', String                                # key: :computed by default
-  property 'account_number', String, mutability: :immutable        # set on create, frozen
-  property 'status', String, mutability: :non_insertable           # not on create, set later
+  property 'account_number', String, nullable: false, mutability: :immutable   # set on create
+  property 'status', String, mutability: :non_insertable                       # set on update
   property 'created_at', DateTime, mutability: :computed           # server-assigned, read-only
   property 'note', String                                  # :read_write (default)
 end
@@ -88,7 +88,7 @@ Identical keyword on the builder's `property` / `property_ref`:
 ```ruby
 order_entity = s.add_entity_type(name: 'Order') do |et|
   et.property_ref 'id', String                                   # key: :computed by default
-  et.property 'account_number', String, mutability: :immutable
+  et.property 'account_number', String, nullable: false, mutability: :immutable
   et.property 'status',         String, mutability: :non_insertable
   et.property 'created_at',     DateTime, mutability: :computed
   et.property 'note',           String
@@ -189,30 +189,70 @@ document, so no new references are needed.
 
 ### `$oas2`
 
-In the shared entity definition, mutability maps to the standard `readOnly` plus the
-widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immutable concept):
+Swagger 2.0 has no per-property "settable on create only / update only" concept, and the
+single shared definition that `post` and `patch` reference today cannot express it — a
+field-level annotation like `x-ms-mutability` is ignored by Power Automate / Logic Apps
+custom connectors (it is an AutoRest SDK-generation extension, not one the Power Platform
+connector engine reads). So instead of annotating a shared schema, mutability is expressed
+**structurally, by emitting a separate request-body definition per write operation** — the
+representation Power Automate actually honors, since Create and Update are distinct
+connector actions with distinct bodies.
+
+Three definitions per writable entity:
+
+- **`<Entity>`** — the **response** schema (GET / collection / individual / the create and
+  update response bodies). Carries every property. A `:computed` property keeps
+  `readOnly: true` here (the standard Swagger signal that it is response-only); no other
+  mutability annotation appears.
+- **`<Entity>Create`** — the **POST request body**. Contains only properties **settable on
+  create** (`:read_write` + `:immutable`); `:computed` and `:non_insertable` are omitted.
+- **`<Entity>Update`** — the **PATCH request body**. Contains only properties **settable on
+  update** (`:read_write` + `:non_insertable`); `:computed` and `:immutable` are omitted.
+  (The key travels in the path, not the body.)
 
 ```jsonc
 {
   "definitions": {
-    "Order": {
+    "Order": {                              // response schema — every property
       "properties": {
-        "id":             { "type": "string", "readOnly": true, "x-ms-mutability": ["read"] },
-        "account_number": { "type": "string", "x-ms-mutability": ["create", "read"] },
-        "status":         { "type": "string", "x-ms-mutability": ["read", "update"] },
-        "created_at":     { "type": "string", "format": "date-time", "readOnly": true,
-                            "x-ms-mutability": ["read"] },
+        "id":             { "type": "string", "readOnly": true },
+        "account_number": { "type": "string" },
+        "status":         { "type": "string" },
+        "created_at":     { "type": "string", "format": "date-time", "readOnly": true },
         "note":           { "type": "string" }
+      }
+    },
+    "OrderCreate": {                        // POST body — :read_write + :immutable
+      "properties": {
+        "account_number": { "type": "string" },   // :immutable — settable on create
+        "note":           { "type": "string" }    // :read_write
+      },
+      "required": ["account_number"]
+    },
+    "OrderUpdate": {                        // PATCH body — :read_write + :non_insertable
+      "properties": {
+        "status": { "type": "string" },            // :non_insertable — settable on update
+        "note":   { "type": "string" }             // :read_write
       }
     }
   }
 }
 ```
 
-- `:computed` → `readOnly: true` (unchanged) **and** `x-ms-mutability: ["read"]`.
-- `:immutable` → `x-ms-mutability: ["create", "read"]` (no `readOnly`).
-- `:non_insertable` → `x-ms-mutability: ["read", "update"]` (no `readOnly`).
-- `:read_write` → neither key (unchanged).
+The `post` operation's `body` parameter references `#/definitions/OrderCreate`; the `patch`
+operation's references `#/definitions/OrderUpdate`. Both still respond with the full
+`#/definitions/Order` (`200`/`201`). These per-operation body definitions are emitted for
+**every** create-able / update-able set — even one with no constrained properties, where the
+body simply equals the writable set — so the `$oas2` shape is uniform and predictable. This
+changes today's output, where both bodies reference the shared entity definition.
+
+- `:read_write` → appears in **both** `<Entity>Create` and `<Entity>Update`.
+- `:immutable` → appears in `<Entity>Create` only.
+- `:non_insertable` → appears in `<Entity>Update` only.
+- `:computed` → appears in **neither** body; `readOnly: true` on the `<Entity>` response def.
+
+`x-ms-mutability` is **not** emitted — the per-operation bodies carry the distinction in a
+form Power Automate honors, and `readOnly` covers the computed case.
 
 ### MCP
 
@@ -230,7 +270,7 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
   "inputSchema": {
     "type": "object",
     "properties": {
-      "account_number": { "type": "string", "x-ms-mutability": ["create", "read"] },
+      "account_number": { "type": "string" },
       "note":           { "type": "string" }
     },
     "required": ["account_number"]
@@ -245,8 +285,8 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
   "inputSchema": {
     "type": "object",
     "properties": {
-      "id":     { "type": "string", "readOnly": true, "x-ms-mutability": ["read"] },
-      "status": { "type": "string", "x-ms-mutability": ["read", "update"] },
+      "id":     { "type": "string", "readOnly": true },
+      "status": { "type": "string" },
       "note":   { "type": "string" }
     },
     "required": ["id"]
@@ -281,8 +321,13 @@ widely-used `x-ms-mutability` vendor extension (Swagger 2.0 has no native immuta
   defaulting to `:computed`.
 - Enforcement (silent drop) in the typed `create` and `update` input objects.
 - Reflection across `$metadata` (`Core.Immutable`, `Core.Computed`,
-  `Capabilities.InsertRestrictions/NonInsertableProperties`), `$oas2` (`readOnly` +
-  `x-ms-mutability`), and the MCP `create_<Set>` / `update_<Set>` tool input schemas.
+  `Capabilities.InsertRestrictions/NonInsertableProperties`) and the MCP `create_<Set>` /
+  `update_<Set>` tool input schemas.
+- **`$oas2`: separate per-operation request-body definitions** — `<Entity>Create` (POST body)
+  and `<Entity>Update` (PATCH body) alongside the `<Entity>` response definition, emitted for
+  every writable set. This **changes existing `$oas2` output**: the `post`/`patch` bodies stop
+  referencing the shared entity definition. `readOnly: true` stays on `:computed` in the
+  response definition; `x-ms-mutability` is not emitted.
 - Matching specs under **both** `spec/odata_duty/entity_set/**` and
   `spec/odata_duty/schema_builder/**`.
 
@@ -300,17 +345,15 @@ Add a new guide **`doc/using_mutability.md`** in the house style covering the fu
 `mutability:` axis, the create/update/read matrix, and the reflection across all four
 contracts. Update **`doc/using_computed.md`** to state that `computed:` is now the
 `:computed` alias of `mutability:` and link to the new guide (it already flags itself as
-forward-compatible with the update path). Cross-reference from
-**`doc/using_create_update_and_delete.md`** where it discusses the typed create/update input.
-Refresh the `## Features` index in `CLAUDE.md` with a one-line entry pointing at the new
-guide.
+forward-compatible with the update path). Update **`doc/using_create_update_and_delete.md`**:
+its `$oas2` examples currently show the `post`/`patch` bodies referencing the shared
+`#/definitions/<Entity>` — these change to `#/definitions/<Entity>Create` and
+`#/definitions/<Entity>Update`, so the guide's request-body snippets must be revised even for
+sets with no constrained properties. Refresh the `## Features` index in `CLAUDE.md` with a
+one-line entry pointing at the new guide.
 
 ## Open questions
 
-- **`$oas2` immutable representation.** This PRD proposes the de-facto `x-ms-mutability`
-  vendor extension since Swagger 2.0 has no native immutable keyword. If a different
-  convention is preferred (e.g. omit the hint entirely and rely on `$metadata` for the
-  immutable/insert-restricted distinction), that narrows the `$oas2` work.
 - **`NonUpdatableProperties` for `:immutable`.** The PRD uses the dedicated `Core.Immutable`
   property annotation for immutables. If maximal redundancy is wanted, the set's
   `UpdateRestrictions/NonUpdatableProperties` could *also* list them — proposed out of scope
