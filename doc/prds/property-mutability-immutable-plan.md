@@ -133,4 +133,4 @@ of `mutability:` and link to the new guide. Add a one-line entry to the `## Feat
 
 **Depends on:** Tasks 1–4.
 
-- [ ] Done
+- [x] Done

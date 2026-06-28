@@ -1,10 +1,12 @@
 # Using `computed` (read-only) properties with OdataDuty
 
-A **computed** property is one that the server generates — an auto-incrementing key, a `created_at` timestamp, a derived field. It still appears in every read response, but clients must not (and cannot) set it when creating a record. OdataDuty marks such a property with the `computed:` keyword on `property`. A computed property renders normally in `GET`/`collection`/`individual`/`create` responses but is excluded from the **create input** surface across all three contracts.
+A **computed** property is one that the server generates — an auto-incrementing key, a `created_at` timestamp, a derived field. It still appears in every read response, but clients must not (and cannot) set it when creating a record. OdataDuty marks such a property with the `computed:` keyword on `property`. A computed property renders normally in `GET`/`collection`/`individual`/`create` responses but is excluded from the **create/update input** surface across all three contracts.
 
 This guide explains how to declare a computed property in both DSLs and how the read-only distinction is reflected in the generated `$metadata`, `$oas2`, MCP, and the typed `create` input.
 
-> **Scope:** `computed:` controls the **create input** only — there is no update/PATCH path yet. The term mirrors the OData `Org.OData.Core.V1.Computed` vocabulary annotation and is forward-compatible with a future update path.
+> **Alias:** `computed:` is now the `:computed` alias of the broader `mutability:` axis (`computed: true` ≡ `mutability: :computed`, `computed: false` ≡ `mutability: :read_write`). Everything here still works unchanged. For the `:immutable` case (settable on create, frozen on update) and the full axis, see [`doc/using_mutability.md`](using_mutability.md).
+>
+> **Scope:** `computed:` controls the **typed create/update input** — a computed property is settable on neither. The term mirrors the OData `Org.OData.Core.V1.Computed` vocabulary annotation.
 
 ## Overview
 
