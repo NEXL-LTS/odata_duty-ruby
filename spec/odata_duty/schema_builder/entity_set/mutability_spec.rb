@@ -8,10 +8,23 @@ module OdataDuty
       end
     end
 
+    it 'accepts mutability: :non_insertable' do
+      expect do
+        build_entity { |et| et.property 'status', String, mutability: :non_insertable }
+      end.not_to raise_error
+    end
+
     it 'raises ArgumentError for an unknown mutability value naming property and value' do
       expect do
         build_entity { |et| et.property 'bad', String, mutability: :frozen }
       end.to raise_error(ArgumentError, /bad.*frozen|frozen.*bad/)
+    end
+
+    it 'lists all four valid mutability values in the rejection message' do
+      expect do
+        build_entity { |et| et.property 'bad', String, mutability: :frozen }
+      end.to raise_error(ArgumentError,
+                         /read_write.*immutable.*non_insertable.*computed/m)
     end
 
     it 'raises ArgumentError when both mutability and computed are supplied' do

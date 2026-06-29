@@ -4,7 +4,8 @@ require 'odata_duty/property/collection_prop'
 
 module OdataDuty
   module Property
-    MUTABILITIES = %i[read_write immutable computed].freeze
+    MUTABILITIES = %i[read_write immutable non_insertable computed].freeze
+    MUTABILITIES_LIST = MUTABILITIES.map(&:inspect).join(', ').freeze
 
     def self.new(name, type = String, line__defined__at: nil, nullable: true, method: nil,
                  computed: :unset, mutability: :unset)
@@ -30,7 +31,9 @@ module OdataDuty
       return :read_write if mutability == :unset
       return mutability if MUTABILITIES.include?(mutability)
 
-      raise ArgumentError, "#{name}: invalid mutability #{mutability.inspect}"
+      raise ArgumentError,
+            "#{name}: invalid mutability #{mutability.inspect}, " \
+            "must be one of #{MUTABILITIES_LIST}"
     end
 
     def self.valid_name?(name)
