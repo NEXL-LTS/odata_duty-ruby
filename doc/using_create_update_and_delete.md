@@ -235,7 +235,7 @@ A **`create`able** set's collection path exposes both `get` and `post`. The `pos
         "produces": ["application/json"],
         "parameters": [
           { "name": "body", "in": "body", "required": true,
-            "schema": { "$ref": "#/definitions/Person" } }
+            "schema": { "$ref": "#/definitions/PersonCreate" } }
         ],
         "responses": {
           "200": { "description": "Success", "schema": { "$ref": "#/definitions/Person" } },
@@ -248,7 +248,9 @@ A **`create`able** set's collection path exposes both `get` and `post`. The `pos
 }
 ```
 
-An **`update`able** set's *individual* path gains a `patch` alongside its `get`. The `operationId` is `Update<Set>` (e.g. `UpdatePeople`); its parameters are the `id` path parameter plus a required `body` parameter `$ref`ing the entity. Note the responses are `200` Success and `default` Error only — there is no `201`, unlike `create`'s `post`:
+The `post` body references the per-operation `PersonCreate` definition (the create-settable properties), while its responses return the full `Person`. See [`doc/using_mutability.md`](using_mutability.md) for how `mutability:` shapes `<Entity>Create` / `<Entity>Update`.
+
+An **`update`able** set's *individual* path gains a `patch` alongside its `get`. The `operationId` is `Update<Set>` (e.g. `UpdatePeople`); its parameters are the `id` path parameter plus a required `body` parameter `$ref`ing the per-operation `PersonUpdate` definition (the update-settable properties). Note the responses are `200` Success and `default` Error only — there is no `201`, unlike `create`'s `post`:
 
 ```jsonc
 {
@@ -261,7 +263,7 @@ An **`update`able** set's *individual* path gains a `patch` alongside its `get`.
         "parameters": [
           { "name": "id", "in": "path", "required": true, "type": "string" },
           { "name": "body", "in": "body", "required": true,
-            "schema": { "$ref": "#/definitions/Person" } }
+            "schema": { "$ref": "#/definitions/PersonUpdate" } }
         ],
         "responses": {
           "200": { "description": "Success", "schema": { "$ref": "#/definitions/Person" } },
@@ -272,6 +274,8 @@ An **`update`able** set's *individual* path gains a `patch` alongside its `get`.
   }
 }
 ```
+
+These per-operation request-body definitions are emitted for every create-/update-able set, including sets with no constrained properties — there `PersonCreate` / `PersonUpdate` equal the writable set. The `post` and `patch` responses keep returning the full `Person`.
 
 A **`delete`able** set's *individual* path gains a `delete` alongside its `get` (and `patch`, if updatable). The `operationId` is `Delete<Set>` (e.g. `DeletePeople`); its only parameter is the `id` path parameter — there is no body. Its responses are `204` No Content (with no success schema) and `default` Error only:
 

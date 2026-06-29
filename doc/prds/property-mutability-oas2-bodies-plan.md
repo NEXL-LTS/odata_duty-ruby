@@ -88,7 +88,7 @@ spec in both trees.
 
 ### Task 3 — Documentation + Features index
 
-- [ ] **Title:** Document per-operation `$oas2` bodies
+- [x] **Title:** Document per-operation `$oas2` bodies
 
 **Task text:** Update `doc/using_mutability.md`: replace the "`$oas2` — not yet
 operation-aware (interim gap)" section (and the "`$oas2` is unchanged"/"addressed in a
