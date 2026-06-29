@@ -44,7 +44,8 @@ module OdataDuty
       end
 
       def non_insertable_property_names
-        entity_type.properties.select(&:non_insertable?).map(&:name)
+        @non_insertable_property_names ||=
+          entity_type.properties.select(&:non_insertable?).map(&:name)
       end
     end
   end
