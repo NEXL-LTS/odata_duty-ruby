@@ -91,7 +91,7 @@ Composes with the set-level `Insertable: false`. Metadata XML stays well-formed.
 
 ## Task 3 — Documentation + Features index
 
-- [ ] **Status**
+- [x] **Status** — done
 
 **Task text:** Extend `doc/using_mutability.md` with the `:non_insertable` row in the overview table and
 its create/update/`$metadata`/MCP behavior, including the note that `$oas2` is unchanged here (Part C).
