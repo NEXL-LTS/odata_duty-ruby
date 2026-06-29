@@ -166,8 +166,7 @@ The `create_<Set>` tool's `inputSchema` includes `:read_write` and `:immutable` 
 
 - **`property_ref` is computed by default.** A key is server-assigned unless you declare `property_ref 'id', String, mutability: :read_write` (or `computed: false`).
 - **Both `mutability:` and `computed:` on one property** raises `ArgumentError` at schema-definition time:
-  `account_number: pass either `mutability:` or `computed:`, not both — they control the same axis`.
-- **An unknown `mutability:` value** (e.g. `:frozen`) raises `ArgumentError` naming the property and the bad value:
+  ``account_number: pass either `mutability:` or `computed:`, not both — they control the same axis``.
   `account_number: invalid mutability :frozen`.
 - **A dropped value is a silent no-op** — an `:immutable` value on update, or a `:computed` value on either operation, reads back as `nil` with no error, even for a wrong-typed value.
 
