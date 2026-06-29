@@ -15,7 +15,7 @@ spec trees.
 
 ## Task 1 — Accept `:non_insertable`; settability drives typed input + MCP tools
 
-- [x] **Status**
+- [x] **Status** — done
 
 **Task text:** Add `:non_insertable` as a fourth accepted `mutability:` value. Update declaration-time
 validation so it is accepted and the rejected-symbol error message lists all four valid values
@@ -55,7 +55,7 @@ and both spec trees.
 
 ## Task 2 — `$metadata`: `InsertRestrictions/NonInsertableProperties`
 
-- [x] **Status**
+- [ ] **Status**
 
 **Task text:** Emit each `:non_insertable` property as a `NonInsertableProperties` collection entry in the
 entity set's `Capabilities.InsertRestrictions` annotation. It must compose with the existing set-level
@@ -91,7 +91,7 @@ Composes with the set-level `Insertable: false`. Metadata XML stays well-formed.
 
 ## Task 3 — Documentation + Features index
 
-- [x] **Status**
+- [ ] **Status**
 
 **Task text:** Extend `doc/using_mutability.md` with the `:non_insertable` row in the overview table and
 its create/update/`$metadata`/MCP behavior, including the note that `$oas2` is unchanged here (Part C).

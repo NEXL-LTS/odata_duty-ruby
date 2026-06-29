@@ -13,7 +13,7 @@ module OdataDuty
         if scalar?
           raw_type.to_oas2(is_collection: true)
         else
-          { 'type' => 'array', 'items' => ref_oas2 }
+          { 'type' => 'array', 'items' => { '$ref' => "#/definitions/#{raw_type.name}" } }
         end
       end
 

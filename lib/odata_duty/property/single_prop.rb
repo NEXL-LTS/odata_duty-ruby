@@ -27,16 +27,20 @@ module OdataDuty
         mutability == :immutable
       end
 
+      def non_insertable?
+        mutability == :non_insertable
+      end
+
       def core_annotation_term
         CORE_ANNOTATION_TERMS[mutability]
       end
 
       def settable_on_create?
-        mutability != :computed
+        !computed? && !non_insertable?
       end
 
       def settable_on_update?
-        mutability == :read_write
+        !computed? && !immutable?
       end
 
       def calling_method?
@@ -80,12 +84,9 @@ module OdataDuty
       end
 
       def to_value(value, context)
-        raise "#{name} cannot be null" if !nullable && value.nil?
-
-        result = convert(value, context)
-        raise "#{name} cannot be null" if !nullable && result.nil?
-
-        result
+        convert(value, context).tap do |result|
+          raise "#{name} cannot be null" if !nullable && result.nil?
+        end
       rescue InvalidValue => e
         raise InvalidValue, "#{name} : #{e.message}"
       end
@@ -110,7 +111,9 @@ module OdataDuty
       end
 
       def to_oas2_type
-        scalar? && !enum? ? raw_type.to_oas2(is_collection: false) : ref_oas2
+        return raw_type.to_oas2(is_collection: false) if scalar? && !enum?
+
+        { '$ref' => "#/definitions/#{raw_type.name}" }
       end
 
       def collection?
@@ -118,10 +121,6 @@ module OdataDuty
       end
 
       private
-
-      def ref_oas2
-        { '$ref' => "#/definitions/#{raw_type.name}" }
-      end
 
       def load_type_instance_vars(type)
         type = Array(type).first
