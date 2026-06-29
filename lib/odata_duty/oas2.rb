@@ -57,14 +57,10 @@ module OdataDuty
     end
 
     def add_request_body_definitions
-      schema.collection_entity_sets.each do |entity_set|
-        next unless entity_set.supports_create?
-
+      schema.collection_entity_sets.select(&:supports_create?).each do |entity_set|
         register_definition(CollectionPostPath.request_body_definition(entity_set))
       end
-      schema.individual_entity_sets.each do |entity_set|
-        next unless entity_set.supports_update?
-
+      schema.individual_entity_sets.select(&:supports_update?).each do |entity_set|
         register_definition(IndividualPatchPath.request_body_definition(entity_set))
       end
     end
