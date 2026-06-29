@@ -56,7 +56,7 @@ specs `spec/odata_duty/entity_set/create/oas2_spec.rb`,
 
 ### Task 2 — Emit `<Entity>Update` definition; point `PATCH` body at it
 
-- [x] **Title:** Per-operation Update request body in `$oas2`
+- [ ] **Title:** Per-operation Update request body in `$oas2`
 
 **Task text:** In `lib/odata_duty/oas2.rb` + `lib/odata_duty/oas2/individual_patch_path.rb`,
 emit a new `<Entity>Update` definition for every update-able entity set and make the `patch`
@@ -88,7 +88,7 @@ spec in both trees.
 
 ### Task 3 — Documentation + Features index
 
-- [x] **Title:** Document per-operation `$oas2` bodies
+- [ ] **Title:** Document per-operation `$oas2` bodies
 
 **Task text:** Update `doc/using_mutability.md`: replace the "`$oas2` — not yet
 operation-aware (interim gap)" section (and the "`$oas2` is unchanged"/"addressed in a

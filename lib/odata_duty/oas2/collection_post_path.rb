@@ -11,6 +11,15 @@ module OdataDuty
         }
       end
 
+      def self.request_body_definition(entity_set)
+        writable = entity_set.entity_type.properties.select(&:settable_on_create?)
+        definition = { 'type' => 'object',
+                       'properties' => writable.to_h { |p| [p.name.to_s, p.to_oas2] } }
+        required = writable.reject(&:nullable).map { |p| p.name.to_s }
+        definition['required'] = required unless required.empty?
+        ["#{entity_set.entity_type.name}Create", definition]
+      end
+
       def initialize(entity_set)
         @entity_set = entity_set
       end
@@ -26,7 +35,7 @@ module OdataDuty
       def parameters
         [
           {
-            'name' => 'body', 'in' => 'body', 'required' => true, 'schema' => entity_type_schema
+            'name' => 'body', 'in' => 'body', 'required' => true, 'schema' => create_schema
           }
         ]
       end
@@ -44,6 +53,10 @@ module OdataDuty
 
       def entity_type_schema
         { '$ref' => "#/definitions/#{@entity_set.entity_type.name}" }
+      end
+
+      def create_schema
+        { '$ref' => "#/definitions/#{@entity_set.entity_type.name}Create" }
       end
     end
   end

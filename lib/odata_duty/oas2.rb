@@ -8,6 +8,7 @@ module OdataDuty
       builder.add_error_definition
       builder.add_enum_definitions
       builder.add_complex_definitions
+      builder.add_request_body_definitions
       builder.add_collection_paths
       builder.add_individual_paths
       builder.hash
@@ -52,6 +53,15 @@ module OdataDuty
     def add_complex_definitions
       (schema.complex_types + schema.entity_types).each do |complex_type|
         hash['definitions'][complex_type.name] = complex_type.to_oas2
+      end
+    end
+
+    def add_request_body_definitions
+      schema.collection_entity_sets.each do |entity_set|
+        next unless entity_set.supports_create?
+
+        name, definition = CollectionPostPath.request_body_definition(entity_set)
+        hash['definitions'][name] = definition
       end
     end
 
