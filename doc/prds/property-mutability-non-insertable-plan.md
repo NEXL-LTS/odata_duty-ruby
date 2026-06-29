@@ -55,7 +55,7 @@ and both spec trees.
 
 ## Task 2 — `$metadata`: `InsertRestrictions/NonInsertableProperties`
 
-- [ ] **Status**
+- [x] **Status** — done
 
 **Task text:** Emit each `:non_insertable` property as a `NonInsertableProperties` collection entry in the
 entity set's `Capabilities.InsertRestrictions` annotation. It must compose with the existing set-level

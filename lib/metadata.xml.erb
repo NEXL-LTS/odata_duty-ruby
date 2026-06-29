@@ -75,10 +75,21 @@
                                 </Record>
                             </Annotation>
                         <% end %>
-                        <% if !entity_set.supports_create? %>
+                        <% if !entity_set.supports_create? || entity_set.non_insertable_property_names.any? %>
                             <Annotation Term="Capabilities.InsertRestrictions">
                                 <Record>
-                                    <PropertyValue Property="Insertable" Bool="false" />
+                                    <% if !entity_set.supports_create? %>
+                                        <PropertyValue Property="Insertable" Bool="false" />
+                                    <% end %>
+                                    <% if entity_set.non_insertable_property_names.any? %>
+                                        <PropertyValue Property="NonInsertableProperties">
+                                            <Collection>
+                                                <% entity_set.non_insertable_property_names.each do |property_name| %>
+                                                    <PropertyPath><%= property_name %></PropertyPath>
+                                                <% end %>
+                                            </Collection>
+                                        </PropertyValue>
+                                    <% end %>
                                 </Record>
                             </Annotation>
                         <% end %>

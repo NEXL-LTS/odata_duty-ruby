@@ -141,6 +141,10 @@ module OdataDuty
         entity_set.method_defined?(:delete)
       end
 
+      def non_insertable_property_names
+        entity_type.__metadata.properties.select(&:non_insertable?).map(&:name)
+      end
+
       private
 
       def converted_id(id, context)
