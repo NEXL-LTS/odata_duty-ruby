@@ -1,9 +1,10 @@
 module OdataDuty
   class CreateComplexTypeHashWrapper
-    def initialize(hash, complex_type, context)
+    def initialize(hash, complex_type, context, operation: :create)
       @hash = hash
       @complex_type = complex_type
       @context = context
+      @operation = operation
     end
 
     def method_missing(method_name, *args)
@@ -24,17 +25,25 @@ module OdataDuty
     private
 
     def __load(matching_prop, method_name, value)
-      return nil if matching_prop.computed?
+      return nil unless settable?(matching_prop)
       return nil if value.nil?
       return matching_prop.to_value(value, @context) if matching_prop.scalar?
 
       if matching_prop.collection?
-        value.map { |v| CreateComplexTypeHashWrapper.new(v, matching_prop.raw_type, @context) }
+        value.map { |v| __wrap(v, matching_prop.raw_type) }
       else
-        CreateComplexTypeHashWrapper.new(value, matching_prop.raw_type, @context)
+        __wrap(value, matching_prop.raw_type)
       end
     rescue InvalidValue
       raise InvalidType, "The value provided for '#{method_name}' is of wrong type"
+    end
+
+    def settable?(prop)
+      @operation == :update ? prop.settable_on_update? : prop.settable_on_create?
+    end
+
+    def __wrap(value, raw_type)
+      CreateComplexTypeHashWrapper.new(value, raw_type, @context, operation: @operation)
     end
   end
 end

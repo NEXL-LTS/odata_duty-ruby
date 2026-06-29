@@ -1,24 +1,42 @@
 module OdataDuty
   module Property
+    CORE_ANNOTATION_TERMS = { computed: 'Org.OData.Core.V1.Computed',
+                              immutable: 'Org.OData.Core.V1.Immutable' }.freeze
+
     class SingleProp
       attr_reader :name, :nullable, :calling_method, :line__defined__at, :raw_type, :type,
-                  :set_type, :method_name, :computed
+                  :set_type, :method_name, :mutability
 
       def initialize(name, type = String, line__defined__at: nil, nullable: true, method: nil,
-                     computed: false)
+                     mutability: :read_write)
         @line__defined__at = line__defined__at
         @name = name.to_str.to_sym
         @calling_method = method.respond_to?(:call) ? method : nil
         method = nil if method.respond_to?(:call)
         @method_name = (method || name).to_sym
         @nullable = nullable ? true : false
-        @computed = computed ? true : false
-
+        @mutability = mutability
         load_type_instance_vars(type)
       end
 
       def computed?
-        computed
+        mutability == :computed
+      end
+
+      def immutable?
+        mutability == :immutable
+      end
+
+      def core_annotation_term
+        CORE_ANNOTATION_TERMS[mutability]
+      end
+
+      def settable_on_create?
+        mutability != :computed
+      end
+
+      def settable_on_update?
+        mutability == :read_write
       end
 
       def calling_method?
@@ -64,15 +82,12 @@ module OdataDuty
       def to_value(value, context)
         raise "#{name} cannot be null" if !nullable && value.nil?
 
-        begin
-          result = convert(value, context)
-        rescue InvalidValue => e
-          raise InvalidValue, "#{name} : #{e.message}"
-        end
-
+        result = convert(value, context)
         raise "#{name} cannot be null" if !nullable && result.nil?
 
         result
+      rescue InvalidValue => e
+        raise InvalidValue, "#{name} : #{e.message}"
       end
 
       def convert(value, context)
@@ -95,11 +110,7 @@ module OdataDuty
       end
 
       def to_oas2_type
-        if scalar? && !enum?
-          raw_type.to_oas2(is_collection: false)
-        else
-          ref_oas2
-        end
+        scalar? && !enum? ? raw_type.to_oas2(is_collection: false) : ref_oas2
       end
 
       def collection?

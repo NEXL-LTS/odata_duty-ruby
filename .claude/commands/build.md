@@ -28,6 +28,7 @@ These come from `CLAUDE.md` and are non-negotiable. Bake them into every impleme
 - **Style:** two-space indent, **99-char line limit**, Ruby 3 syntax. RuboCop metrics are tight (`.rubocop.yml`: `MethodLength` 13, `Class/ModuleLength` 99, `AbcSize` 30, `CyclomaticComplexity` 7) — keep methods small rather than adding inline disables.
 - **Green gate:** `bundle exec rake` runs **RSpec and RuboCop** and is the definition of done for every task. A task isn't complete until it's green.
 - **Docs:** if the PRD's "Documentation impact" section names a `doc/` guide to add or extend, that is a task too. Bump `spec.version` in `odata_duty.gemspec` only if the user asks.
+- **Keep `CLAUDE.md`'s `## Features` index current.** If this PRD adds a note-worthy, externally visible capability (a new query option, write verb, hook, output format, generator, MCP surface — anything a future session should know exists), add or update its one-line entry in the `## Features` section of `CLAUDE.md`, pointing at the `doc/` guide that documents it. The index is a pointer list, not a place for detail — one line, link to the guide. Skip purely internal refactors that change nothing a consumer can observe.
 
 ## Process
 
@@ -79,7 +80,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 
 ### 5. Final review
 
-After all tasks: run `bundle exec rake` yourself to confirm the whole suite + RuboCop are green (recall CI runs `rake` four times to catch flaky tests — if you suspect flakiness, run it a couple more times). Then dispatch one final reviewer over the entire diff (`git diff main...HEAD`) checking the PRD as a whole is satisfied, both DSLs are in sync, docs were updated, every task is committed, the `-plan.md` checkboxes are all ticked, and there are no loose ends or uncommitted changes (`git status` clean). Report what was built, the branch name, the commits, and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
+After all tasks: run `bundle exec rake` yourself to confirm the whole suite + RuboCop are green (recall CI runs `rake` four times to catch flaky tests — if you suspect flakiness, run it a couple more times). Then dispatch one final reviewer over the entire diff (`git diff main...HEAD`) checking the PRD as a whole is satisfied, both DSLs are in sync, docs were updated, the `## Features` index in `CLAUDE.md` carries a one-line entry for any note-worthy capability this PRD added, every task is committed, the `-plan.md` checkboxes are all ticked, and there are no loose ends or uncommitted changes (`git status` clean). Report what was built, the branch name, the commits, and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
 
 ## Subagent prompt templates
 

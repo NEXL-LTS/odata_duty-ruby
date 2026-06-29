@@ -6,8 +6,9 @@ module OdataDuty
       @property_refs ||= []
     end
 
-    def self.property_ref(*args, computed: true, **kwargs)
-      property(*args, nullable: false, computed: computed, **kwargs).tap do |property|
+    def self.property_ref(*args, **kwargs)
+      kwargs[:mutability] = :computed unless kwargs.key?(:mutability) || kwargs.key?(:computed)
+      property(*args, nullable: false, **kwargs).tap do |property|
         raise 'Multiple Property Reference not yet supported' if property_refs.size.positive?
 
         property_refs << property

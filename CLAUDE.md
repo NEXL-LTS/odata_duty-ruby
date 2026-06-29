@@ -6,6 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `odata_duty` is a Ruby gem (no Rails required) for defining structured data and operations once in a Ruby DSL, then exposing them as an [OData](doc/odata_crash_course.md) v4 service. From a single schema it generates: EDMX `$metadata` XML, an OData index document, OAS2/Swagger JSON, and an [MCP](doc/mcp_crash_course.md) server over JSON-RPC. Ruby 3.2+ is required.
 
+## Features
+
+Short index of what's implemented; see the linked `doc/` guide for the full contract. **Keep this list current** — see `/build` for when to update it.
+
+- **Read** — `collection`, `individual(id)`, `/$count`.
+- **Write** — `create` (POST), `update` (PATCH, partial-merge), `delete` (DELETE); each inferred from method presence and reflected in `$oas2`, `$metadata` capability annotations, and MCP tools — `doc/using_create_update_and_delete.md`.
+- **`$filter`** — `od_filter_eq/ne/gt/lt` — `doc/using_filter.md`.
+- **`$select`** — `doc/using_select.md`.
+- **`$search`** — AND/OR/NOT grammar via `od_search`; also drives the MCP search tool — `doc/using_search.md`.
+- **Paging** — `$top`/`$skip` and server-driven `@odata.nextLink` via `od_next_link_skiptoken`.
+- **Computed properties** — `doc/using_computed.md`.
+- **Property mutability** — `mutability: :immutable`/`:computed` per property (create/update settability + `Core` annotations) — `doc/using_mutability.md`.
+- **Init args** — pass per-request data into `od_after_init` — `doc/using_init_args.md`.
+- **MCP server** — tools/resources over JSON-RPC — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
+- **Rails generators** — `install` and `entity_set` — `doc/entity_set_generator.md`.
+
 ## Commands
 
 - `bundle exec rake` — full suite: RSpec **and** RuboCop. This is what CI runs (and it runs `rake` four times to surface flaky tests). Run this before considering work done.
@@ -39,7 +55,7 @@ A schema is just metadata until executed. Both DSLs expose `__metadata` objects 
 User code communicates with the framework through methods/hooks prefixed `od_`, looked up dynamically:
 
 - `od_after_init` — runs after the set/resolver is constructed; typically loads `@records`. Can take positional or keyword args (see `set_resolver.rb` and `doc/using_init_args.md`).
-- `collection`, `individual(id)`, `create(data)`, `count` — data operations. A missing one raises `NoImplementationError` (the framework rescues `NoMethodError` to detect absence).
+- `collection`, `individual(id)`, `count` — read operations; `create(input)`, `update(id, input)`, `delete(id)` — write operations (see `doc/using_create_update_and_delete.md`). A missing one raises `NoImplementationError` (the framework rescues `NoMethodError` to detect absence).
 - `od_filter_eq/ne/gt/lt(property_name, value)` — narrow results per `$filter`.
 - `od_search(expression)` — enables `$search` and the MCP search tool.
 - `od_next_link_skiptoken` — drives server-driven paging `@odata.nextLink`.
