@@ -56,7 +56,7 @@ specs `spec/odata_duty/entity_set/create/oas2_spec.rb`,
 
 ### Task 2 — Emit `<Entity>Update` definition; point `PATCH` body at it
 
-- [ ] **Title:** Per-operation Update request body in `$oas2`
+- [x] **Title:** Per-operation Update request body in `$oas2`
 
 **Task text:** In `lib/odata_duty/oas2.rb` + `lib/odata_duty/oas2/individual_patch_path.rb`,
 emit a new `<Entity>Update` definition for every update-able entity set and make the `patch`

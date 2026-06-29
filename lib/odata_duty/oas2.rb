@@ -60,8 +60,12 @@ module OdataDuty
       schema.collection_entity_sets.each do |entity_set|
         next unless entity_set.supports_create?
 
-        name, definition = CollectionPostPath.request_body_definition(entity_set)
-        hash['definitions'][name] = definition
+        register_definition(CollectionPostPath.request_body_definition(entity_set))
+      end
+      schema.individual_entity_sets.each do |entity_set|
+        next unless entity_set.supports_update?
+
+        register_definition(IndividualPatchPath.request_body_definition(entity_set))
       end
     end
 
@@ -90,6 +94,10 @@ module OdataDuty
     }.freeze
 
     private
+
+    def register_definition((name, definition))
+      hash['definitions'][name] = definition
+    end
 
     def wrap_context(entity_set)
       ContextWrapper.new(@context, base_url: schema.base_url,

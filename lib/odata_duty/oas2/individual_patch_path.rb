@@ -11,6 +11,13 @@ module OdataDuty
         }
       end
 
+      def self.request_body_definition(entity_set)
+        writable = entity_set.entity_type.properties.select(&:settable_on_update?)
+        definition = { 'type' => 'object',
+                       'properties' => writable.to_h { |p| [p.name.to_s, p.to_oas2] } }
+        ["#{entity_set.entity_type.name}Update", definition]
+      end
+
       def initialize(entity_set)
         @entity_set = entity_set
       end
@@ -26,7 +33,7 @@ module OdataDuty
       def parameters
         [
           { 'name' => 'id', 'in' => 'path', 'required' => true, 'type' => id_type },
-          { 'name' => 'body', 'in' => 'body', 'required' => true, 'schema' => entity_type_schema }
+          { 'name' => 'body', 'in' => 'body', 'required' => true, 'schema' => update_schema }
         ]
       end
 
@@ -46,6 +53,10 @@ module OdataDuty
 
       def entity_type_schema
         { '$ref' => "#/definitions/#{@entity_set.entity_type.name}" }
+      end
+
+      def update_schema
+        { '$ref' => "#/definitions/#{@entity_set.entity_type.name}Update" }
       end
     end
   end
