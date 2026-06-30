@@ -8,6 +8,7 @@ module OdataDuty
       builder.add_error_definition
       builder.add_enum_definitions
       builder.add_complex_definitions
+      builder.add_request_body_definitions
       builder.add_collection_paths
       builder.add_individual_paths
       builder.hash
@@ -55,6 +56,15 @@ module OdataDuty
       end
     end
 
+    def add_request_body_definitions
+      schema.collection_entity_sets.select(&:supports_create?).each do |entity_set|
+        register_definition(CollectionPostPath.request_body_definition(entity_set))
+      end
+      schema.individual_entity_sets.select(&:supports_update?).each do |entity_set|
+        register_definition(IndividualPatchPath.request_body_definition(entity_set))
+      end
+    end
+
     def add_collection_paths
       schema.collection_entity_sets.each do |entity_set|
         path = { 'get' => CollectionGetPath.new(entity_set, wrap_context(entity_set)).to_oas2 }
@@ -80,6 +90,10 @@ module OdataDuty
     }.freeze
 
     private
+
+    def register_definition((name, definition))
+      hash['definitions'][name] = definition
+    end
 
     def wrap_context(entity_set)
       ContextWrapper.new(@context, base_url: schema.base_url,

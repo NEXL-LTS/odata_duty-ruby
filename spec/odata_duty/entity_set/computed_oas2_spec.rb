@@ -42,8 +42,13 @@ RSpec.describe OdataDuty::EntitySet, 'computed properties as readOnly in $oas2' 
     )
   end
 
-  it 'keeps the post body referencing the shared entity definition' do
+  it 'references the <Entity>Create definition in the post body' do
     body = json.dig('paths', '/ComputedOas2Collection', 'post', 'parameters').first
-    expect(body['schema']).to eq('$ref' => '#/definitions/ComputedOas2Entity')
+    expect(body['schema']).to eq('$ref' => '#/definitions/ComputedOas2EntityCreate')
+  end
+
+  it 'omits the computed and key properties from the <Entity>Create definition' do
+    create_properties = json.dig('definitions', 'ComputedOas2EntityCreate', 'properties')
+    expect(create_properties.keys).to contain_exactly('user_name')
   end
 end

@@ -183,9 +183,42 @@ The `create_<Set>` tool's `inputSchema` includes `:read_write` and `:immutable` 
 }
 ```
 
-### `$oas2` — not yet operation-aware (interim gap)
+### `$oas2`
 
-`$oas2` is **not** changed in this part. The `post` and `patch` operations still share one request body referencing the entity definition, where only `:computed` properties carry `readOnly: true`. An `:immutable` property therefore still appears writable in the `patch` body, even though the typed input drops it on update; likewise a `:non_insertable` property still appears writable in the `post` body, even though the typed input drops it on create. This is a known, documented interim gap — the per-operation `$oas2` body split lands in a follow-up part.
+`$oas2` emits **three** definitions per writable entity, and the operation bodies are mapped per operation. The `<Entity>` definition is the full response shape — every property, with `:computed` carrying `readOnly: true` and nullable properties carrying `x-nullable: true`. The `post` body references `<Entity>Create` (`:read_write` + `:immutable`; `:computed` and `:non_insertable` omitted) and the `patch` body references `<Entity>Update` (`:read_write` + `:non_insertable`; `:computed` and `:immutable` omitted — the key travels in the path). Responses (and all `GET` / `collection` / `individual` reads) reference `<Entity>`. `<Entity>Create` lists its non-nullable create-settable properties in `required`; `<Entity>Update` has no `required` (PATCH is partial-merge):
+
+```jsonc
+// definitions — three shapes for the Order entity
+{
+  "Order": {
+    "type": "object",
+    "properties": {
+      "id":             { "type": "string", "readOnly": true },
+      "account_number": { "type": "string" },
+      "note":           { "type": "string", "x-nullable": true },
+      "status":         { "type": "string", "x-nullable": true },
+      "created_at":     { "type": "string", "readOnly": true, "x-nullable": true }
+    }
+  },
+  "OrderCreate": {
+    "type": "object",
+    "properties": {
+      "account_number": { "type": "string" },
+      "note":           { "type": "string", "x-nullable": true }
+    },
+    "required": ["account_number"]
+  },
+  "OrderUpdate": {
+    "type": "object",
+    "properties": {
+      "note":   { "type": "string", "x-nullable": true },
+      "status": { "type": "string", "x-nullable": true }
+    }
+  }
+}
+```
+
+The per-operation bodies are emitted for **every** writable set, even one with no constrained properties (where `<Entity>Create` / `<Entity>Update` simply equal the writable set). `x-ms-mutability` is **not** emitted: it is an AutoRest SDK extension that Power Automate / Logic Apps custom connectors do not honour — they consume the separate Create and Update actions with their separate bodies instead, and `readOnly` covers the computed case in the `<Entity>` response.
 
 ## Common errors / edge cases
 
@@ -200,4 +233,4 @@ The `create_<Set>` tool's `inputSchema` includes `:read_write` and `:immutable` 
 - **`mutability:`** is the per-property create/update axis: `:read_write` (default), `:immutable`, `:non_insertable`, `:computed`.
 - **`:immutable`** is set on create, frozen on update; **`:non_insertable`** is the mirror — dropped on create, settable on update; **`:computed`** is read-only on both. All three still render in every read response.
 - **`computed:` is a backward-compatible alias** (`true` ≡ `:computed`, `false` ≡ `:read_write`); keys default to `:computed`. Passing both keywords, or an unknown value, raises `ArgumentError`.
-- **Reflected in** `$metadata` (`Core.Immutable` / `Core.Computed` / none, plus `Capabilities.InsertRestrictions/NonInsertableProperties` for `:non_insertable`) and MCP (create excludes non_insertable + computed, update excludes immutable + computed). **`$oas2` is unchanged in this part** — an immutable property still appears writable in the shared `patch` body and a non_insertable one in the shared `post` body, addressed in a follow-up.
+- **Reflected in** `$metadata` (`Core.Immutable` / `Core.Computed` / none, plus `Capabilities.InsertRestrictions/NonInsertableProperties` for `:non_insertable`) and MCP (create excludes non_insertable + computed, update excludes immutable + computed). **`$oas2`** now emits per-operation `<Entity>Create` / `<Entity>Update` request bodies (create excludes computed + non_insertable; update excludes computed + immutable) alongside the full `<Entity>` response, where `:computed` is `readOnly`.
