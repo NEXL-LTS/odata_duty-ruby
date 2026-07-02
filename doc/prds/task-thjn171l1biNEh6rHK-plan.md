@@ -43,7 +43,7 @@ is green only because Task 2 reached 100%.
 
 ## Tasks
 
-### - [ ] Task 1 — Add SimpleCov as a measure-only dev dependency
+### - [x] Task 1 — Add SimpleCov as a measure-only dev dependency
 
 **Task text:** Add SimpleCov to the suite so every full RSpec run *measures* line and
 branch coverage of `lib/`, without yet enforcing any threshold under `bundle exec rake`.

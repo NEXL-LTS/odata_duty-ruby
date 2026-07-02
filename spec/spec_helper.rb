@@ -1,3 +1,17 @@
+require 'simplecov'
+
+SimpleCov.start do
+  enable_coverage :branch
+  primary_coverage :branch
+
+  add_filter '/spec/'
+  add_filter '/benchmarks/'
+  add_filter '/bin/'
+  add_filter 'lib/odata_duty/railtie.rb'
+
+  minimum_coverage(line: 100, branch: 100) if ENV['COVERAGE_ENFORCE']
+end
+
 require 'byebug'
 require 'nokogiri'
 require 'odata_duty'
