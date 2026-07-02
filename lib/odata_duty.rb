@@ -284,12 +284,6 @@ module OdataDuty
       __metadata.endpoints
     end
 
-    # :nocov: references an undefined `points`; superseded by __metadata.endpoints
-    def self.urls
-      points.map(&:url)
-    end
-    # :nocov:
-
     def self.execute(url, context:, query_options: {})
       Executor.execute(url: url, context: context, query_options: query_options, schema: self)
     end

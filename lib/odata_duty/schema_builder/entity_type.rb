@@ -19,12 +19,6 @@ module OdataDuty
         end
       end
 
-      # :nocov: unused accessor; callers read property_refs.first directly
-      def prop_ref
-        property_refs.first
-      end
-      # :nocov:
-
       def mapper(context, selected:)
         context.current['odata_url_base'] ||= context.od_full_url(context.endpoint.url)
         if integer_property_ref?

@@ -41,12 +41,6 @@ module OdataDuty
         :enum
       end
 
-      # :nocov: enum metadata is collected via grep(EnumType::Metadata), never this method
-      def metadata_types
-        []
-      end
-      # :nocov:
-
       def property_type
         name
       end

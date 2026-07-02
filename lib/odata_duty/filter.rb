@@ -82,11 +82,5 @@ module OdataDuty
         end
       end.to_sym
     end
-
-    # :nocov: Filter is internal; no public caller renders it back to a string
-    def to_s
-      filter_string
-    end
-    # :nocov:
   end
 end

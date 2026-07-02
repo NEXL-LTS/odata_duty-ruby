@@ -53,12 +53,6 @@ module OdataDuty
         entity_set.supports_search?
       end
 
-      # :nocov: metadata rendering queries entity_set.supports_filter_or? directly
-      def supports_filter_or?
-        entity_set.supports_filter_or?
-      end
-      # :nocov:
-
       def update(id, context:)
         wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context,
                                                    operation: :update)
