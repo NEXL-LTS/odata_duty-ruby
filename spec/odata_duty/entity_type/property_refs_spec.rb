@@ -47,4 +47,13 @@ RSpec.describe OdataDuty::EntitySet, 'Can setup property refs' do
       it { expect(properties).to eq([{ name: 'id', nullable: 'false', type: 'Edm.Int64' }]) }
     end
   end
+
+  it 'raises when a second property reference is declared' do
+    expect do
+      Class.new(OdataDuty::EntityType) do
+        property_ref 'id', String
+        property_ref 'other', String
+      end
+    end.to raise_error(RuntimeError, /Multiple Property Reference/)
+  end
 end

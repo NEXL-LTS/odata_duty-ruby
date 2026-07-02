@@ -41,7 +41,7 @@ module OdataDuty
     end
 
     def self.to_value(object, _context)
-      object&.to_str
+      object.to_str
     rescue StandardError => e
       raise InvalidValue, e.message
     end
@@ -61,7 +61,7 @@ module OdataDuty
     end
 
     def self.to_value(object, _context)
-      object&.to_date&.iso8601
+      object.to_date.iso8601
     rescue StandardError => e
       raise InvalidValue, e.message
     end
@@ -81,7 +81,7 @@ module OdataDuty
     end
 
     def self.to_value(object, _context)
-      object&.to_datetime&.iso8601
+      object.to_datetime.iso8601
     rescue StandardError => e
       raise InvalidValue, e.message
     end

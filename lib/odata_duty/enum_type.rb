@@ -41,10 +41,6 @@ module OdataDuty
         :enum
       end
 
-      def metadata_types
-        []
-      end
-
       def property_type
         name
       end

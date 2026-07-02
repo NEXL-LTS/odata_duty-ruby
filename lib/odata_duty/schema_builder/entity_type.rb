@@ -19,10 +19,6 @@ module OdataDuty
         end
       end
 
-      def prop_ref
-        property_refs.first
-      end
-
       def mapper(context, selected:)
         context.current['odata_url_base'] ||= context.od_full_url(context.endpoint.url)
         if integer_property_ref?

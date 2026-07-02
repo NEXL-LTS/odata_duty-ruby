@@ -45,10 +45,14 @@ class SupportsCollectionSearchSet < OdataDuty::EntitySet
     @records = ALL_RECORDS
   end
 
+  class << self
+    attr_accessor :last_rendered_terms
+  end
+
   def od_search(search_expression)
     if search_expression.or?
       od_search_or(search_expression)
-    else
+    elsif search_expression.and?
       od_search_and(search_expression)
     end
   end
@@ -72,6 +76,7 @@ class SupportsCollectionSearchSet < OdataDuty::EntitySet
   end
 
   def od_search_and(search_expression)
+    self.class.last_rendered_terms = search_expression.terms.map(&:to_s)
     search_expression.terms.each do |term|
       @records = @records.select do |record|
         match_found = record.values.any? { |v| v.to_s.downcase.include?(term.value.downcase) }
@@ -265,6 +270,18 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         expect(response['value'].length).to eq(2)
         names = response['value'].map { |v| v['name'] }
         expect(names).to contain_exactly('John Doe', 'Bob Johnson')
+      end
+
+      it 'renders a negated quoted phrase term back to its search syntax' do
+        schema.execute('SupportsCollectionSearch', context: Context.new,
+                                                   query_options: { '$search' => 'NOT "a b"' })
+        expect(SupportsCollectionSearchSet.last_rendered_terms).to eq(['NOT "a b"'])
+      end
+
+      it 'renders a plain single-word term back to its search syntax' do
+        schema.execute('SupportsCollectionSearch', context: Context.new,
+                                                   query_options: { '$search' => 'Doe' })
+        expect(SupportsCollectionSearchSet.last_rendered_terms).to eq(['Doe'])
       end
 
       it 'parses implicit AND with multiple terms' do

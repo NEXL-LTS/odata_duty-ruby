@@ -25,10 +25,17 @@ RSpec.describe OdataDuty::EntitySet, 'gates $oas2 patch on update support' do
         et.property 'name', String
       end
 
+      integer_entity = s.add_entity_type(name: 'UpdateOas2IntegerEntity') do |et|
+        et.property_ref 'id', Integer
+        et.property 'name', String
+      end
+
       s.add_entity_set(name: 'UpdatableOas2', entity_type: entity,
                        resolver: 'UpdatableOas2Resolver')
       s.add_entity_set(name: 'ReadOnlyUpdateOas2', entity_type: entity,
                        resolver: 'ReadOnlyUpdateOas2Resolver')
+      s.add_entity_set(name: 'UpdatableIntegerOas2', entity_type: integer_entity,
+                       resolver: 'UpdatableOas2Resolver')
     end
   end
 
@@ -74,6 +81,15 @@ RSpec.describe OdataDuty::EntitySet, 'gates $oas2 patch on update support' do
 
     it 'does not include a patch operation when update is not supported' do
       expect(path).not_to have_key('patch')
+    end
+  end
+
+  describe '/UpdatableIntegerOas2({id})' do
+    let(:path) { json['paths']['/UpdatableIntegerOas2({id})'] }
+
+    it 'types the id path parameter as an integer for an Int64 key' do
+      id_param = path['patch']['parameters'].find { |p| p['name'] == 'id' }
+      expect(id_param['type']).to eq('integer')
     end
   end
 end

@@ -68,11 +68,5 @@ module OdataDuty
     def self._defined_at_
       Object.const_source_location(to_s).join(':')
     end
-
-    private
-
-    def odata_id
-      self.class.property_refs.first.raw_type == EdmInt64 ? object.id : "'#{object.id}'"
-    end
   end
 end

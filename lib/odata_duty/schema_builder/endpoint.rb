@@ -53,10 +53,6 @@ module OdataDuty
         entity_set.supports_search?
       end
 
-      def supports_filter_or?
-        entity_set.supports_filter_or?
-      end
-
       def update(id, context:)
         wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context,
                                                    operation: :update)
@@ -88,7 +84,7 @@ module OdataDuty
       private
 
       def extend_error(err, set_builder, method_name)
-        err.backtrace.unshift(entity_set._defined_at_) if entity_set.respond_to?(:_defined_at_)
+        err.backtrace.unshift(entity_set._defined_at_)
         if set_builder.respond_to?(:od_after_init)
           err.backtrace.unshift(set_builder.method(:od_after_init).source_location.join(':'))
         end

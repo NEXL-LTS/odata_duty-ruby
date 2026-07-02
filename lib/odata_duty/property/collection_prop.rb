@@ -4,7 +4,7 @@ module OdataDuty
   module Property
     class CollectionProp < SingleProp
       def convert(value, context)
-        value&.map { |v| super(v, context) }
+        value.map { |v| super(v, context) }
       rescue NoMethodError
         raise InvalidValue, "#{value} is not an collection"
       end

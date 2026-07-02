@@ -82,9 +82,5 @@ module OdataDuty
         end
       end.to_sym
     end
-
-    def to_s
-      filter_string
-    end
   end
 end

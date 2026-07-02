@@ -84,9 +84,7 @@ module OdataDuty
       end
 
       def to_value(value, context)
-        convert(value, context).tap do |result|
-          raise "#{name} cannot be null" if !nullable && result.nil?
-        end
+        convert(value, context)
       rescue InvalidValue => e
         raise InvalidValue, "#{name} : #{e.message}"
       end

@@ -17,4 +17,5 @@ gem 'rake', '>= 13.0'
 gem 'rerun', '>= 0.14'
 gem 'rspec', '>= 3.0'
 gem 'rubocop', '>= 1.7'
+gem 'simplecov', '~> 0.22', require: false
 # gem 'vernier', '~> 1.0'

@@ -10,9 +10,7 @@ module OdataDuty
         call_od_after_init(init_args)
       rescue StandardError => e
         insert_at = e.is_a?(InitArgsMismatchError) ? 1 : 2
-        if entity_set.respond_to?(:_defined_at_)
-          e.backtrace.insert(insert_at, entity_set._defined_at_)
-        end
+        e.backtrace.insert(insert_at, entity_set._defined_at_)
         raise e
       end
     end

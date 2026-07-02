@@ -39,6 +39,23 @@ if Gem.loaded_specs['railties']
       expect(controller).to include('schema.delete(')
       expect(controller).to include('head :no_content')
     end
+
+    it 'namespaces the controller, schema and routes under the given module' do
+      described_class.start(['--module', 'Reporting'], destination_root: destination)
+
+      expect(File).to exist(
+        File.join(destination, 'app/controllers/reporting/api_controller.rb')
+      )
+      expect(File).to exist(File.join(destination, 'app/schemas/reporting/schema.rb'))
+
+      controller = File.read(
+        File.join(destination, 'app/controllers/reporting/api_controller.rb')
+      )
+      expect(controller).to include('Reporting')
+
+      routes = File.read(File.join(destination, 'config/routes.rb'))
+      expect(routes).to include("'reporting/api#index'")
+    end
   end
 else
   RSpec.describe 'OdataDuty install generator' do

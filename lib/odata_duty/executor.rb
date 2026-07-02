@@ -179,7 +179,7 @@ module OdataDuty
         end
       end
     rescue UnknownPropertyError, InvalidQueryOptionError => e
-      e.backtrace.unshift entity_type._defined_at_ if entity_type.respond_to?(:_defined_at_)
+      e.backtrace.unshift entity_type._defined_at_
       raise e
     end
 
@@ -187,9 +187,6 @@ module OdataDuty
       selected.each do |p|
         unless Property.valid_name?(p)
           raise InvalidQueryOptionError, "The property '#{p}' is not valid"
-        end
-        if p.include?('/')
-          raise InvalidQueryOptionError, "The property '#{p}' Cannot be directly selected"
         end
       end
     end

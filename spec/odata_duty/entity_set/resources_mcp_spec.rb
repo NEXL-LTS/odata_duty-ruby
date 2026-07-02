@@ -127,5 +127,14 @@ RSpec.describe OdataDuty::EntitySet, 'MCP resources' do
       expect(contents['mimeType']).to eq('text/plain')
       expect(contents['text']).to eq('2')
     end
+
+    it 'returns the error message as text when the resource is not found' do
+      request_payload['params']['uri'] = "Widgets('999')"
+
+      contents = call(request_payload)['result']['contents'][0]
+
+      expect(contents['mimeType']).to eq('text/plain')
+      expect(contents['text']).to include('No such entity')
+    end
   end
 end
