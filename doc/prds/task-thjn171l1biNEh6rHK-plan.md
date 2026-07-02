@@ -95,7 +95,7 @@ pass, the suite must actually reach 100% line and branch coverage of the tracked
 
 **Dependencies:** Task 1 (SimpleCov must be measuring first).
 
-### - [ ] Task 3 — Arm the enforcement gate for full-suite runs
+### - [x] Task 3 — Arm the enforcement gate for full-suite runs
 
 **Task text:** Make the `spec` Rake task (invoked by the `rake` default, CI, and the
 pre-commit hook) set `COVERAGE_ENFORCE` so full-suite runs are strict, while a bare
