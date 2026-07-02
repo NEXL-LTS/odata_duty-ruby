@@ -90,9 +90,7 @@ module OdataDuty
       private
 
       def extend_error(err, set_builder, method_name)
-        # :nocov: builder entity_set always defines _defined_at_; guard is defensive
-        err.backtrace.unshift(entity_set._defined_at_) if entity_set.respond_to?(:_defined_at_)
-        # :nocov:
+        err.backtrace.unshift(entity_set._defined_at_)
         if set_builder.respond_to?(:od_after_init)
           err.backtrace.unshift(set_builder.method(:od_after_init).source_location.join(':'))
         end

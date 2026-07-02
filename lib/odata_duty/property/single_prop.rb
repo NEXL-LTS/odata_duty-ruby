@@ -84,11 +84,7 @@ module OdataDuty
       end
 
       def to_value(value, context)
-        convert(value, context).tap do |result|
-          # :nocov: create guards nil before to_value; no scalar maps non-nil to nil
-          raise "#{name} cannot be null" if !nullable && result.nil?
-          # :nocov:
-        end
+        convert(value, context)
       rescue InvalidValue => e
         raise InvalidValue, "#{name} : #{e.message}"
       end

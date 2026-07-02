@@ -4,9 +4,7 @@ module OdataDuty
   module Property
     class CollectionProp < SingleProp
       def convert(value, context)
-        # :nocov: convert only runs on non-nil create input; nil arm is defensive
-        value&.map { |v| super(v, context) }
-        # :nocov:
+        value.map { |v| super(v, context) }
       rescue NoMethodError
         raise InvalidValue, "#{value} is not an collection"
       end

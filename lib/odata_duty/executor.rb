@@ -179,9 +179,7 @@ module OdataDuty
         end
       end
     rescue UnknownPropertyError, InvalidQueryOptionError => e
-      # :nocov: every entity_type responds to _defined_at_; guard is defensive
-      e.backtrace.unshift entity_type._defined_at_ if entity_type.respond_to?(:_defined_at_)
-      # :nocov:
+      e.backtrace.unshift entity_type._defined_at_
       raise e
     end
 
