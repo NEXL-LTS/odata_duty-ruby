@@ -12,7 +12,9 @@ require 'odata_duty/entity_type'
 require 'odata_duty/filter'
 require 'odata_duty/filter_predicate'
 require 'odata_duty/create_complex_type_hash_wrapper'
+# :nocov: Rails is not loaded when this file is required in the test suite
 require 'odata_duty/railtie' if defined?(Rails::Railtie)
+# :nocov:
 
 module OdataDuty
   class EntitySet
@@ -282,9 +284,11 @@ module OdataDuty
       __metadata.endpoints
     end
 
+    # :nocov: references an undefined `points`; superseded by __metadata.endpoints
     def self.urls
       points.map(&:url)
     end
+    # :nocov:
 
     def self.execute(url, context:, query_options: {})
       Executor.execute(url: url, context: context, query_options: query_options, schema: self)

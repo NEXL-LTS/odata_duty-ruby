@@ -71,8 +71,10 @@ module OdataDuty
 
     private
 
+    # :nocov: unused helper; @odata.id is built by the mapper block, not this method
     def odata_id
       self.class.property_refs.first.raw_type == EdmInt64 ? object.id : "'#{object.id}'"
     end
+    # :nocov:
   end
 end

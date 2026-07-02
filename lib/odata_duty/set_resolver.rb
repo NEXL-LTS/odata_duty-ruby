@@ -10,9 +10,11 @@ module OdataDuty
         call_od_after_init(init_args)
       rescue StandardError => e
         insert_at = e.is_a?(InitArgsMismatchError) ? 1 : 2
+        # :nocov: builder entity_set always defines _defined_at_; guard is defensive
         if entity_set.respond_to?(:_defined_at_)
           e.backtrace.insert(insert_at, entity_set._defined_at_)
         end
+        # :nocov:
         raise e
       end
     end

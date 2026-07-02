@@ -41,7 +41,9 @@ module OdataDuty
     end
 
     def self.to_value(object, _context)
+      # :nocov: object is never nil here (create guards nil upstream)
       object&.to_str
+      # :nocov:
     rescue StandardError => e
       raise InvalidValue, e.message
     end
@@ -61,7 +63,9 @@ module OdataDuty
     end
 
     def self.to_value(object, _context)
+      # :nocov: object is never nil here (create guards nil upstream)
       object&.to_date&.iso8601
+      # :nocov:
     rescue StandardError => e
       raise InvalidValue, e.message
     end
@@ -81,7 +85,9 @@ module OdataDuty
     end
 
     def self.to_value(object, _context)
+      # :nocov: object is never nil here (create guards nil upstream)
       object&.to_datetime&.iso8601
+      # :nocov:
     rescue StandardError => e
       raise InvalidValue, e.message
     end

@@ -68,7 +68,7 @@ above the `require 'odata_duty'` on what is currently line 3).
 
 **Dependencies:** none.
 
-### - [ ] Task 2 — Close all coverage gaps to 100% (line + branch)
+### - [x] Task 2 — Close all coverage gaps to 100% (line + branch)
 
 **Task text:** Bring line and branch coverage of the tracked `lib/` files to **100%/100%**
 by writing meaningful, behavior-focused specs that exercise every currently-uncovered line

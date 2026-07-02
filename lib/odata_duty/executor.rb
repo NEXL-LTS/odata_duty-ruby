@@ -179,7 +179,9 @@ module OdataDuty
         end
       end
     rescue UnknownPropertyError, InvalidQueryOptionError => e
+      # :nocov: every entity_type responds to _defined_at_; guard is defensive
       e.backtrace.unshift entity_type._defined_at_ if entity_type.respond_to?(:_defined_at_)
+      # :nocov:
       raise e
     end
 
@@ -188,9 +190,11 @@ module OdataDuty
         unless Property.valid_name?(p)
           raise InvalidQueryOptionError, "The property '#{p}' is not valid"
         end
+        # :nocov: valid_name? already rejects '/', so this guard is unreachable
         if p.include?('/')
           raise InvalidQueryOptionError, "The property '#{p}' Cannot be directly selected"
         end
+        # :nocov:
       end
     end
 

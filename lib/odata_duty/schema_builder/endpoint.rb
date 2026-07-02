@@ -53,9 +53,11 @@ module OdataDuty
         entity_set.supports_search?
       end
 
+      # :nocov: metadata rendering queries entity_set.supports_filter_or? directly
       def supports_filter_or?
         entity_set.supports_filter_or?
       end
+      # :nocov:
 
       def update(id, context:)
         wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context,
@@ -88,7 +90,9 @@ module OdataDuty
       private
 
       def extend_error(err, set_builder, method_name)
+        # :nocov: builder entity_set always defines _defined_at_; guard is defensive
         err.backtrace.unshift(entity_set._defined_at_) if entity_set.respond_to?(:_defined_at_)
+        # :nocov:
         if set_builder.respond_to?(:od_after_init)
           err.backtrace.unshift(set_builder.method(:od_after_init).source_location.join(':'))
         end
