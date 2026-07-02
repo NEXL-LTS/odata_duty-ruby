@@ -190,11 +190,6 @@ module OdataDuty
         unless Property.valid_name?(p)
           raise InvalidQueryOptionError, "The property '#{p}' is not valid"
         end
-        # :nocov: valid_name? already rejects '/', so this guard is unreachable
-        if p.include?('/')
-          raise InvalidQueryOptionError, "The property '#{p}' Cannot be directly selected"
-        end
-        # :nocov:
       end
     end
 
