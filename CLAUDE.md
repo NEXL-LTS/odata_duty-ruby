@@ -24,7 +24,7 @@ Short index of what's implemented; see the linked `doc/` guide for the full cont
 
 ## Commands
 
-- `bundle exec rake` — full suite: RSpec **and** RuboCop. This is what CI runs (and it runs `rake` four times to surface flaky tests). Run this before considering work done.
+- `bundle exec rake` — full suite: RSpec **and** RuboCop. This is what CI runs (and it runs `rake` four times to surface flaky tests). Also measures and enforces 100% line + branch coverage via SimpleCov — see `doc/using_coverage.md`. Run this before considering work done.
 - `bundle exec rspec spec/odata_duty/entity_set/collection_spec.rb` — single file.
 - `bundle exec rspec spec/odata_duty/entity_set/collection_spec.rb:42` — single example by line.
 - `bundle exec rubocop` / `bundle exec rubocop -A` — lint / autocorrect.

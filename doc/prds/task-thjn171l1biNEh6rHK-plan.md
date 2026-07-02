@@ -115,7 +115,7 @@ are strict, while a bare `bundle exec rspec somefile.rb` is not."
 
 **Dependencies:** Task 2 (coverage must be 100% or this turns `rake` red).
 
-### - [ ] Task 4 — Document the coverage workflow
+### - [x] Task 4 — Document the coverage workflow
 
 **Task text:** Document the coverage tooling for maintainers/contributors: add a `doc/`
 guide (e.g. `doc/using_coverage.md`) explaining that `bundle exec rake` measures line +
