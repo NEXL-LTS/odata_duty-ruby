@@ -40,13 +40,14 @@ module OdataDuty
       end
 
       # callers uniq the result, so duplicates from repeated property types are fine
-      def metadata_types
+      def metadata_types(visited = [])
+        return [] if visited.include?(complex_type)
+
+        visited << complex_type
         raw_types = properties.map(&:raw_type)
-        complex_meta = raw_types.grep(Metadata)
-                                .select { |m| m.metadata_type == :complex }
-        complex_types = complex_meta.flat_map(&:metadata_types)
+        nested = raw_types.grep(Metadata).flat_map { |m| m.metadata_types(visited) }
         [complex_type] +
-          complex_types +
+          nested +
           raw_types.grep(EnumType::Metadata).map(&:enum_type)
       end
 

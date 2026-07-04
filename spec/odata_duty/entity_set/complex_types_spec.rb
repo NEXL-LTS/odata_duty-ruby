@@ -66,6 +66,37 @@ module ComplexTypesExample
     base_url 'http://localhost:3000/api'
     entity_sets [EmployeesSet, ManagersSet, ContractorsSet]
   end
+
+  # A complex type can also contain itself: a comment embeds the comment it replies to.
+  class CommentComplexType < OdataDuty::ComplexType
+    property 'body'
+    property 'in_reply_to', CommentComplexType, nullable: true
+  end
+
+  class PostEntity < OdataDuty::EntityType
+    property_ref 'id', Integer
+    property 'latest_comment', CommentComplexType, nullable: true
+  end
+
+  class PostsSet < OdataDuty::EntitySet
+    entity_type PostEntity
+
+    def od_after_init
+      original = OpenStruct.new(body: 'first!', in_reply_to: nil)
+      reply = OpenStruct.new(body: 'actually...', in_reply_to: original)
+      @records = [OpenStruct.new(id: 1, latest_comment: reply)]
+    end
+
+    def collection
+      @records
+    end
+  end
+
+  class ForumSchema < OdataDuty::Schema
+    namespace 'Forum'
+    base_url 'http://localhost:3000/api'
+    entity_sets [PostsSet]
+  end
 end
 
 RSpec.describe OdataDuty::EntitySet, 'complex types' do
@@ -103,6 +134,21 @@ RSpec.describe OdataDuty::EntitySet, 'complex types' do
                                                              query_options: {})
     bosses = Oj.load(json).fetch('value').map { |manager| manager['boss'] }
     expect(bosses).to eq([nil, { 'id' => 1, 'boss' => nil }])
+  end
+
+  it 'declares a complex type that contains itself once' do
+    forum_xml = ComplexTypesExample::ForumSchema.metadata_xml
+    expect(forum_xml)
+      .to include('<Property Name="in_reply_to" Nullable="true" Type="Forum.Comment" />')
+    expect(forum_xml.scan('<ComplexType Name="Comment">').size).to eq(1)
+  end
+
+  it 'returns recursively nested complex values, ending where the data ends' do
+    json = ComplexTypesExample::ForumSchema.execute('Posts', context: Context.new,
+                                                             query_options: {})
+    comment = Oj.load(json).fetch('value').first.fetch('latest_comment')
+    expect(comment).to eq('body' => 'actually...',
+                          'in_reply_to' => { 'body' => 'first!', 'in_reply_to' => nil })
   end
 
   it 'raises when the same property is defined twice' do
