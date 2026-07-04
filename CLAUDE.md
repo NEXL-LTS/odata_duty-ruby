@@ -28,6 +28,7 @@ Short index of what's implemented; see the linked `doc/` guide for the full cont
 - `bundle exec rspec spec/odata_duty/entity_set/collection_spec.rb` — single file.
 - `bundle exec rspec spec/odata_duty/entity_set/collection_spec.rb:42` — single example by line.
 - `bundle exec rubocop` / `bundle exec rubocop -A` — lint / autocorrect.
+- `bundle exec mutant run --since main` — mutation-test only the code your branch touched; CI runs this on PRs and **fails on any surviving mutation**. Pre-existing debt is ignore-listed in `.mutant.yml` (a ratchet: never add entries, remove them as you touch those methods) — see `spec/using_mutant.md`.
 - `foreman start` (see `Procfile`) — runs the dev server (`rackup spec/config.ru` with reload via `rerun`) plus the MCP inspector. `spec/config.ru` is a full working Rack app demonstrating REST + MCP/SSE endpoints; treat it as the canonical integration example.
 - `ruby bin/test_generator.rb` — exercises the Rails entity-set generator against a temp dir without a full Rails app.
 

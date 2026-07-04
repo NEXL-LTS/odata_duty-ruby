@@ -8,6 +8,9 @@
 Gemfile.lock
 /vendor
 
+# mutant session results
+/.mutant/
+
 # rspec failure tracking
 .rspec_status
 .byebug_history
