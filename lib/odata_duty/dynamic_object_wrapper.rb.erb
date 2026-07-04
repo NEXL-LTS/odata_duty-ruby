@@ -32,7 +32,7 @@ Class.new(MapperBuilder) do
         raise err
       end
     <% else %>
-      <%= property.name %>_value = <%= property.name %>_value&.map{ |rw| @<%= property.name %>_mapper.obj_to_base_hash(rw) }
+      <%= property.name %>_value = <%= property.name %>_value&.map{ |rw| <%= property.name %>_mapper.obj_to_base_hash(rw) }
     <% end %>
   <% else %>
     <% if property.scalar? %> 
@@ -59,7 +59,7 @@ Class.new(MapperBuilder) do
         raise err
       end
     <% else %>
-      <%= property.name %>_value = @<%= property.name %>_mapper.obj_to_base_hash(<%= property.name %>_value)
+      <%= property.name %>_value = <%= property.name %>_mapper.obj_to_base_hash(<%= property.name %>_value)
     <% end %>
   <% end %>
   <% end %>
@@ -70,9 +70,10 @@ Class.new(MapperBuilder) do
     }
   end
 
-  def initialize_mappers
-  <% properties.reject(&:scalar?).each do |property| %>
-    @<%= property.name %>_mapper = MapperBuilder.build(complex_types.fetch(:<%= property.name %>))
-  <% end %>
+<% properties.reject(&:scalar?).each do |property| %>
+  # lazy so self/mutually-referencing types recurse per row of data, not per type
+  def <%= property.name %>_mapper
+    @<%= property.name %>_mapper ||= MapperBuilder.build(set_types.fetch(:<%= property.name %>))
   end
+<% end %>
 end

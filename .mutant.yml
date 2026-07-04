@@ -91,7 +91,6 @@ matcher:
     - "OdataDuty::Filter.validate"
     - "OdataDuty::MapperBuilder#confirm_boolean"
     - "OdataDuty::MapperBuilder#confirm_one_of"
-    - "OdataDuty::MapperBuilder#initialize"
     - "OdataDuty::MapperBuilder#obj_to_base_hash"
     - "OdataDuty::MapperBuilder#obj_to_hash"
     - "OdataDuty::MapperBuilder.build_class"

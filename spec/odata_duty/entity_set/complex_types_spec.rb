@@ -36,8 +36,13 @@ module ComplexTypesExample
   class ManagersSet < OdataDuty::EntitySet
     entity_type ManagerEntity
 
+    def od_after_init
+      alice = OpenStruct.new(id: 1, boss: nil)
+      @records = [alice, OpenStruct.new(id: 2, boss: alice)]
+    end
+
     def collection
-      []
+      @records
     end
   end
 
@@ -91,6 +96,13 @@ RSpec.describe OdataDuty::EntitySet, 'complex types' do
   it 'supports entity types that reference themselves, declared once' do
     expect(xml).to include('<Property Name="boss" Nullable="true" Type="HR.Manager" />')
     expect(xml.scan('<EntityType Name="Manager">').size).to eq(1)
+  end
+
+  it 'returns self-referenced values nested in payloads, ending where the data ends' do
+    json = ComplexTypesExample::HrSchema.execute('Managers', context: Context.new,
+                                                             query_options: {})
+    bosses = Oj.load(json).fetch('value').map { |manager| manager['boss'] }
+    expect(bosses).to eq([nil, { 'id' => 1, 'boss' => nil }])
   end
 
   it 'raises when the same property is defined twice' do
