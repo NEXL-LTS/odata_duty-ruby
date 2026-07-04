@@ -28,7 +28,7 @@ module OdataDuty
       end
 
       def name
-        complex_type.to_s.split('::').last.gsub(/ComplexType\z/, '').gsub(/Complex\z/, '')
+        complex_type.to_s.split('::').last.sub(/ComplexType\z/, '').sub(/Complex\z/, '')
       end
 
       def property_type
@@ -39,19 +39,19 @@ module OdataDuty
         :complex
       end
 
+      # callers uniq the result, so duplicates from repeated property types are fine
       def metadata_types
         raw_types = properties.map(&:raw_type)
         complex_meta = raw_types.grep(Metadata)
                                 .select { |m| m.metadata_type == :complex }
         complex_types = complex_meta.flat_map(&:metadata_types)
-        ([complex_type] +
-           complex_types +
-          raw_types.grep(EnumType::Metadata).map(&:enum_type)).uniq
+        [complex_type] +
+          complex_types +
+          raw_types.grep(EnumType::Metadata).map(&:enum_type)
       end
 
-      def scalar?
-        false
-      end
+      # nil (falsy) rather than false: callers only consume truthiness
+      def scalar?; end
     end
 
     def self.__metadata
