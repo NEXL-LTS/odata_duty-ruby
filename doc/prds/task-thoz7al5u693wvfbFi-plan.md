@@ -152,7 +152,7 @@ whose `to_value(value, context)` reads per-request data receives the real (deleg
 **Done when:** the mutant flipping `context` → `nil` is killed by a failing spec, both DSL trees
 cover it, `bundle exec rake` green.
 
-- [ ] Done
+- [x] Done
 
 ### Task R2 — Tests-as-documentation: drop explanatory spec comments; document the practice
 

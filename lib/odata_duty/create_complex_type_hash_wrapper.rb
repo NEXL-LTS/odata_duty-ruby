@@ -1,9 +1,10 @@
 module OdataDuty
   class CreateComplexTypeHashWrapper
-    def initialize(hash, complex_type, operation:)
+    def initialize(hash, complex_type, operation:, context:)
       @hash = hash
       @complex_type = complex_type
       @operation = operation
+      @context = context
     end
 
     def method_missing(method_name, *args)
@@ -24,7 +25,7 @@ module OdataDuty
     def __load(matching_prop, method_name, value)
       return nil unless settable?(matching_prop)
       return nil if value.nil?
-      return matching_prop.to_value(value, nil) if matching_prop.scalar?
+      return matching_prop.to_value(value, @context) if matching_prop.scalar?
 
       if matching_prop.collection?
         value.map { |v| __wrap(v, matching_prop.raw_type) }
@@ -40,7 +41,7 @@ module OdataDuty
     end
 
     def __wrap(value, raw_type)
-      CreateComplexTypeHashWrapper.new(value, raw_type, operation: @operation)
+      CreateComplexTypeHashWrapper.new(value, raw_type, operation: @operation, context: @context)
     end
   end
 end
