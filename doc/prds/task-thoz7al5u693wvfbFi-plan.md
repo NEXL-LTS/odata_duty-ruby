@@ -92,7 +92,7 @@ wrong-typed value on a writable property → `OdataDuty::InvalidType`, unchanged
 
 **Depends on:** none (independent subjects; keep code edits from Task 2 in mind — same file).
 
-- [ ] Done
+- [x] Done
 
 ## Task 4 — New `doc/using_context.md` + CLAUDE.md Features index
 
