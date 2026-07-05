@@ -29,18 +29,14 @@ module OdataDuty
     end
 
     attr_accessor :obj, :context
-    attr_reader :complex_type, :complex_types, :calling_methods, :mappers
+    attr_reader :complex_type, :set_types, :calling_methods
 
+    # generated mappers fetch only the entries they need, so no filtering here
     def initialize(complex_type, &block)
       @complex_type = complex_type
-      @complex_types = complex_type.properties.reject(&:scalar?).to_h do |cp|
-        [cp.name, cp.set_type]
-      end
-      @calling_methods = complex_type.properties.select(&:calling_method?).to_h do |cp|
-        [cp.name, cp.calling_method]
-      end
+      @set_types = complex_type.properties.to_h { |cp| [cp.name, cp.set_type] }
+      @calling_methods = complex_type.properties.to_h { |cp| [cp.name, cp.calling_method] }
       @block = block
-      initialize_mappers
     end
 
     def wrapped_obj

@@ -42,3 +42,22 @@ jobs:
       run: bundle exec rake
     - name: Run tests
       run: bundle exec rake
+
+  # Mutation-tests only the subjects touched by the PR (see spec/using_mutant.md).
+  # Blocking: pre-existing debt is ratcheted via matcher.ignore in .mutant.yml,
+  # so any surviving mutation here was introduced (or adopted) by the PR.
+  mutation:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # mutant --since needs history to find the merge base
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.3'
+        bundler-cache: true
+    - name: Run mutation tests on changed code
+      run: bundle exec mutant run --since "origin/${{ github.base_ref }}"

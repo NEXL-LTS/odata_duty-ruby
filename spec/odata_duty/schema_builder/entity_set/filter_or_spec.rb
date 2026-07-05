@@ -102,6 +102,7 @@ module OdataDuty
       expect(predicates.map(&:property_name)).to eq(%i[name id])
       expect(predicates.map(&:operation)).to eq(%i[eq gt])
       expect(predicates.map(&:value)).to eq(['Alice', 2])
+      expect(predicates).to all(be_frozen)
     end
 
     it 'allows mixed operations under one OR' do
