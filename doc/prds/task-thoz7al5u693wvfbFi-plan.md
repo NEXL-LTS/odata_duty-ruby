@@ -68,7 +68,7 @@ under both spec trees.
 
 **Depends on:** none (independent subjects from Task 1).
 
-- [ ] Done
+- [x] Done
 
 ## Task 3 — Nested-input mutability contracts + __load/__wrap simplification
 

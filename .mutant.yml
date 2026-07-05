@@ -17,9 +17,6 @@ matcher:
   ignore:
     - "OdataDuty::CreateComplexTypeHashWrapper#__load"
     - "OdataDuty::CreateComplexTypeHashWrapper#__wrap"
-    - "OdataDuty::CreateComplexTypeHashWrapper#initialize"
-    - "OdataDuty::CreateComplexTypeHashWrapper#method_missing"
-    - "OdataDuty::CreateComplexTypeHashWrapper#respond_to_missing?"
     - "OdataDuty::EdmBool.to_oas2"
     - "OdataDuty::EdmBool.to_value"
     - "OdataDuty::EdmDate.to_oas2"
