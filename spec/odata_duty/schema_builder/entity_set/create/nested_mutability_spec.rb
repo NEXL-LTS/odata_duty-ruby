@@ -1,9 +1,5 @@
 require 'spec_helper'
 
-# Builder-DSL sibling of spec/odata_duty/entity_set/create/nested_mutability_spec.rb: a property's
-# `mutability:` applies to nested complex-type values in create/update bodies exactly as at the
-# top level.
-
 class NestedMutabilityResolver < OdataDuty::SetResolver
   def create(input)
     read_back(input)

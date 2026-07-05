@@ -170,4 +170,4 @@ text over explanatory comments in specs.
 **Done when:** no explanatory comment blocks remain in those specs, CLAUDE.md documents the
 practice, `bundle exec rake` green.
 
-- [ ] Done
+- [x] Done

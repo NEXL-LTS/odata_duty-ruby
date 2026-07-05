@@ -1,9 +1,6 @@
 require 'spec_helper'
 require 'forwardable'
 
-# A caller-supplied context object exposing its own domain method, so we can show
-# that `context` inside a resolver hook delegates to it (ContextWrapper is a
-# SimpleDelegator).
 class BuilderVisiblePeopleContext
   def initialize(*people)
     @people = people
@@ -14,9 +11,6 @@ class BuilderVisiblePeopleContext
   end
 end
 
-# A hash-like params object (à la Rails' ActionController::Parameters): it is not
-# a Hash, and #to_h is the only Hash-conversion it offers (no #to_hash), so we can
-# show query_options is normalized to a plain Hash inside hooks via #to_h.
 class BuilderRailsLikeParams
   extend Forwardable
 
@@ -31,8 +25,6 @@ class BuilderRailsLikeParams
   end
 end
 
-# Each resolver surfaces one aspect of the request-context object through the
-# `value` property of its single record, asserted via the JSON response.
 module BuilderContextProbeCollection
   def collection
     [OpenStruct.new(id: '1', value: probe.to_s)]

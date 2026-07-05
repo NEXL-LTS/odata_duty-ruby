@@ -1,8 +1,6 @@
 require 'spec_helper'
 require 'forwardable'
 
-# A caller-supplied context object exposing its own domain method, so we can show
-# that `context` inside a hook delegates to it (ContextWrapper is a SimpleDelegator).
 class VisiblePeopleContext
   def initialize(*people)
     @people = people
@@ -13,9 +11,6 @@ class VisiblePeopleContext
   end
 end
 
-# A hash-like params object (à la Rails' ActionController::Parameters): it is not
-# a Hash, and #to_h is the only Hash-conversion it offers (no #to_hash), so we can
-# show query_options is normalized to a plain Hash inside hooks via #to_h.
 class RailsLikeParams
   extend Forwardable
 
@@ -35,9 +30,6 @@ class ContextProbeEntity < OdataDuty::EntityType
   property 'value', String
 end
 
-# Each entity set surfaces one aspect of the request-context object through the
-# `value` property of its single record, so specs can assert via the public
-# JSON response of `schema.execute`.
 module ContextProbeCollection
   def collection
     [OpenStruct.new(id: '1', value: probe.to_s)]

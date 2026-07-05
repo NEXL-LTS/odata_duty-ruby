@@ -1,9 +1,5 @@
 require 'spec_helper'
 
-# Documents that a property's `mutability:` applies to *nested* complex-type values in
-# create/update bodies exactly as it does at the top level: dropped values read back as `nil`
-# with no error, writable values pass through, and a wrong-typed writable value still raises.
-
 class NestedInnerComplex < OdataDuty::ComplexType
   property 'label', String
   property 'secret', String, mutability: :immutable
