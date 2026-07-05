@@ -108,7 +108,7 @@ Features index."
 
 **Depends on:** Task 1 (pinned behavior it documents).
 
-- [ ] Done
+- [x] Done
 
 ## Task 5 — Extend mutability & create/update docs
 
