@@ -125,4 +125,4 @@ error case."
 
 **Depends on:** Tasks 2, 3 (behavior documented).
 
-- [ ] Done
+- [x] Done

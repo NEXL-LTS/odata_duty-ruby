@@ -448,7 +448,12 @@ A read-only set advertises none of these tools, so calling one raises an "Unknow
   A key that can't be coerced to the property-ref's type raises `OdataDuty::InvalidPropertyReferenceValue` (`Invalid individual id : ...`), the same conversion error `individual` produces.
 
 - **Request body that fails coercion/validation:**
-  When a body value cannot be coerced to a property's type, the input wrapper rescues the internal `InvalidValue` and raises `OdataDuty::InvalidType` — so `OdataDuty::InvalidType` is what propagates for a wrong-typed value, for both `create` and `update`. Accessing a field that is not a defined property on the input object raises `OdataDuty::NoSuchPropertyError`; unknown keys in the request body are otherwise ignored unless your method accesses them via `input.<that_key>`. (`delete` takes no body, so this case does not apply to it.)
+  When a body value cannot be coerced to a property's type, the input wrapper rescues the internal `InvalidValue` and raises `OdataDuty::InvalidType` — so `OdataDuty::InvalidType` is what propagates for a wrong-typed value, for both `create` and `update`. (`delete` takes no body, so this case does not apply to it.)
+
+- **Reading an undefined property, or calling an accessor with arguments:**
+  The typed input object exposes exactly the entity type's properties. Two misuses both raise `OdataDuty::NoSuchPropertyError`:
+  - **Reading a field that is not a defined property** (e.g. `input.nickname` when there is no `nickname` property) raises `OdataDuty::NoSuchPropertyError` with the exact message `No such property 'nickname'`. Unknown keys in the request body are otherwise ignored unless your method reaches for them via `input.<that_key>`.
+  - **Calling a property accessor with arguments** (e.g. `input.first_name('x')`) raises `OdataDuty::NoSuchPropertyError` — the accessors take **no** arguments; they only read the coerced value. Read a property with `input.first_name`, never `input.first_name(...)`.
 
 - **MCP `create_<Set>` / `update_<Set>` / `delete_<Set>` for a set that lacks the capability:**
   Because the tool is never listed for such a set, calling it via `tools/call` raises an `"Unknown tool: <tool>"` error rather than `NoImplementationError`.
