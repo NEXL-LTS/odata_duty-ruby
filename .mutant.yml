@@ -15,8 +15,6 @@ matcher:
   # mutations when CI was made blocking. When you touch one, delete its entry and kill the
   # survivors (see spec/using_mutant.md). Never add entries.
   ignore:
-    - "OdataDuty::ContextWrapper#initialize"
-    - "OdataDuty::ContextWrapper#od_full_url"
     - "OdataDuty::CreateComplexTypeHashWrapper#__load"
     - "OdataDuty::CreateComplexTypeHashWrapper#__wrap"
     - "OdataDuty::CreateComplexTypeHashWrapper#initialize"

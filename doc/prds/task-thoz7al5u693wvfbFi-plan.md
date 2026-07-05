@@ -45,7 +45,7 @@ new specs under both spec trees.
 
 **Depends on:** none.
 
-- [ ] Done
+- [x] Done
 
 ## Task 2 — CreateComplexTypeHashWrapper error contracts + method_missing simplification
 
