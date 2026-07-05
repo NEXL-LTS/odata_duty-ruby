@@ -126,3 +126,48 @@ error case."
 **Depends on:** Tasks 2, 3 (behavior documented).
 
 - [x] Done
+
+---
+
+## Review round — unresolved PR comments
+
+Follow-up after the original build. Two reviewer comments on the merged-but-under-review PR.
+
+### Task R1 — Restore request-context threading through create/update input coercion
+
+**Text:** `CreateComplexTypeHashWrapper` passes `nil` as the `context` argument when coercing
+scalar values (`matching_prop.to_value(value, nil)`). Previously the request `context` wrapper was
+passed through, letting custom scalar/enum types that accept `(value, context)` use per-request
+data during coercion. Passing `nil` is an observable, potentially breaking behavior change. Thread
+the request `context` into `CreateComplexTypeHashWrapper` and pass it to
+`matching_prop.to_value(value, context)` and into nested `__wrap` wrappers. Pass `context:` at all
+four call sites (`lib/odata_duty.rb` create/update, `schema_builder/endpoint.rb` create/update).
+Add documentation-style specs in **both** trees proving a custom `OdataDuty::EnumType` subclass
+whose `to_value(value, context)` reads per-request data receives the real (delegating) context, not
+`nil`.
+
+**Likely files:** `lib/odata_duty/create_complex_type_hash_wrapper.rb`, `lib/odata_duty.rb`,
+`lib/odata_duty/schema_builder/endpoint.rb`, new specs under both `create/**` spec trees.
+
+**Done when:** the mutant flipping `context` → `nil` is killed by a failing spec, both DSL trees
+cover it, `bundle exec rake` green.
+
+- [ ] Done
+
+### Task R2 — Tests-as-documentation: drop explanatory spec comments; document the practice
+
+**Text:** The tests are the documentation. Remove the leading `#` explanatory comment blocks above
+helper classes/modules in the new specs (`context_spec.rb` and `create/nested_mutability_spec.rb`
+in both DSL trees), folding any essential meaning into the `describe`/`it` descriptions. Add a
+short guideline to `CLAUDE.md` Conventions: tests are the documentation — prefer `describe`/`it`
+text over explanatory comments in specs.
+
+**Likely files:** `spec/odata_duty/entity_set/context_spec.rb`,
+`spec/odata_duty/schema_builder/entity_set/context_spec.rb`,
+`spec/odata_duty/entity_set/create/nested_mutability_spec.rb`,
+`spec/odata_duty/schema_builder/entity_set/create/nested_mutability_spec.rb`, `CLAUDE.md`.
+
+**Done when:** no explanatory comment blocks remain in those specs, CLAUDE.md documents the
+practice, `bundle exec rake` green.
+
+- [ ] Done
