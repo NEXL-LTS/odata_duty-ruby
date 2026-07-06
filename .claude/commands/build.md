@@ -80,7 +80,18 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 
 ### 5. Final review
 
-After all tasks: run `bundle exec rake` yourself to confirm the whole suite + RuboCop are green (recall CI runs `rake` four times to catch flaky tests — if you suspect flakiness, run it a couple more times). Then dispatch one final reviewer over the entire diff (`git diff main...HEAD`) checking the PRD as a whole is satisfied, both DSLs are in sync, docs were updated, the `## Features` index in `CLAUDE.md` carries a one-line entry for any note-worthy capability this PRD added, every task is committed, the `-plan.md` checkboxes are all ticked, and there are no loose ends or uncommitted changes (`git status` clean). Report what was built, the branch name, the commits, and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
+After all tasks: run `bundle exec rake` yourself to confirm the whole suite + RuboCop are green (recall CI runs `rake` four times to catch flaky tests — if you suspect flakiness, run it a couple more times). Then dispatch one final reviewer over the entire diff (`git diff main...HEAD`) checking the PRD as a whole is satisfied, both DSLs are in sync, docs were updated, the `## Features` index in `CLAUDE.md` carries a one-line entry for any note-worthy capability this PRD added, every task is committed, the `-plan.md` checkboxes are all ticked, and there are no loose ends or uncommitted changes (`git status` clean). The final review runs **with** the PRD and plan still present — it verifies the plan's checkboxes are all ticked.
+
+### 6. Retire the PRD and plan
+
+Once the final reviewer is satisfied, `bundle exec rake` is green, and every task is committed, remove the built PRD and its `-plan.md` in **one separate, final commit** — this is the last commit on the branch, made only after final review has passed:
+
+```
+git rm --ignore-unmatch doc/prds/<slug>.md doc/prds/<slug>-plan.md
+git commit  # "Remove PRD and plan for <slug> — implemented"
+```
+
+Give this commit the same co-author trailer used for every task commit (step 4d). The `--ignore-unmatch` flag keeps this robust when only one of the two files exists (e.g. a build resumed from an older session): `git rm` removes whichever file(s) are present and won't fail the cleanup over the missing one. Report what was built, the branch name, the commits — **including this cleanup commit** — and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
 
 ## Subagent prompt templates
 
@@ -137,4 +148,5 @@ Construct each subagent's prompt from these. Provide full text — never tell a 
 - Let an implementer's self-review stand in for the two review stages.
 - Mark a task done while `bundle exec rake` is red.
 - Commit a task before both reviews are ✅, or bundle multiple tasks into one commit.
+- Leave the built PRD/plan in the tree after final review passes — always end the branch with the cleanup commit that removes them.
 - **Push, open a PR, or commit to `main`** — work stays as local commits on the feature branch.
