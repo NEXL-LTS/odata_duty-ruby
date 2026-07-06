@@ -17,7 +17,7 @@ cleanup, and they are removed by the final cleanup commit (PRD lines 70–71).
 ## Tasks
 
 ### Task 1 — Add the final PRD/plan deletion step to `.claude/commands/build.md`
-- [ ] **Status**
+- [x] **Status**
 
 **Task text:** After the "5. Final review" step in `.claude/commands/build.md`, add a final step
 so that once the final reviewer is satisfied, `bundle exec rake` is green, and every task is
