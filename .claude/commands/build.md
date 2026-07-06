@@ -87,11 +87,11 @@ After all tasks: run `bundle exec rake` yourself to confirm the whole suite + Ru
 Once the final reviewer is satisfied, `bundle exec rake` is green, and every task is committed, remove the built PRD and its `-plan.md` in **one separate, final commit** — this is the last commit on the branch, made only after final review has passed:
 
 ```
-git rm doc/prds/<slug>.md doc/prds/<slug>-plan.md
+git rm --ignore-unmatch doc/prds/<slug>.md doc/prds/<slug>-plan.md
 git commit  # "Remove PRD and plan for <slug> — implemented"
 ```
 
-Give this commit the same co-author trailer used for every task commit (step 4d). If only one of the two files exists (e.g. a build resumed from an older session), `git rm` only the file(s) present and don't fail the cleanup. Report what was built, the branch name, the commits — **including this cleanup commit** — and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
+Give this commit the same co-author trailer used for every task commit (step 4d). The `--ignore-unmatch` flag keeps this robust when only one of the two files exists (e.g. a build resumed from an older session): `git rm` removes whichever file(s) are present and won't fail the cleanup over the missing one. Report what was built, the branch name, the commits — **including this cleanup commit** — and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
 
 ## Subagent prompt templates
 
