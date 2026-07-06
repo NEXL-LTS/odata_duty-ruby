@@ -48,3 +48,5 @@ Match the house style of the existing `doc/*.md` guides: purpose-first, example-
 ## Output
 
 Save to `doc/prds/<kebab-summary>.md` (e.g. `doc/prds/orderby-support.md`), creating `doc/prds/` if needed. Before saving, verify: no internal-implementation prescriptions; every affected DSL has a snippet; expected I/O is concrete; error cases are listed; **every introduced name uses OData terminology and is mapped to its vocabulary term (or flagged as coined)**; and the user approved the draft.
+
+PRDs are transient: `/build` deletes the PRD (and its plan) in a final commit once it's implemented, so git history is the archive.

@@ -50,7 +50,7 @@ in the tree after final review passes.
 **Dependencies:** none.
 
 ### Task 2 — Note PRD transience in `.claude/commands/prd.md`
-- [ ] **Status**
+- [x] **Status**
 
 **Task text:** Add one line to the Output section of `.claude/commands/prd.md` noting that PRDs
 are transient: `/build` deletes the PRD (and its plan) in a final commit once implemented — git
