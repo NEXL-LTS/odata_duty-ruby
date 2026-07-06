@@ -65,7 +65,7 @@ history is the archive.
 **Dependencies:** none.
 
 ### Task 3 — One-time cleanup of `doc/prds/` contents
-- [ ] **Status**
+- [x] **Status**
 
 **Task text:** Delete every existing file under `doc/prds/` — all shipped PRDs, their `-plan.md`
 files, and `README.md` — via `git rm`, **except** the currently-building PRD
