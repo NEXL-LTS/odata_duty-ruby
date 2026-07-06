@@ -1,25 +1,23 @@
 module OdataDuty
   class CreateComplexTypeHashWrapper
-    def initialize(hash, complex_type, context, operation: :create)
+    def initialize(hash, complex_type, operation:, context:)
       @hash = hash
       @complex_type = complex_type
-      @context = context
       @operation = operation
+      @context = context
     end
 
     def method_missing(method_name, *args)
-      matching_prop = @complex_type.properties.find { |p| p.name.to_sym == method_name.to_sym }
-      if matching_prop && args.empty?
-        __load(matching_prop, method_name, @hash[method_name.to_s])
-      else
-        super
+      matching_prop = @complex_type.properties.find { |p| p.name == method_name }
+      unless matching_prop && args.empty?
+        raise NoSuchPropertyError, "No such property '#{method_name}'"
       end
-    rescue NoMethodError
-      raise NoSuchPropertyError, "No such property '#{method_name}'"
+
+      __load(matching_prop, method_name, @hash[method_name.to_s])
     end
 
-    def respond_to_missing?(method_name, _include_private = false)
-      @complex_type.properties.any? { |p| p.name.to_sym == method_name.to_sym } || super
+    def respond_to_missing?(method_name, _include_private)
+      @complex_type.properties.any? { |p| p.name == method_name }
     end
 
     private
@@ -43,7 +41,7 @@ module OdataDuty
     end
 
     def __wrap(value, raw_type)
-      CreateComplexTypeHashWrapper.new(value, raw_type, @context, operation: @operation)
+      CreateComplexTypeHashWrapper.new(value, raw_type, operation: @operation, context: @context)
     end
   end
 end

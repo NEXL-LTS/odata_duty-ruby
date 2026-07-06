@@ -43,7 +43,8 @@ module OdataDuty
       end
 
       def create(context:)
-        wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context)
+        wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type,
+                                                   operation: :create, context: context)
         result = new_entity_set(context: context).create(wrapper)
         mapper = entity_type.mapper(context, selected: nil)
         mapper.obj_to_hash(result, context)
@@ -54,8 +55,8 @@ module OdataDuty
       end
 
       def update(id, context:)
-        wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type, context,
-                                                   operation: :update)
+        wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type,
+                                                   operation: :update, context: context)
         result = new_entity_set(context: context).update(converted_id(id, context), wrapper)
         raise ResourceNotFoundError, "No such entity #{id}" unless result
 

@@ -104,6 +104,88 @@ end
 
 The supplied `account_number` is ignored on update; `note` and `status` are applied. A wrong-typed immutable value (e.g. an integer for a `String`) is likewise dropped without raising — symmetrically, a `:non_insertable` value behaves the same way on create.
 
+## Nested complex types
+
+A property's `mutability:` applies to **nested** complex-type values in the create/update body exactly as it does at the top level. It is the mutability declared on the *nested* property that governs it — the mutability of the `address` property that holds the complex value does not enter into it. The same silent-drop rules apply everywhere the value is reached:
+
+- On **update** (PATCH), a nested `:immutable` value is silently dropped and reads back as `nil`; a writable nested value passes through.
+- On **create** (POST), a nested `:non_insertable` value is silently dropped and reads back `nil`; a nested `:immutable` value **is** settable and reads back present — the same asymmetry as at the top level.
+- The rules hold one level deeper (complex-within-complex) and **per element** for a collection of complex values.
+- Dropping is **silent** — no error, matching the top-level silent-drop semantics above. (A wrong-typed value on a *writable* nested property still raises `OdataDuty::InvalidType`, just as at the top level.)
+
+### Class DSL (`OdataDuty::EntityType` / `OdataDuty::ComplexType`)
+
+Declare the mutability on the nested complex type's property. Here `postcode` is `:immutable`; `person`'s `address` holds an `AddressComplexType`:
+
+```ruby
+class AddressComplexType < OdataDuty::ComplexType
+  property 'street', String
+  property 'postcode', String, mutability: :immutable        # nested immutable
+  property 'code', String, mutability: :non_insertable       # nested non_insertable
+end
+
+class PersonEntity < OdataDuty::EntityType
+  property_ref 'id', String, computed: false
+  property 'address', AddressComplexType
+  property 'addresses', [AddressComplexType]                 # collection of complex
+end
+```
+
+### Builder DSL (`OdataDuty::SchemaBuilder`)
+
+The builder DSL behaves identically — declare the mutability on the nested complex type's property:
+
+```ruby
+address = s.add_complex_type(name: 'Address') do |ct|
+  ct.property 'street', String
+  ct.property 'postcode', String, mutability: :immutable
+  ct.property 'code', String, mutability: :non_insertable
+end
+
+s.add_entity_type(name: 'Person') do |et|
+  et.property_ref 'id', String, computed: false
+  et.property 'address', address
+  et.property 'addresses', [address]
+end
+```
+
+### It honours mutability at every depth
+
+Given a `POST` body with a nested `address`:
+
+```json
+{ "id": "1", "address": { "street": "Main", "postcode": "AB1", "code": "C1" } }
+```
+
+inside `create`, the nested values follow the same create rules — `:immutable` is present, `:non_insertable` is dropped:
+
+```ruby
+def create(input)
+  input.address.street    # => "Main"  (read_write, flows through)
+  input.address.postcode  # => "AB1"   (immutable, settable on create)
+  input.address.code      # => nil     (non_insertable, dropped on create)
+  # ... persist and return the record
+end
+```
+
+The same nested `address` on a `PATCH` body:
+
+```json
+{ "address": { "street": "New", "postcode": "XY9" } }
+```
+
+follows the update rules — the nested `:immutable` `postcode` is silently dropped:
+
+```ruby
+def update(id, input)
+  input.address.street    # => "New"   (read_write, flows through)
+  input.address.postcode  # => nil     (immutable, frozen on update — silently dropped)
+  # ... merge and return the record
+end
+```
+
+A collection of complex values applies the same rules per element, so `input.addresses.first.postcode` reads back `nil` on update; and the rules recurse — an `:immutable` property on a complex type nested inside another complex type is dropped on update and kept on create just the same.
+
 ## Reflected in the generated contracts
 
 ### Read responses (`GET`, `create`/`update` response) — unchanged

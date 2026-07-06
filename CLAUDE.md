@@ -19,6 +19,7 @@ Short index of what's implemented; see the linked `doc/` guide for the full cont
 - **Computed properties** — `doc/using_computed.md`.
 - **Property mutability** — `mutability: :immutable`/`:non_insertable`/`:computed` per property (create/update settability + `Core` annotations & `Capabilities.InsertRestrictions`; `$oas2` per-operation `<Entity>Create`/`<Entity>Update` request bodies) — `doc/using_mutability.md`.
 - **Init args** — pass per-request data into `od_after_init` — `doc/using_init_args.md`.
+- **Request context** — the `context` object in resolver hooks: delegation, `od_full_url`, `query_options`, `base_url`, `current` — `doc/using_context.md`.
 - **MCP server** — tools/resources over JSON-RPC — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
 - **Rails generators** — `install` and `entity_set` — `doc/entity_set_generator.md`.
 
@@ -68,7 +69,7 @@ When editing, prefer extending these conventions over adding new public API surf
 - **The source code is the best source of truth.** Read it before relying on docs, comments, or this file — when they disagree, the code wins. Keep prose (docs, comments) minimal and let the code speak.
 - **Prefer single-line comments.** Avoid multi-line comment blocks in source code; if something needs more than one line of explanation, rename/refactor or move the explanation into `doc/`.
 - Tests must use only the gem's **public API** — do not test internal classes/methods directly (`AGENTS.md`).
-- **Tests are public documentation.** Write specs as human-readable usage examples: real named classes and schemas defined the way a consumer would write them, exercised through the public API, with descriptions explaining the case each example helps with. No stubbing (`stub_const`, mocks) of gem internals — if a behavior can only be shown with test machinery, question the behavior instead.
+- **Tests are public documentation.** Write specs as human-readable usage examples: real named classes and schemas defined the way a consumer would write them, exercised through the public API, with descriptions explaining the case each example helps with. No stubbing (`stub_const`, mocks) of gem internals — if a behavior can only be shown with test machinery, question the behavior instead. The tests ARE the documentation: convey intent through `describe`/`it` descriptions, not explanatory `#` comments in spec files.
 - Two-space indent, **99-char line limit**, Ruby 3 syntax. RuboCop metrics are tightened (see `.rubocop.yml`: `MethodLength` 13, `ClassLength`/`ModuleLength` 99, `AbcSize` 30) — keep methods small rather than adding inline disables.
 - Update `doc/` guides and `README.md` when external usage changes; bump `spec.version` in `odata_duty.gemspec` for releases.
 
