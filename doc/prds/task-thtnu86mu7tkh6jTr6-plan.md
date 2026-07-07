@@ -207,7 +207,7 @@ clone/freeze", "`init_args: :_od_none_` sentinel", "`non_insertable_property_nam
 
 ## Task 6 — Documentation + gemspec bump
 
-- [ ] Not started
+- [x] Done
 
 **Task text:** Update docs and version per the PRD's Documentation impact:
 - Extend `doc/using_context.md` with a section on reading the request context inside entity-type
