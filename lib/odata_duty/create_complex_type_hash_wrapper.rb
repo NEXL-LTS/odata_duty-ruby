@@ -32,8 +32,8 @@ module OdataDuty
       else
         __wrap(value, matching_prop.raw_type)
       end
-    rescue InvalidValue
-      raise InvalidType, "The value provided for '#{method_name}' is of wrong type"
+    rescue InvalidValue => e
+      raise InvalidType, "The value provided for '#{method_name}' is of wrong type: #{e}"
     end
 
     def settable?(prop)

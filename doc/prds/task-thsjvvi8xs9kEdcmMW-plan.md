@@ -14,7 +14,7 @@ both DSLs, so the message change lands once. The five primitive types live in
 
 ## Tasks
 
-- [ ] **Task 1 — Enrich the create/update coercion-failure message with the underlying reason**
+- [x] **Task 1 — Enrich the create/update coercion-failure message with the underlying reason**
 
   Task text: When a POST/PATCH body value fails coercion, `InvalidType` currently reports only
   `The value provided for '<name>' is of wrong type`, discarding why. Append the underlying

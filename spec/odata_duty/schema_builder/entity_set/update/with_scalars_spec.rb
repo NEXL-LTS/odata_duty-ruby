@@ -78,9 +78,11 @@ module OdataDuty
       end
 
       context 'body value cannot be coerced' do
-        it do
+        it 'appends the underlying reason' do
           query_options['number'] = 'not-a-number'
-          expect { response }.to raise_error(OdataDuty::InvalidType)
+          expect { response }.to raise_error(
+            OdataDuty::InvalidType, /'number' is of wrong type:.*invalid value for Integer/
+          )
         end
       end
 
