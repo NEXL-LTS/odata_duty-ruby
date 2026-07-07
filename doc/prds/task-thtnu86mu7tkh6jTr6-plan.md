@@ -126,7 +126,7 @@ under "Accept — dead/redundant code".
 
 ## Task 4 — Builder DSL read + write paths + message fix
 
-- [ ] Not started
+- [x] Done
 
 **Subjects / entries to remove:** `OdataDuty::SchemaBuilder::Endpoint#collection`,
 `#individual`, `#converted_id`, `#create`, `#update`, `#delete`.
