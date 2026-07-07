@@ -10,7 +10,7 @@ This guide explains how to implement those hooks in your custom `OdataDuty::Enti
 
 - **Purpose:** Filter a collection to entities matching one or more `<property> <operation> <value>` predicates.
 - **Operations:** `eq` (equal), `ne` (not equal), `gt` (greater than), `ge` (greater than or equal), `lt` (less than), `le` (less than or equal), following OData naming conventions.
-- **Mechanism:** When a `$filter` query option is provided, OdataDuty parses it into predicates, coerces each value to the property's declared type, and dispatches to your hooks.
+- **Mechanism:** When a `$filter` query option is provided, OdataDuty parses it into predicates, coerces each value to the property's declared type, and dispatches to your hooks. For `Edm.Date` and `Edm.DateTimeOffset` properties the coerced value is an ISO 8601 `String` (e.g. `'2021-01-01'`, `'2021-01-01T00:00:00+00:00'`), not a Ruby `Date`/`DateTime`.
 - **AND vs OR:** Predicates joined by `and` (or a single predicate) are applied **sequentially**, each narrowing the result set. Predicates joined by `or` are passed **together** as a union to a single `od_filter_or` hook.
 - **Scope limit:** An expression must be either **all `and`** or **all `or`**. Mixing them, and parenthesized grouping, are not supported.
 
@@ -35,7 +35,7 @@ Each element of `predicates` is a read-only `OdataDuty::FilterPredicate` value o
 
 - `#property_name` → `Symbol` — the entity property.
 - `#operation` → `Symbol`, one of `:eq :ne :gt :lt :le :ge`.
-- `#value` → the value already coerced to the property's declared type (the same coercion the AND path applies).
+- `#value` → the value already coerced to the property's declared type (the same coercion the AND path applies); for `Edm.Date`/`Edm.DateTimeOffset` this is an ISO 8601 `String`, not a Ruby `Date`/`DateTime`.
 
 The hook's return value is ignored; `collection`/`individual` read from `@records`.
 
@@ -196,7 +196,7 @@ GET /People?$filter=status eq 'active' or status eq 'pending'&$top=10
   Implement `od_filter_or(predicates)` to assign `@records` to the union of records satisfying any of the supplied `FilterPredicate` objects.
 
 - **Coercion:**
-  Each predicate value is coerced to the property's declared type before it reaches your hook.
+  Each predicate value is coerced to the property's declared type before it reaches your hook. For `Edm.Date` and `Edm.DateTimeOffset` properties the coerced value is an ISO 8601 `String` (e.g. `'2021-01-01'`, `'2021-01-01T00:00:00+00:00'`), not a Ruby `Date`/`DateTime`.
 
 - **Scope:**
   An expression must be all `and` or all `or`; mixing operators, grouping, arithmetic, and functions are not supported.

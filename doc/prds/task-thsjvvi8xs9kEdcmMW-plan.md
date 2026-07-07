@@ -95,7 +95,7 @@ both DSLs, so the message change lands once. The five primitive types live in
 
   Dependencies: Tasks 1, 2, 3.
 
-- [ ] **Task 5 — Documentation and gemspec patch bump**
+- [x] **Task 5 — Documentation and gemspec patch bump**
 
   Task text: Extend `doc/using_create_update_and_delete.md` to state the coercion-failure message
   now includes the underlying reason (`The value provided for '<name>' is of wrong type:
