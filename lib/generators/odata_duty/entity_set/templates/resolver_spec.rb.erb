@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.describe <%= class_name %>Resolver do
   let(:context) { instance_double(OdataDuty::Context) }
   
-  subject { described_class.new(context: context, init_args: :_od_none_) }
+  subject { described_class.new(context: context, init_args: nil) }
   
   before do
     allow(subject).to receive(:collection).and_return([])

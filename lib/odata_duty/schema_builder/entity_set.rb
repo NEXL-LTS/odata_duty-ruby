@@ -6,11 +6,11 @@ module OdataDuty
     class EntitySet < Container
       attr_reader :entity_type, :url, :resolver, :init_args
 
-      def initialize(entity_type:, resolver:, name: nil, url: nil, init_args: :_od_none_)
-        @resolver = resolver.to_str.clone.freeze
-        name = (name&.to_s || @resolver.split('::').last.sub(/Resolver$/, '')).clone.freeze
+      def initialize(entity_type:, resolver:, name: nil, url: nil, init_args: nil)
+        @resolver = resolver.clone
+        name = name&.to_s || @resolver.split('::').last.sub(/Resolver\z/, '')
         super(name: name)
-        @url = (url&.to_s || @name).clone.freeze
+        @url = (url&.to_s || @name).clone
         @entity_type = entity_type
         @init_args = init_args
       end

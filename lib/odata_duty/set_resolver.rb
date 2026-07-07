@@ -23,9 +23,7 @@ module OdataDuty
     private
 
     def call_od_after_init(init_args)
-      if init_args == :_od_none_
-        od_after_init
-      elsif od_init_args_type == :keyword
+      if od_init_args_type == :keyword
         od_after_init(**init_args)
       else
         od_after_init(*Array(init_args))

@@ -165,7 +165,7 @@ message change to name the resolver class); Resolution guide "Error-message muta
 
 ## Task 5 — Builder DSL `Endpoint#extend_error` + `EntitySet#initialize` + `EntitySet#non_insertable_property_names`
 
-- [ ] Not started
+- [x] Done
 
 **Subjects / entries to remove:** `OdataDuty::SchemaBuilder::Endpoint#extend_error`,
 `OdataDuty::SchemaBuilder::EntitySet#initialize`,

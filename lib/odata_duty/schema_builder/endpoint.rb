@@ -84,14 +84,15 @@ module OdataDuty
       private
 
       def extend_error(err, set_builder, method_name)
+        klass = set_builder.class
         err.backtrace.unshift(entity_set._defined_at_)
         if set_builder.respond_to?(:od_after_init)
-          err.backtrace.unshift(set_builder.method(:od_after_init).source_location.join(':'))
+          err.backtrace.unshift(klass.instance_method(:od_after_init).source_location.join(':'))
         end
         if set_builder.respond_to?(method_name)
-          err.backtrace.unshift(set_builder.method(method_name).source_location.join(':'))
+          err.backtrace.unshift(klass.instance_method(method_name).source_location.join(':'))
         end
-        raise err
+        raise
       end
 
       def converted_id(id)
