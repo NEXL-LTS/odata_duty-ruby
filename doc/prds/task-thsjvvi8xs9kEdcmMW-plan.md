@@ -79,7 +79,7 @@ both DSLs, so the message change lands once. The five primitive types live in
 
   Dependencies: Task 1 (both edit `edms.rb`; sequential to avoid conflict).
 
-- [ ] **Task 4 — Remove the ten `.mutant.yml` entries and verify zero surviving mutations**
+- [x] **Task 4 — Remove the ten `.mutant.yml` entries and verify zero surviving mutations**
 
   Task text: Delete the ten `OdataDuty::Edm{Bool,Date,DateTimeOffset,Int64,String}.{to_oas2,
   to_value}` entries from the `matcher: ignore:` list in `.mutant.yml`, then run

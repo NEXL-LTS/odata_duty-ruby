@@ -47,7 +47,7 @@ module OdataDuty
 
     it 'raises for an invalid datetime, appending the underlying reason' do
       expect { update('datetime' => '2021-01-01T99:99:99') }
-        .to raise_error(OdataDuty::InvalidType, /'datetime' is of wrong type:.+/)
+        .to raise_error(OdataDuty::InvalidType, /'datetime' is of wrong type:.*invalid date/)
     end
 
     it 'raises for a non-boolean, appending the underlying reason' do

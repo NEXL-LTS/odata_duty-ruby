@@ -191,7 +191,7 @@ module OdataDuty
           it 'appends the underlying reason' do
             query_options['datetime'] = '2021-01-01T99:99:99'
             expect { response }
-              .to raise_error(OdataDuty::InvalidType, /'datetime' is of wrong type:.+/)
+              .to raise_error(OdataDuty::InvalidType, /'datetime' is of wrong type:.*invalid date/)
           end
         end
       end
