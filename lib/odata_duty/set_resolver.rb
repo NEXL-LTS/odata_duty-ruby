@@ -23,10 +23,11 @@ module OdataDuty
     private
 
     def call_od_after_init(init_args)
-      if od_init_args_type == :keyword
-        od_after_init(**init_args)
-      else
-        od_after_init(*Array(init_args))
+      case init_args
+      when nil then od_after_init
+      when Hash then od_after_init(**init_args)
+      when Array then od_after_init(*init_args)
+      else od_after_init(init_args)
       end
     rescue ArgumentError => e
       handle_init_args_error(e)
@@ -39,21 +40,6 @@ module OdataDuty
       err.set_backtrace(arg_error.backtrace.clone)
 
       raise err
-    end
-
-    def od_init_args_type
-      @od_init_args_type ||=
-        if od_after_init_parameters.any? { |type| %i[key keyreq keyrest].include?(type) }
-          :keyword
-        elsif od_after_init_parameters.any? { |type| %i[req opt rest].include?(type) }
-          :positional
-        else
-          :none
-        end
-    end
-
-    def od_after_init_parameters
-      @od_after_init_parameters ||= method(:od_after_init).parameters.map(&:first)
     end
 
     def entity_set
