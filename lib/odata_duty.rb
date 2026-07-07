@@ -116,8 +116,6 @@ module OdataDuty
       def delete(id, context:)
         result = entity_set.new(context: context).delete(converted_id(id))
         raise ResourceNotFoundError, "No such entity #{id}" unless result
-
-        result
       end
 
       def supports_search?

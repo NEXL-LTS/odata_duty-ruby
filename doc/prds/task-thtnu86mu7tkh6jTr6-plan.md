@@ -57,7 +57,7 @@ in property methods.
 
 ## Task 2 — Class DSL write paths: `#create`, `#update`, `#delete`, `#new_entity_set`
 
-- [ ] Not started
+- [x] Done
 
 **Subjects / entries to remove:** `OdataDuty::EntitySet::Metadata#create`, `#update`,
 `#delete`, `#new_entity_set`.
