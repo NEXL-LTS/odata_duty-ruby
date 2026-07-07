@@ -40,7 +40,7 @@ both DSLs, so the message change lands once. The five primitive types live in
 
   Dependencies: none.
 
-- [ ] **Task 2 — Pin the ISO 8601 String coerced-value contract and the Boolean coercion source**
+- [x] **Task 2 — Pin the ISO 8601 String coerced-value contract and the Boolean coercion source**
 
   Task text: Nothing pins that `Edm.Date`/`Edm.DateTimeOffset` coercion hands consumer hooks an
   ISO 8601 **String** (`'2021-01-01'`) rather than a `Date`/`DateTime` object — this is the
