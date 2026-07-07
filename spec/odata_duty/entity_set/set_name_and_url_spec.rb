@@ -68,10 +68,34 @@ class SetDoesNotEnd < OdataDuty::EntitySet
   end
 end
 
+class WidgetsEntitySet < OdataDuty::EntitySet
+  entity_type NameEntity
+
+  def collection
+    [OpenStruct.new(id: '5')]
+  end
+
+  def individual(id)
+    collection.find { |x| x.id == id }
+  end
+end
+
+class GadgetsSet < OdataDuty::EntitySet
+  entity_type NameEntity
+
+  def collection
+    [OpenStruct.new(id: '6')]
+  end
+
+  def individual(id)
+    collection.find { |x| x.id == id }
+  end
+end
+
 class EntityTestsSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
   entity_sets [NewNameSet, SetDoesNotEnd, RenamedSet, RenameBothWithSymbolSet,
-               RenameUrlWithStringSet]
+               RenameUrlWithStringSet, WidgetsEntitySet, GadgetsSet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'Can Override the default name and/or url' do
@@ -82,12 +106,18 @@ RSpec.describe OdataDuty::EntitySet, 'Can Override the default name and/or url' 
     let(:index_values) { index_hash.fetch(:value) }
     let(:entity_set) { index_values.map { |x| x.slice(:name, :url) } }
 
-    it { expect(index_values).to have_attributes(size: 5) }
+    it 'marks each entry with the EntitySet kind' do
+      expect(index_values).to include(kind: 'EntitySet', name: 'NewName', url: 'NewName')
+    end
+    it { expect(index_values).to all(include(kind: 'EntitySet')) }
+    it { expect(index_values).to have_attributes(size: 7) }
     it { expect(entity_set).to include(name: 'NewName', url: 'NewName') }
     it { expect(entity_set).to include(name: 'SetDoesNotEnd', url: 'SetDoesNotEnd') }
     it { expect(entity_set).to include(name: 'set_renamed', url: 'set_renamed') }
     it { expect(entity_set).to include(name: 'RenameWithSymbol', url: 'symbol_renamed') }
     it { expect(entity_set).to include(name: 'RenameUrlWithString', url: 'path_renamed') }
+    it { expect(entity_set).to include(name: 'Widgets', url: 'Widgets') }
+    it { expect(entity_set).to include(name: 'Gadgets', url: 'Gadgets') }
   end
 
   describe '#execute' do
@@ -144,11 +174,13 @@ RSpec.describe OdataDuty::EntitySet, 'Can Override the default name and/or url' 
     end
     let(:entity_sets) { entity_sets_from_doc(parsed_xml) }
 
-    it { expect(entity_sets).to have_attributes(size: 5) }
+    it { expect(entity_sets).to have_attributes(size: 7) }
     it { expect(entity_sets).to include('NewName' => '.Name') }
     it { expect(entity_sets).to include('SetDoesNotEnd' => '.Name') }
     it { expect(entity_sets).to include('set_renamed' => '.Name') }
     it { expect(entity_sets).to include('RenameWithSymbol' => '.Name') }
     it { expect(entity_sets).to include('RenameUrlWithString' => '.Name') }
+    it { expect(entity_sets).to include('Widgets' => '.Name') }
+    it { expect(entity_sets).to include('Gadgets' => '.Name') }
   end
 end

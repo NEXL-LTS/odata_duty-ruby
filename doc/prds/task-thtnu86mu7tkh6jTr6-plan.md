@@ -90,7 +90,7 @@ resolver context in write hooks; note `#new_entity_set` has no survivors.
 
 ## Task 3 — Class DSL metadata/naming: `#kind`, `#metadata_types`, `#name`, `#non_insertable_property_names`
 
-- [ ] Not started
+- [x] Done
 
 **Subjects / entries to remove:** `OdataDuty::EntitySet::Metadata#kind`, `#metadata_types`,
 `#name`, `#non_insertable_property_names`.

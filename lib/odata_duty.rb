@@ -43,12 +43,12 @@ module OdataDuty
       end
 
       def metadata_types
-        [entity_set.entity_type].map(&:__metadata).flat_map(&:metadata_types).uniq
+        [entity_type].map(&:__metadata).flat_map(&:metadata_types)
       end
 
       def name
         entity_set.name ||
-          entity_set.to_s.split('::').last.gsub(/EntitySet\z/, '').gsub(/Set\z/, '')
+          entity_set.to_s.split('::').last.sub(/EntitySet\z/, '').sub(/Set\z/, '')
       end
 
       def entity_type
@@ -144,7 +144,7 @@ module OdataDuty
 
       def non_insertable_property_names
         @non_insertable_property_names ||=
-          entity_type.__metadata.properties.select(&:non_insertable?).map(&:name)
+          entity_type.properties.select(&:non_insertable?).map(&:name)
       end
 
       private

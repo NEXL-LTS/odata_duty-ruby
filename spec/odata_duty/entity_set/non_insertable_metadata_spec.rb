@@ -41,7 +41,7 @@ class NonInsertableMetadataSchema < OdataDuty::Schema
   entity_sets [NonInsertableMetadataSet, NonInsertableNoCreateSet, PlainCreateSet]
 end
 
-RSpec.describe OdataDuty::Schema, 'Non-insertable property metadata' do
+RSpec.describe OdataDuty::EntitySet, 'Non-insertable property metadata' do
   subject(:metadata_xml) { NonInsertableMetadataSchema.metadata_xml }
 
   def entity_set_xml(name)
