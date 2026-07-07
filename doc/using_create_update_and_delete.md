@@ -448,7 +448,7 @@ A read-only set advertises none of these tools, so calling one raises an "Unknow
   A key that can't be coerced to the property-ref's type raises `OdataDuty::InvalidPropertyReferenceValue` (`Invalid individual id : ...`), the same conversion error `individual` produces.
 
 - **Request body that fails coercion/validation:**
-  When a body value cannot be coerced to a property's type, the input wrapper rescues the internal `InvalidValue` and raises `OdataDuty::InvalidType` — so `OdataDuty::InvalidType` is what propagates for a wrong-typed value, for both `create` and `update`. (`delete` takes no body, so this case does not apply to it.)
+  When a body value cannot be coerced to a property's type, the input wrapper rescues the internal `InvalidValue` and raises `OdataDuty::InvalidType` — so `OdataDuty::InvalidType` is what propagates for a wrong-typed value, for both `create` and `update`. (`delete` takes no body, so this case does not apply to it.) The `InvalidType` message includes the underlying coercion reason as a substring, not just the field name — e.g. `The value provided for 'birth_date' is of wrong type: invalid date` rather than `The value provided for 'birth_date' is of wrong type`. The appended reason is the failing type's own coercion-error message (Ruby's `invalid value for Integer(): "abc"` for an integer, `invalid date` for a date, `<value> not boolean value` for a boolean).
 
 - **Reading an undefined property, or calling an accessor with arguments:**
   The typed input object exposes exactly the entity type's properties. Two misuses both raise `OdataDuty::NoSuchPropertyError`:

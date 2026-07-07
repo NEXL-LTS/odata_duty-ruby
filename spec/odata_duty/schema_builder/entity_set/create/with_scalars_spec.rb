@@ -79,9 +79,10 @@ module OdataDuty
         end
 
         context 'is not a string value' do
-          it do
+          it 'appends the underlying reason' do
             query_options['string'] = 1
-            expect { response }.to raise_error(OdataDuty::InvalidType)
+            expect { response }
+              .to raise_error(OdataDuty::InvalidType, /'string' is of wrong type:.*to_str/)
           end
         end
       end
@@ -107,9 +108,11 @@ module OdataDuty
         end
 
         context 'is not a number value' do
-          it do
+          it 'appends the underlying reason' do
             query_options['number'] = 'str'
-            expect { response }.to raise_error(OdataDuty::InvalidType)
+            expect { response }.to raise_error(
+              OdataDuty::InvalidType, /'number' is of wrong type:.*invalid value for Integer/
+            )
           end
         end
       end
@@ -142,9 +145,10 @@ module OdataDuty
         end
 
         context 'is not a valid date' do
-          it do
+          it 'appends the underlying reason' do
             query_options['date'] = '2021-01-32'
-            expect { response }.to raise_error(OdataDuty::InvalidType)
+            expect { response }
+              .to raise_error(OdataDuty::InvalidType, /'date' is of wrong type:.*invalid date/)
           end
         end
       end
@@ -184,9 +188,10 @@ module OdataDuty
         end
 
         context 'is not a valid datetime' do
-          it do
+          it 'appends the underlying reason' do
             query_options['datetime'] = '2021-01-01T99:99:99'
-            expect { response }.to raise_error(OdataDuty::InvalidType)
+            expect { response }
+              .to raise_error(OdataDuty::InvalidType, /'datetime' is of wrong type:.*invalid date/)
           end
         end
       end
@@ -220,9 +225,10 @@ module OdataDuty
         end
 
         context 'is not a bool value' do
-          it do
+          it 'appends the underlying reason' do
             query_options['bool'] = 'bool'
-            expect { response }.to raise_error(OdataDuty::InvalidType)
+            expect { response }
+              .to raise_error(OdataDuty::InvalidType, /'bool' is of wrong type:.*bool not boolean/)
           end
         end
       end

@@ -15,16 +15,6 @@ matcher:
   # mutations when CI was made blocking. When you touch one, delete its entry and kill the
   # survivors (see spec/using_mutant.md). Never add entries.
   ignore:
-    - "OdataDuty::EdmBool.to_oas2"
-    - "OdataDuty::EdmBool.to_value"
-    - "OdataDuty::EdmDate.to_oas2"
-    - "OdataDuty::EdmDate.to_value"
-    - "OdataDuty::EdmDateTimeOffset.to_oas2"
-    - "OdataDuty::EdmDateTimeOffset.to_value"
-    - "OdataDuty::EdmInt64.to_oas2"
-    - "OdataDuty::EdmInt64.to_value"
-    - "OdataDuty::EdmString.to_oas2"
-    - "OdataDuty::EdmString.to_value"
     - "OdataDuty::EdmxSchema.metadata_xml"
     - "OdataDuty::EntitySet::Metadata#collection"
     - "OdataDuty::EntitySet::Metadata#converted_id"
