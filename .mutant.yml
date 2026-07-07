@@ -16,11 +16,8 @@ matcher:
   # survivors (see spec/using_mutant.md). Never add entries.
   ignore:
     - "OdataDuty::EdmxSchema.metadata_xml"
-    - "OdataDuty::EntitySet::Metadata#collection"
-    - "OdataDuty::EntitySet::Metadata#converted_id"
     - "OdataDuty::EntitySet::Metadata#create"
     - "OdataDuty::EntitySet::Metadata#delete"
-    - "OdataDuty::EntitySet::Metadata#individual"
     - "OdataDuty::EntitySet::Metadata#kind"
     - "OdataDuty::EntitySet::Metadata#metadata_types"
     - "OdataDuty::EntitySet::Metadata#name"

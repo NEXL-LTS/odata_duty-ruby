@@ -20,7 +20,7 @@ Builder DSL (9): `Endpoint#{collection,converted_id,create,delete,extend_error,i
 
 ## Task 1 — Class DSL read paths: `#collection`, `#individual`, `#converted_id`
 
-- [ ] Not started
+- [x] Done
 
 **Subjects / entries to remove:** `OdataDuty::EntitySet::Metadata#collection`,
 `#individual`, `#converted_id`.
