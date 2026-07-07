@@ -14,14 +14,14 @@ module OdataDuty
 
     OAS_TYPE = { 'type' => 'integer', 'format' => 'int64' }.freeze
 
-    def self.to_oas2(is_collection: false)
+    def self.to_oas2(is_collection:)
       return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
 
       OAS_TYPE
     end
 
     def self.to_value(object, _context)
-      object && Integer(object)
+      Integer(object)
     rescue StandardError => e
       raise InvalidValue, e
     end
@@ -34,7 +34,7 @@ module OdataDuty
 
     OAS_TYPE = { 'type' => 'string' }.freeze
 
-    def self.to_oas2(is_collection: false)
+    def self.to_oas2(is_collection:)
       return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
 
       OAS_TYPE
@@ -54,7 +54,7 @@ module OdataDuty
 
     OAS_TYPE = { 'type' => 'string', 'format' => 'date' }.freeze
 
-    def self.to_oas2(is_collection: false)
+    def self.to_oas2(is_collection:)
       return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
 
       OAS_TYPE
@@ -74,7 +74,7 @@ module OdataDuty
 
     OAS_TYPE = { 'type' => 'string', 'format' => 'date-time' }.freeze
 
-    def self.to_oas2(is_collection: false)
+    def self.to_oas2(is_collection:)
       return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
 
       OAS_TYPE
@@ -94,7 +94,7 @@ module OdataDuty
 
     OAS_TYPE = { 'type' => 'boolean' }.freeze
 
-    def self.to_oas2(is_collection: false)
+    def self.to_oas2(is_collection:)
       return { 'type' => 'array', 'items' => OAS_TYPE } if is_collection
 
       OAS_TYPE

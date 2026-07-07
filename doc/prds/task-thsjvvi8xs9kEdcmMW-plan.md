@@ -60,7 +60,7 @@ both DSLs, so the message change lands once. The five primitive types live in
 
   Dependencies: Task 1 (shares edms specs / message behavior).
 
-- [ ] **Task 3 — Accept the behavior-preserving dead-code mutations in `edms.rb`**
+- [x] **Task 3 — Accept the behavior-preserving dead-code mutations in `edms.rb`**
 
   Task text: Two pieces of dead code have no observable effect and are resolved by accepting the
   mutation (option 1 in `spec/using_mutant.md`): (a) the `is_collection:` keyword **default**
