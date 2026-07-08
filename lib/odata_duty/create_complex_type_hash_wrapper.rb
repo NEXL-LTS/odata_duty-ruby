@@ -1,5 +1,7 @@
 module OdataDuty
   class CreateComplexTypeHashWrapper
+    SETTABLE_BY_OPERATION = { create: :settable_on_create?, update: :settable_on_update? }.freeze
+
     def initialize(hash, complex_type, operation:, context:)
       @hash = hash
       @complex_type = complex_type
@@ -37,7 +39,7 @@ module OdataDuty
     end
 
     def settable?(prop)
-      @operation == :update ? prop.settable_on_update? : prop.settable_on_create?
+      prop.public_send(SETTABLE_BY_OPERATION.fetch(@operation))
     end
 
     def __wrap(value, raw_type)

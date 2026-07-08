@@ -97,6 +97,30 @@ end
 schema.execute('People', context: my_controller, query_options: params)
 ```
 
+## Reading the context in a property method (class DSL)
+
+In the **class DSL** you can back a property with a method on your `OdataDuty::EntityType` (or
+`OdataDuty::ComplexType`) subclass. Inside such a method, `object` is the record being rendered and
+`od_context` is the request context — the same helper you get from `context` in a hook, so
+`od_full_url`, `query_options`, `base_url`, `current`, and delegation all work:
+
+```ruby
+class PersonEntity < OdataDuty::EntityType
+  property_ref 'id', String
+  property 'profile_url', String
+
+  def profile_url
+    od_context.od_full_url("Profiles('#{object.id}')")
+  end
+end
+```
+
+These property methods run during response mapping — for `collection`, `individual`, and the entity
+payload returned by `create` / `update`.
+
+This `od_context` / `object` reader is **class DSL only**. In the builder DSL a property is backed by
+a proc, and that proc receives only the record — not the context.
+
 ## `query_options` is normalized to a plain `Hash`
 
 You can hand `execute` a plain `Hash` or any hash-like object that responds to `#to_h` — a Rails
@@ -141,5 +165,7 @@ between requests.
 - **`current`** is a fresh-per-request memo `Hash` for caching work across hooks.
 - **Both DSLs** expose `context` identically — on the `EntitySet` subclass (class DSL) or the
   `SetResolver` subclass (builder DSL).
+- **Class-DSL property methods** can read `object` (the record) and `od_context` (the same request
+  context) while a response is mapped; builder-DSL property procs receive only the record.
 - **`od_full_url` and `current`** are gem-coined names following the `od_*` / helper convention;
   OData defines no equivalent term.

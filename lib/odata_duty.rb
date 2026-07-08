@@ -43,12 +43,12 @@ module OdataDuty
       end
 
       def metadata_types
-        [entity_set.entity_type].map(&:__metadata).flat_map(&:metadata_types).uniq
+        [entity_type].map(&:__metadata).flat_map(&:metadata_types)
       end
 
       def name
         entity_set.name ||
-          entity_set.to_s.split('::').last.gsub(/EntitySet\z/, '').gsub(/Set\z/, '')
+          entity_set.to_s.split('::').last.sub(/EntitySet\z/, '').sub(/Set\z/, '')
       end
 
       def entity_type
@@ -85,7 +85,7 @@ module OdataDuty
 
       def individual(set_builder, id, context:, selected:)
         begin
-          result = set_builder.individual(converted_id(id, context))
+          result = set_builder.individual(converted_id(id))
         rescue NoMethodError
           raise NoImplementationError, "individual not implemented for #{entity_set}"
         end
@@ -107,17 +107,15 @@ module OdataDuty
       def update(id, context:)
         wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type,
                                                    operation: :update, context: context)
-        result = entity_set.new(context: context).update(converted_id(id, context), wrapper)
+        result = entity_set.new(context: context).update(converted_id(id), wrapper)
         raise ResourceNotFoundError, "No such entity #{id}" unless result
 
         entity_type.mapper(context, selected: nil).obj_to_hash(result, context)
       end
 
       def delete(id, context:)
-        result = entity_set.new(context: context).delete(converted_id(id, context))
+        result = entity_set.new(context: context).delete(converted_id(id))
         raise ResourceNotFoundError, "No such entity #{id}" unless result
-
-        result
       end
 
       def supports_search?
@@ -146,15 +144,15 @@ module OdataDuty
 
       def non_insertable_property_names
         @non_insertable_property_names ||=
-          entity_type.__metadata.properties.select(&:non_insertable?).map(&:name)
+          entity_type.properties.select(&:non_insertable?).map(&:name)
       end
 
       private
 
-      def converted_id(id, context)
-        entity_type.property_refs.first.convert(id, context)
+      def converted_id(id)
+        entity_type.property_refs.first.convert(id, nil)
       rescue OdataDuty::InvalidValue => e
-        raise InvalidPropertyReferenceValue, "Invalid individual id : #{e.message}"
+        raise InvalidPropertyReferenceValue, "Invalid individual id : #{e}"
       end
     end
 

@@ -63,7 +63,7 @@ module OdataDuty
         it do
           expect do
             schema.delete('DeleteIntegerTest(999)', context: Context.new, query_options: {})
-          end.to raise_error(ResourceNotFoundError)
+          end.to raise_error(ResourceNotFoundError, 'No such entity 999')
         end
       end
 

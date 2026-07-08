@@ -109,6 +109,8 @@ end
 
 Implementing `create` makes a set insertable, `update` makes it updatable, and `delete` makes it deletable; omitting them keeps the set read-only. Each choice is reflected automatically across `$oas2`, `$metadata`, and MCP — see [Using `create`, `update`, and `delete`](doc/using_create_update_and_delete.md).
 
+By default the entity-set name comes from the class name: a class named `<X>EntitySet` or `<X>Set` exposes entity set `<X>` (the suffix is stripped), so `PeopleSet` above serves `People`. Pass an explicit `name`/`url` to override.
+
 ---
 
 ## Rails Integration Example
@@ -173,6 +175,10 @@ def schema
   end
 end
 ```
+
+In the builder DSL the entity-set name defaults from the resolver: `resolver: '<Namespace>::<X>Resolver'` with no `name:` yields entity set `<X>` (the namespace and the `Resolver` suffix are stripped). Above, `resolver: 'PeopleResolver'` would default to `People`; the explicit `url: 'People'` sets it directly.
+
+When a builder resolver's `collection` / `individual` raises, the error's backtrace is prefixed with the resolver's own method, its `od_after_init`, and the `add_entity_set` call site so failures point at your code first.
 
 ```ruby
 # app/models/people_resolver.rb

@@ -62,10 +62,10 @@ RSpec.describe OdataDuty::EntitySet, 'Can delete' do
     end
 
     context 'key does not exist' do
-      it do
+      it 'raises ResourceNotFoundError naming the missing id' do
         expect do
           schema.delete('DeleteIntegerTest(999)', context: Context.new, query_options: {})
-        end.to raise_error(OdataDuty::ResourceNotFoundError)
+        end.to raise_error(OdataDuty::ResourceNotFoundError, 'No such entity 999')
       end
     end
 
