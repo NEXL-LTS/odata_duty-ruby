@@ -59,7 +59,7 @@ module OdataDuty
       end
     end
 
-    describe 'when a entity set requires args' do
+    describe 'when an entity set requires args' do
       it 'raises InitArgsMismatchError when none given' do
         schema.add_entity_set(name: 'InitErrors', entity_type: 'InitArgTest',
                               resolver: 'InitErrorsArgsResolver')
