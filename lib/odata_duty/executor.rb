@@ -169,7 +169,7 @@ module OdataDuty
 
       value = match_data[1]
 
-      value.gsub(/^"|"$/, '').gsub(/^'|'$/, '')
+      value.gsub(/\A"|"\z/, '').gsub(/\A'|'\z/, '')
     end
 
     def selected(entity_type, select_query)

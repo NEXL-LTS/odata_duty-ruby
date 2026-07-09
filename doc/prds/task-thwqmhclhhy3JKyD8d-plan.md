@@ -36,7 +36,7 @@ URL list. PRD contract items 1, 5, 7 (delete envelope); "Behavior & expected I/O
 Files: `spec/odata_duty/entity_set/*` + `spec/odata_duty/schema_builder/entity_set/*` (new
 `write_gating_spec.rb` / extend `read_path_contracts`), `.mutant.yml`.
 
-### - [ ] Task 2 — Key extraction
+### - [x] Task 2 — Key extraction
 Subjects (remove entries): `#extract_value_from_brackets`.
 Pin, in both trees, on a full-CRUD set with a `String` key, that `People('bob')`,
 `People("bob")` and `People(bob)` resolve the same entity across GET/PATCH/DELETE, and interior

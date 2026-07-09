@@ -43,7 +43,6 @@ matcher:
     - "OdataDuty::Executor#assert_filter_valid_for_property"
     - "OdataDuty::Executor#collection"
     - "OdataDuty::Executor#execute"
-    - "OdataDuty::Executor#extract_value_from_brackets"
     - "OdataDuty::Executor#filter_value"
     - "OdataDuty::Executor#individual"
     - "OdataDuty::Executor#initialize"
