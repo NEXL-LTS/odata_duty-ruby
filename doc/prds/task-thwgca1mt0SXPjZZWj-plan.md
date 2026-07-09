@@ -71,7 +71,7 @@ PRD: [task-thwgca1mt0SXPjZZWj.md](./task-thwgca1mt0SXPjZZWj.md)
   `OAS2::IndividualPatchPath*` entries. Verify rake green + those 10 subjects survivor-free.
   Excerpt: PRD "The pinned document contract" (PATCH bullets), Resolution guide "Individual PATCH".
 
-- [ ] **Task 5 — Consolidation, no-regression sweep, docs.**
+- [x] **Task 5 — Consolidation, no-regression sweep, docs.**
   Remove the now-redundant `$oas2` sections from the mixed / duplicate files
   (`entity_set/create|update|delete/oas2_spec.rb`, `schema_builder/entity_set/create|update|delete/oas2_spec.rb`,
   both `computed_oas2_spec.rb`, `collection_scalars_oas2_spec.rb`, the `#oas_2` sections in both

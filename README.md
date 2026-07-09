@@ -143,6 +143,7 @@ def metadata
   render xml: OdataDuty::EdmxSchema.metadata_xml(schema)
 end
 
+# `OAS2.build_json` requires a builder-DSL schema (`SchemaBuilder.build`), not a class-based `Schema`.
 def oas2
   render json: OdataDuty::OAS2.build_json(schema)
 end
