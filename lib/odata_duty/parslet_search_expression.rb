@@ -5,7 +5,7 @@ module OdataDuty
     attr_reader :terms, :operator
 
     def initialize(terms, operator = :and)
-      @terms = Array(terms)
+      @terms = terms
       @operator = operator
     end
 
@@ -18,9 +18,9 @@ module OdataDuty
     end
 
     def self.parse(search_string)
-      return SearchExpression.new([]) if search_string.nil? || search_string.strip.empty?
+      return new([]) unless search_string.match?(/\S/)
 
-      parse_tree = build_parse_tree(search_string.strip)
+      parse_tree = build_parse_tree(search_string)
       validate_parse_tree(parse_tree)
       transform(parse_tree)
     end
@@ -36,14 +36,14 @@ module OdataDuty
         raise NoImplementationError, 'Mixed AND/OR operators are not supported'
       end
 
-      raise InvalidQueryOptionError, "Invalid search expression: #{e.message}"
+      raise InvalidQueryOptionError, "Invalid search expression: #{e}"
     end
 
     def self.validate_parse_tree(parse_tree)
       and_sub_tree = parse_tree[:explicit_and_expr] || parse_tree[:implicit_and_expr]
       return unless and_sub_tree
 
-      contains_or = and_sub_tree.any? { |t| t.dig(:term, :word).to_s == 'OR' }
+      contains_or = and_sub_tree.any? { |t| t.dig(:term, :word) == 'OR' }
       raise NoImplementationError, 'Mixed AND/OR operators are not supported' if contains_or
     end
 
@@ -56,7 +56,7 @@ module OdataDuty
   class SearchTerm
     attr_reader :value, :negated
 
-    def initialize(value, negated: false)
+    def initialize(value, negated:)
       @value = value
       @negated = negated
     end
@@ -66,7 +66,7 @@ module OdataDuty
     end
 
     def to_s
-      prefix = @negated ? 'NOT ' : ''
+      prefix = ('NOT ' if @negated)
       quoted = @value.include?(' ') ? "\"#{@value}\"" : @value
       "#{prefix}#{quoted}"
     end

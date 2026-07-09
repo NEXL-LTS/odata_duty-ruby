@@ -346,12 +346,14 @@ module OdataDuty
 
         it 'raises an invalid query error for unparseable input containing only AND' do
           expect { search('hello AND foo!') }
-            .to raise_error(OdataDuty::InvalidQueryOptionError, /\AInvalid search expression: /)
+            .to raise_error(OdataDuty::InvalidQueryOptionError,
+                            /\AInvalid search expression: .*char \d/)
         end
 
         it 'raises an invalid query error for unparseable input containing only OR' do
           expect { search('foo! OR hello') }
-            .to raise_error(OdataDuty::InvalidQueryOptionError, /\AInvalid search expression: /)
+            .to raise_error(OdataDuty::InvalidQueryOptionError,
+                            /\AInvalid search expression: .*char \d/)
         end
 
         it 'raises for an explicit AND tree whose terms include the literal word OR' do

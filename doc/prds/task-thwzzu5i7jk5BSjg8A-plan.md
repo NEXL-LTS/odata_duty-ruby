@@ -57,7 +57,7 @@ of ` AND `/` OR ` must raise `InvalidQueryOptionError` (the fallback), not the m
 
 ## Task 2 — Accept-mutation parser simplifications, remove the 7 ignore entries, gemspec bump
 
-**Status:** - [ ]
+**Status:** - [x]
 
 **Task text:** With Task 1's pins in place, apply the accept-mutation simplifications in
 `lib/odata_duty/parslet_search_expression.rb` where the surviving mutant is the simpler,
