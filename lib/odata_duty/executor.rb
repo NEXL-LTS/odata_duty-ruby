@@ -33,7 +33,8 @@ module OdataDuty
 
     def execute
       set_builder = prepare_builder(endpoint, wrapped_context, query_options)
-      props = selected(endpoint.entity_type, query_options['$select']) if query_options['$select']
+      select = query_options['$select']
+      props = selected(endpoint.entity_type, select) if select
       apply_select(set_builder, props)
 
       if url.include?('(')
@@ -180,7 +181,7 @@ module OdataDuty
       end
     rescue UnknownPropertyError, InvalidQueryOptionError => e
       e.backtrace.unshift entity_type._defined_at_
-      raise e
+      raise
     end
 
     def valid_selected(selected)

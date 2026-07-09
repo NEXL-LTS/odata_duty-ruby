@@ -45,7 +45,7 @@ anchor tightening (`^`→`\A`, `$`→`\z`) in `lib`. PRD contract item 2.
 Files: entity_set + schema_builder/entity_set new `key_extraction_spec.rb`, `.mutant.yml`,
 maybe `lib/odata_duty/executor.rb`.
 
-### - [ ] Task 3 — `$select` parsing & `od_select` payload
+### - [x] Task 3 — `$select` parsing & `od_select` payload
 Subjects (remove entries): `#selected`, `#valid_selected`, `#execute`, `#apply_select`.
 Pin, in both trees: whitespace tolerance (`$select=first_name, last_name` → 200); malformed
 name → `InvalidQueryOptionError` `The property '<p>' is not valid`; undeclared name →
