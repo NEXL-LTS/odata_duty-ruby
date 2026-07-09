@@ -92,7 +92,7 @@ section, and "Verification" bullet in Scope.
 
 ## Task 3 — Fix the `doc/using_search.md` error-contract drift
 
-**Status:** - [ ]
+**Status:** - [x]
 
 **Task text:** In `doc/using_search.md`, fix the intro line that says a missing `od_search` raises
 `InvalidQueryOptionError` — the code and the guide's own "Common Error Cases" section say
