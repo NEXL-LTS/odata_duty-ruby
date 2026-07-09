@@ -67,7 +67,7 @@ collection op that succeeds on a collection property; an op with no matching `od
 Files: extend `filter_validation_spec.rb` (entity) / builder equivalent + `filter_date_coercion`,
 `.mutant.yml`.
 
-### - [ ] Task 5 — Query-option gating truth table
+### - [x] Task 5 — Query-option gating truth table
 Subjects (remove entries): `#apply_top`, `#apply_skip`, `#apply_skiptoken`, `#apply_search`.
 Pin, in both trees, the truth table for each of `$top`/`$skip`/`$skiptoken`/`$search`: option
 absent + hook absent → no raise; option absent + hook present → hook not called; option present
