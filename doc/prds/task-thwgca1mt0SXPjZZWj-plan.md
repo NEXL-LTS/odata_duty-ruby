@@ -52,7 +52,7 @@ PRD: [task-thwgca1mt0SXPjZZWj.md](./task-thwgca1mt0SXPjZZWj.md)
   rake green + those 9 subjects survivor-free.
   Excerpt: PRD "The pinned document contract" (POST bullets), Resolution guide "Collection POST".
 
-- [ ] **Task 3 — Individual GET + DELETE groups (3 + 6 subjects).**
+- [x] **Task 3 — Individual GET + DELETE groups (3 + 6 subjects).**
   Add/consolidate the GET-individual and DELETE `$oas2` specs into the new home under
   `RSpec.describe OdataDuty::OAS2`. GET: exact operation hash (`GetIndividual<Name>ById`,
   `produces`, 200 `$ref` entity, `default`) with **both** id-type variants (Integer key →
