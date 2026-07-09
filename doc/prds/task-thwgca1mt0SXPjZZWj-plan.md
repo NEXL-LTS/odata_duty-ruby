@@ -63,7 +63,7 @@ PRD: [task-thwgca1mt0SXPjZZWj.md](./task-thwgca1mt0SXPjZZWj.md)
   Excerpt: PRD "Operations" (id param + produces bullets), Resolution guide "Individual GET" /
   "Individual DELETE".
 
-- [ ] **Task 4 — IndividualPatchPath group (10 subjects).**
+- [x] **Task 4 — IndividualPatchPath group (10 subjects).**
   Consolidate the update `$oas2` specs into the new home under `RSpec.describe OdataDuty::OAS2`.
   Pin the exact PATCH operation hash (`Update<Name>`, `produces`, id param + body param
   `$ref`ing `<Entity>Update`, 200 `Success` `$ref` entity, `default`) and the `<Entity>Update`
