@@ -24,7 +24,6 @@ module OdataDuty
     def initialize(schema:, url:, context:, query_options:)
       @schema = schema
       @url = url
-      @base_url = schema.base_url.to_str
       @context = context
       @query_options = query_options
     end
@@ -33,7 +32,8 @@ module OdataDuty
 
     def execute
       set_builder = prepare_builder(endpoint, wrapped_context, query_options)
-      props = selected(endpoint.entity_type, query_options['$select']) if query_options['$select']
+      select = query_options['$select']
+      props = selected(endpoint.entity_type, select) if select
       apply_select(set_builder, props)
 
       if url.include?('(')
@@ -86,9 +86,8 @@ module OdataDuty
 
     def prepare_builder(endpoint, context, query_options)
       endpoint.new_entity_set(context: context).tap do |set_builder|
-        if query_options.key?('$filter')
-          apply_filter(endpoint, set_builder, query_options['$filter'])
-        end
+        filter = query_options['$filter']
+        apply_filter(endpoint, set_builder, filter) if query_options.key?('$filter')
       end
     end
 
@@ -145,7 +144,7 @@ module OdataDuty
     def assert_filter_valid_for_property(filter, property)
       raise UnknownPropertyError, "No such property #{filter.property_name}" unless property
 
-      return unless property.collection? && !filter.collection_operation?
+      return unless property.collection?
 
       raise InvalidQueryOptionError,
             "Cannot apply '#{filter.operation}' to a collection property '#{property.name}'."
@@ -169,7 +168,7 @@ module OdataDuty
 
       value = match_data[1]
 
-      value.gsub(/^"|"$/, '').gsub(/^'|'$/, '')
+      value.gsub(/\A"|"\z/, '').gsub(/\A'|'\z/, '')
     end
 
     def selected(entity_type, select_query)
@@ -180,7 +179,7 @@ module OdataDuty
       end
     rescue UnknownPropertyError, InvalidQueryOptionError => e
       e.backtrace.unshift entity_type._defined_at_
-      raise e
+      raise
     end
 
     def valid_selected(selected)
@@ -194,7 +193,7 @@ module OdataDuty
     def apply_remaining(query_options, set_builder)
       query_options.except('$count', '$filter', '$select')
                    .select { |k, _| k.start_with?('$') }.each do |k, v|
-        send("apply_#{k[1, 10]}", set_builder, v)
+        __send__("apply_#{k[1..]}", set_builder, v)
       end
     end
 
@@ -241,11 +240,11 @@ module OdataDuty
       set_builder.od_search(search_expression)
     end
 
-    def add_next_link(data, endpoint, set_builder, query_options, context)
+    def add_next_link(data, set_builder, query_options, context)
       return unless set_builder.od_next_link_skiptoken
 
       next_query_options = query_options.merge(:$skiptoken => set_builder.od_next_link_skiptoken)
-      data[:'@odata.nextLink'] = context.od_full_url(endpoint.url, **next_query_options)
+      data[:'@odata.nextLink'] = context.od_full_url(url, **next_query_options)
     end
 
     require 'oj'
@@ -256,7 +255,7 @@ module OdataDuty
       data = { '@odata.context' => context.od_full_url('$metadata', anchor: endpoint.name),
                'value' => endpoint.collection(set_builder, context: context, selected: props) }
       data['@odata.count'] = count if count
-      add_next_link(data, endpoint, set_builder, query_options, context)
+      add_next_link(data, set_builder, query_options, context)
       Oj.dump(data, mode: :compat)
     end
 

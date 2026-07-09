@@ -45,6 +45,32 @@ class SelectlessCollectionResolver < OdataDuty::SetResolver
   end
 end
 
+class CapturingSelectResolver < OdataDuty::SetResolver
+  class << self
+    attr_accessor :captured_select
+  end
+
+  ALL_RECORDS = SupportsCollectionSelectResolver::ALL_RECORDS
+
+  def od_after_init
+    @records = ALL_RECORDS
+  end
+
+  def od_select(select)
+    self.class.captured_select = select
+    keys = select.map(&:to_s)
+    @records = @records.map { |r| r.slice(*keys) }
+  end
+
+  def collection
+    @records.map { |r| CamelSnakeStruct.new(r) }
+  end
+
+  def individual(id)
+    collection.find { |r| r.id == id }
+  end
+end
+
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'Can select specific properties in the return result' do
     subject(:schema) do
@@ -62,6 +88,7 @@ module OdataDuty
 
         s.add_entity_set(entity_type: entity, resolver: 'SelectlessCollectionResolver')
         s.add_entity_set(entity_type: entity, resolver: 'SupportsCollectionSelectResolver')
+        s.add_entity_set(entity_type: entity, resolver: 'CapturingSelectResolver')
       end
     end
 
@@ -235,6 +262,80 @@ module OdataDuty
                             'c' => { 's' => '4' } }]
             }
           )
+        end
+      end
+
+      describe 'parsing and hook payload' do
+        it 'strips leading and trailing whitespace around each comma-separated name' do
+          json_string = schema.execute('SelectlessCollection',
+                                       context: Context.new,
+                                       query_options: { '$select' => ' id , i ' })
+          response = Oj.load(json_string)
+          expect(response['value']).to eq(
+            [{ '@odata.id' => 'https://localhost/SelectlessCollection(\'1\')',
+               'id' => '1', 'i' => 1 },
+             { '@odata.id' => 'https://localhost/SelectlessCollection(\'2\')',
+               'id' => '2', 'i' => 2 }]
+          )
+        end
+
+        it 'treats a nil $select value as no selection' do
+          json_string = schema.execute('SelectlessCollection',
+                                       context: Context.new,
+                                       query_options: { '$select' => nil })
+          response = Oj.load(json_string)
+          expect(response['value'].first).to include('id' => '1', 'i' => 1)
+        end
+
+        it 'raises InvalidQueryOptionError with an exact message for a malformed name' do
+          expect do
+            schema.execute('SelectlessCollection', context: Context.new,
+                                                   query_options: { '$select' => 'first-name' })
+          end.to raise_error(OdataDuty::InvalidQueryOptionError,
+                             "The property 'first-name' is not valid")
+        end
+
+        it 'raises UnknownPropertyError with an exact message for an undeclared name' do
+          expect do
+            schema.execute('SelectlessCollection', context: Context.new,
+                                                   query_options: { '$select' => 'a' })
+          end.to raise_error(OdataDuty::UnknownPropertyError,
+                             "The property 'a' does not exist")
+        end
+
+        it 'points the first backtrace entry at the entity type definition for invalid names' do
+          head =
+            begin
+              schema.execute('SelectlessCollection', context: Context.new,
+                                                     query_options: { '$select' => 'first-name' })
+              nil
+            rescue OdataDuty::InvalidQueryOptionError => e
+              e.backtrace.first
+            end
+          expect(head).to be_a(String).and(include('select_spec.rb:82'))
+        end
+
+        it 'points the first backtrace entry at the entity type definition for unknown names' do
+          head =
+            begin
+              schema.execute('SelectlessCollection', context: Context.new,
+                                                     query_options: { '$select' => 'a' })
+              nil
+            rescue OdataDuty::UnknownPropertyError => e
+              e.backtrace.first
+            end
+          expect(head).to be_a(String).and(include('select_spec.rb:82'))
+        end
+
+        it 'passes selected names plus refs, deduplicated, when $select is present' do
+          schema.execute('CapturingSelect', context: Context.new,
+                                            query_options: { '$select' => 'id, i' })
+          expect(CapturingSelectResolver.captured_select).to eq(%i[id i])
+        end
+
+        it 'passes all property names plus refs, deduplicated, when $select is absent' do
+          schema.execute('CapturingSelect', context: Context.new, query_options: {})
+          expect(CapturingSelectResolver.captured_select).to eq(%i[id i t c])
         end
       end
     end

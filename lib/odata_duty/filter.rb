@@ -71,10 +71,6 @@ module OdataDuty
       @components[1].to_sym
     end
 
-    def collection_operation?
-      false # no support for collection operation yet
-    end
-
     def property_name
       @components.first.tap do |name|
         if name.include?('/')

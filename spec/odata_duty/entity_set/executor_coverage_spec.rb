@@ -43,9 +43,23 @@ class ExecCovSet < OdataDuty::EntitySet
   end
 end
 
+class ExecCovBareSet < OdataDuty::EntitySet
+  entity_type ExecCovEntity
+
+  RECORDS = (1..5).map { |i| OpenStruct.new(id: i.to_s, name: "n#{i}") }
+
+  def od_after_init
+    @records = RECORDS
+  end
+
+  def collection
+    @records
+  end
+end
+
 class ExecCovSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
-  entity_sets [ExecCovSet]
+  entity_sets [ExecCovSet, ExecCovBareSet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'executor query option handling' do
@@ -53,6 +67,10 @@ RSpec.describe OdataDuty::EntitySet, 'executor query option handling' do
 
   def collection(query_options)
     Oj.load(schema.execute('ExecCov', context: Context.new, query_options: query_options))
+  end
+
+  def bare_collection(query_options)
+    Oj.load(schema.execute('ExecCovBare', context: Context.new, query_options: query_options))
   end
 
   it 'applies a supported $skip' do
@@ -87,6 +105,66 @@ RSpec.describe OdataDuty::EntitySet, 'executor query option handling' do
     expect(collection('$search' => nil)['value'].size).to eq(5)
   end
 
+  it 'raises the exact message for $top when od_top is absent' do
+    expect do
+      bare_collection('$top' => '2')
+    end.to raise_error(OdataDuty::NoImplementationError,
+                       '$top not implemented for ExecCovBareSet')
+  end
+
+  it 'raises the exact message for $skip when od_skip is absent' do
+    expect do
+      bare_collection('$skip' => '2')
+    end.to raise_error(OdataDuty::NoImplementationError,
+                       '$skip not implemented for ExecCovBareSet')
+  end
+
+  it 'raises the exact message for $skiptoken when od_skiptoken is absent' do
+    expect do
+      bare_collection(:$skiptoken => '2')
+    end.to raise_error(OdataDuty::NoImplementationError,
+                       '$skiptoken not implemented for ExecCovBareSet')
+  end
+
+  it 'raises the exact message for $search when od_search is absent' do
+    expect do
+      bare_collection('$search' => 'x')
+    end.to raise_error(OdataDuty::NoImplementationError,
+                       '$search not implemented for ExecCovBareSet')
+  end
+
+  it 'does not raise for a plain request on a set lacking the hooks' do
+    expect(bare_collection({})['value'].size).to eq(5)
+  end
+
+  it 'ignores a nil-valued $top on a set lacking od_top' do
+    expect(bare_collection('$top' => nil)['value'].size).to eq(5)
+  end
+
+  it 'ignores a nil-valued $skip on a set lacking od_skip' do
+    expect(bare_collection('$skip' => nil)['value'].size).to eq(5)
+  end
+
+  it 'ignores a nil-valued $skiptoken on a set lacking od_skiptoken' do
+    expect(bare_collection(:$skiptoken => nil)['value'].size).to eq(5)
+  end
+
+  it 'ignores a nil-valued $search on a set lacking od_search' do
+    expect(bare_collection('$search' => nil)['value'].size).to eq(5)
+  end
+
+  it 'does not call od_search when $search is absent (would empty the collection)' do
+    expect(collection({})['value'].size).to eq(5)
+  end
+
+  it 'does not call od_top when only $skip is present' do
+    expect(collection('$skip' => '1')['value'].size).to eq(4)
+  end
+
+  it 'ignores a non-$ query option' do
+    expect(collection('top' => '2')['value'].size).to eq(5)
+  end
+
   it 'raises for an unknown endpoint' do
     expect do
       schema.execute('NoSuchEndpoint', context: Context.new)
@@ -102,5 +180,12 @@ RSpec.describe OdataDuty::EntitySet, 'executor query option handling' do
   it 'passes a nil id to delete when the url has no bracketed id' do
     json = schema.delete('ExecCov', context: Context.new)
     expect(json).to include('@odata.context')
+  end
+
+  it 'applies query options on an individual request, raising for an unsupported $top' do
+    expect do
+      schema.execute("ExecCovBare('1')", context: Context.new, query_options: { '$top' => '2' })
+    end.to raise_error(OdataDuty::NoImplementationError,
+                       '$top not implemented for ExecCovBareSet')
   end
 end
