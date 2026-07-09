@@ -42,7 +42,7 @@ PRD: [task-thwgca1mt0SXPjZZWj.md](./task-thwgca1mt0SXPjZZWj.md)
   Excerpt: PRD "External API" representative schema; "Behavior & expected I/O" full-document pin;
   Resolution guide rows "Document skeleton", "Capability gating", "Context plumbing".
 
-- [x] **Task 2 — CollectionPostPath group (9 subjects).**
+- [ ] **Task 2 — CollectionPostPath group (9 subjects).**
   Consolidate the create `$oas2` specs (`spec/odata_duty/{entity_set,schema_builder/entity_set}/create/oas2_spec.rb`)
   into the new home, re-anchored to `RSpec.describe OdataDuty::OAS2, '...'`. Pin the exact POST
   operation hash (operationId `Create<Name>`, `produces`, body param `required: true` `$ref`ing
@@ -52,7 +52,7 @@ PRD: [task-thwgca1mt0SXPjZZWj.md](./task-thwgca1mt0SXPjZZWj.md)
   rake green + those 9 subjects survivor-free.
   Excerpt: PRD "The pinned document contract" (POST bullets), Resolution guide "Collection POST".
 
-- [x] **Task 3 — Individual GET + DELETE groups (3 + 6 subjects).**
+- [ ] **Task 3 — Individual GET + DELETE groups (3 + 6 subjects).**
   Add/consolidate the GET-individual and DELETE `$oas2` specs into the new home under
   `RSpec.describe OdataDuty::OAS2`. GET: exact operation hash (`GetIndividual<Name>ById`,
   `produces`, 200 `$ref` entity, `default`) with **both** id-type variants (Integer key →
@@ -63,7 +63,7 @@ PRD: [task-thwgca1mt0SXPjZZWj.md](./task-thwgca1mt0SXPjZZWj.md)
   Excerpt: PRD "Operations" (id param + produces bullets), Resolution guide "Individual GET" /
   "Individual DELETE".
 
-- [x] **Task 4 — IndividualPatchPath group (10 subjects).**
+- [ ] **Task 4 — IndividualPatchPath group (10 subjects).**
   Consolidate the update `$oas2` specs into the new home under `RSpec.describe OdataDuty::OAS2`.
   Pin the exact PATCH operation hash (`Update<Name>`, `produces`, id param + body param
   `$ref`ing `<Entity>Update`, 200 `Success` `$ref` entity, `default`) and the `<Entity>Update`
@@ -71,7 +71,7 @@ PRD: [task-thwgca1mt0SXPjZZWj.md](./task-thwgca1mt0SXPjZZWj.md)
   `OAS2::IndividualPatchPath*` entries. Verify rake green + those 10 subjects survivor-free.
   Excerpt: PRD "The pinned document contract" (PATCH bullets), Resolution guide "Individual PATCH".
 
-- [x] **Task 5 — Consolidation, no-regression sweep, docs.**
+- [ ] **Task 5 — Consolidation, no-regression sweep, docs.**
   Remove the now-redundant `$oas2` sections from the mixed / duplicate files
   (`entity_set/create|update|delete/oas2_spec.rb`, `schema_builder/entity_set/create|update|delete/oas2_spec.rb`,
   both `computed_oas2_spec.rb`, `collection_scalars_oas2_spec.rb`, the `#oas_2` sections in both
@@ -84,5 +84,3 @@ PRD: [task-thwgca1mt0SXPjZZWj.md](./task-thwgca1mt0SXPjZZWj.md)
   `OAS2.build_json` requires a builder-DSL schema. Bump `spec.version` in the gemspec **iff** any
   `lib/` simplification landed. Verify rake green.
   Excerpt: PRD "Spec anchoring", "Mandatory no-regression verification", Scope, Documentation impact.
-</content>
-</invoke>

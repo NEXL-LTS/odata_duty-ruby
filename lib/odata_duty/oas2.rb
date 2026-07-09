@@ -14,16 +14,19 @@ module OdataDuty
       builder.hash
     end
 
-    attr_reader :hash, :schema, :context
+    attr_reader :hash, :schema, :context, :info, :paths, :definitions
 
     def initialize(schema, context:)
       @schema = schema
       @context = context
-      @hash = { 'swagger' => '2.0', 'info' => {}, 'host' => schema.host,
+      @info = {}
+      @paths = {}
+      @definitions = {}
+      @hash = { 'swagger' => '2.0', 'info' => info, 'host' => schema.host,
                 'schemes' => [schema.scheme], 'basePath' => schema.base_path,
-                'paths' => {}, 'definitions' => {} }
-      hash['info']['version'] = schema.version if schema.version
-      hash['info']['title'] = schema.title if schema.title
+                'paths' => paths, 'definitions' => definitions }
+      info['version'] = schema.version if schema.version
+      info['title'] = schema.title if schema.title
     end
 
     ERROR_PROPERTIES = {
@@ -33,7 +36,7 @@ module OdataDuty
                     'x-nullable' => true }
     }.freeze
     def add_error_definition
-      hash['definitions']['Error'] = {
+      definitions['Error'] = {
         'type' => 'object',
         'properties' => {
           'error' => {
@@ -46,13 +49,13 @@ module OdataDuty
 
     def add_enum_definitions
       schema.enum_types.each do |enum_type|
-        hash['definitions'][enum_type.name] = enum_type.to_oas2
+        definitions[enum_type.name] = enum_type.to_oas2
       end
     end
 
     def add_complex_definitions
       (schema.complex_types + schema.entity_types).each do |complex_type|
-        hash['definitions'][complex_type.name] = complex_type.to_oas2
+        definitions[complex_type.name] = complex_type.to_oas2
       end
     end
 
@@ -69,7 +72,7 @@ module OdataDuty
       schema.collection_entity_sets.each do |entity_set|
         path = { 'get' => CollectionGetPath.new(entity_set, wrap_context(entity_set)).to_oas2 }
         path['post'] = CollectionPostPath.to_oas2(entity_set) if entity_set.supports_create?
-        hash['paths']["/#{entity_set.url}"] = path
+        paths["/#{entity_set.url}"] = path
       end
     end
 
@@ -78,7 +81,7 @@ module OdataDuty
         path = { 'get' => IndividualGetPath.new(entity_set).to_oas2 }
         path['patch'] = IndividualPatchPath.to_oas2(entity_set) if entity_set.supports_update?
         path['delete'] = IndividualDeletePath.to_oas2(entity_set) if entity_set.supports_delete?
-        hash['paths']["/#{entity_set.url}({id})"] = path
+        paths["/#{entity_set.url}({id})"] = path
       end
     end
 
@@ -92,13 +95,13 @@ module OdataDuty
     private
 
     def register_definition((name, definition))
-      hash['definitions'][name] = definition
+      definitions[name] = definition
     end
 
     def wrap_context(entity_set)
       ContextWrapper.new(@context, base_url: schema.base_url,
                                    endpoint: SchemaBuilder::Endpoint.new(entity_set),
-                                   query_options: {})
+                                   query_options: nil)
     end
   end
 end
