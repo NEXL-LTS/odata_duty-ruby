@@ -146,7 +146,7 @@ module OdataDuty
     def assert_filter_valid_for_property(filter, property)
       raise UnknownPropertyError, "No such property #{filter.property_name}" unless property
 
-      return unless property.collection? && !filter.collection_operation?
+      return unless property.collection?
 
       raise InvalidQueryOptionError,
             "Cannot apply '#{filter.operation}' to a collection property '#{property.name}'."

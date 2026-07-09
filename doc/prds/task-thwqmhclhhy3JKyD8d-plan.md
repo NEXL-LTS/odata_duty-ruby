@@ -56,7 +56,7 @@ deduplicated with `$select`. Prefer capture-in-resolver over `expect_any_instanc
 contract items 3, 4.
 Files: extend `select_spec.rb` both trees + new `od_select_payload` coverage, `.mutant.yml`.
 
-### - [ ] Task 4 — `$filter` guards
+### - [x] Task 4 — `$filter` guards
 Subjects (remove entries): `#assert_filter_valid_for_property`, `#_filter`, `#filter_value`.
 Pin, in both trees: `$filter` on an undeclared property → `UnknownPropertyError`
 `No such property <name>`; a non-collection op on a collection property →
