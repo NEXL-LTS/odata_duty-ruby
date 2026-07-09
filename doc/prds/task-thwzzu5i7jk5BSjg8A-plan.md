@@ -14,7 +14,7 @@ Verification of the whole PRD: `bundle exec mutant run 'OdataDuty::SearchExpress
 
 ## Task 1 — Pin the `$search` contract with public-API specs in both spec trees
 
-**Status:** - [ ]
+**Status:** - [x]
 
 **Task text:** Add public-API specs to **both** `spec/odata_duty/entity_set/search_spec.rb` and
 `spec/odata_duty/schema_builder/entity_set/search_spec.rb` that pin the currently-unasserted

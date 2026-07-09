@@ -43,10 +43,13 @@ class SupportsCollectionSearchSet < OdataDuty::EntitySet
   end
 
   class << self
-    attr_accessor :last_rendered_terms
+    attr_accessor :last_rendered_terms, :last_search_and, :last_search_or, :last_search_terms
   end
 
   def od_search(search_expression)
+    self.class.last_search_and = search_expression.and?
+    self.class.last_search_or = search_expression.or?
+    self.class.last_search_terms = search_expression.terms.map(&:to_s)
     if search_expression.or?
       od_search_or(search_expression)
     elsif search_expression.and?
@@ -358,6 +361,99 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
                          context: Context.new,
                          query_options: { '$search' => '(apple)' })
         end.to raise_error(OdataDuty::NoImplementationError, /Parentheses are not supported/)
+      end
+    end
+
+    describe 'the search expression handed to od_search' do
+      def search(value)
+        SupportsCollectionSearchSet.last_search_and = nil
+        SupportsCollectionSearchSet.last_search_or = nil
+        SupportsCollectionSearchSet.last_search_terms = nil
+        schema.execute('SupportsCollectionSearch', context: Context.new,
+                                                   query_options: { '$search' => value })
+      end
+
+      it 'hands an empty AND expression for an empty search string' do
+        search('')
+        expect(SupportsCollectionSearchSet.last_search_terms).to eq([])
+        expect(SupportsCollectionSearchSet.last_search_and).to be(true)
+        expect(SupportsCollectionSearchSet.last_search_or).to be(false)
+      end
+
+      it 'hands an empty AND expression for a whitespace-only search string' do
+        search('   ')
+        expect(SupportsCollectionSearchSet.last_search_terms).to eq([])
+        expect(SupportsCollectionSearchSet.last_search_and).to be(true)
+        expect(SupportsCollectionSearchSet.last_search_or).to be(false)
+      end
+
+      it 'flags an OR expression as or? and not and?' do
+        search('John OR Portland')
+        expect(SupportsCollectionSearchSet.last_search_or).to be(true)
+        expect(SupportsCollectionSearchSet.last_search_and).to be(false)
+      end
+
+      it 'flags a single term as and? and not or?' do
+        search('Doe')
+        expect(SupportsCollectionSearchSet.last_search_and).to be(true)
+        expect(SupportsCollectionSearchSet.last_search_or).to be(false)
+      end
+
+      it 'flags an implicit AND expression as and? and not or?' do
+        search('John Doe')
+        expect(SupportsCollectionSearchSet.last_search_and).to be(true)
+        expect(SupportsCollectionSearchSet.last_search_or).to be(false)
+      end
+
+      it 'flags an explicit AND expression as and? and not or?' do
+        search('John AND Doe')
+        expect(SupportsCollectionSearchSet.last_search_and).to be(true)
+        expect(SupportsCollectionSearchSet.last_search_or).to be(false)
+      end
+
+      it 'renders negated and quoted terms back to their search syntax' do
+        search('NOT "old data" AND hello')
+        expect(SupportsCollectionSearchSet.last_search_terms).to eq(['NOT "old data"', 'hello'])
+      end
+
+      it 'ignores surrounding whitespace' do
+        search('  hello  ')
+        padded_terms = SupportsCollectionSearchSet.last_search_terms
+        search('hello')
+        expect(padded_terms).to eq(SupportsCollectionSearchSet.last_search_terms)
+      end
+    end
+
+    describe 'malformed search input' do
+      def search(value)
+        schema.execute('SupportsCollectionSearch', context: Context.new,
+                                                   query_options: { '$search' => value })
+      end
+
+      it 'raises for a lone opening parenthesis' do
+        expect { search('(hello') }
+          .to raise_error(OdataDuty::NoImplementationError, /Parentheses are not supported/)
+      end
+
+      it 'raises for a lone closing parenthesis' do
+        expect { search('hello)') }
+          .to raise_error(OdataDuty::NoImplementationError, /Parentheses are not supported/)
+      end
+
+      it 'raises an invalid query error for unparseable input containing only AND' do
+        expect { search('hello AND foo!') }
+          .to raise_error(OdataDuty::InvalidQueryOptionError, /\AInvalid search expression: /)
+      end
+
+      it 'raises an invalid query error for unparseable input containing only OR' do
+        expect { search('foo! OR hello') }
+          .to raise_error(OdataDuty::InvalidQueryOptionError, /\AInvalid search expression: /)
+      end
+
+      it 'raises for an explicit AND tree whose terms include the literal word OR' do
+        expect { search('a AND OR AND b') }
+          .to raise_error(OdataDuty::NoImplementationError,
+                          %r{Mixed AND/OR operators are not supported})
       end
     end
   end
