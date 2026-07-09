@@ -36,7 +36,7 @@ URL list. PRD contract items 1, 5, 7 (delete envelope); "Behavior & expected I/O
 Files: `spec/odata_duty/entity_set/*` + `spec/odata_duty/schema_builder/entity_set/*` (new
 `write_gating_spec.rb` / extend `read_path_contracts`), `.mutant.yml`.
 
-### - [x] Task 2 — Key extraction
+### - [ ] Task 2 — Key extraction
 Subjects (remove entries): `#extract_value_from_brackets`.
 Pin, in both trees, on a full-CRUD set with a `String` key, that `People('bob')`,
 `People("bob")` and `People(bob)` resolve the same entity across GET/PATCH/DELETE, and interior
@@ -45,7 +45,7 @@ anchor tightening (`^`→`\A`, `$`→`\z`) in `lib`. PRD contract item 2.
 Files: entity_set + schema_builder/entity_set new `key_extraction_spec.rb`, `.mutant.yml`,
 maybe `lib/odata_duty/executor.rb`.
 
-### - [x] Task 3 — `$select` parsing & `od_select` payload
+### - [ ] Task 3 — `$select` parsing & `od_select` payload
 Subjects (remove entries): `#selected`, `#valid_selected`, `#execute`, `#apply_select`.
 Pin, in both trees: whitespace tolerance (`$select=first_name, last_name` → 200); malformed
 name → `InvalidQueryOptionError` `The property '<p>' is not valid`; undeclared name →
@@ -56,7 +56,7 @@ deduplicated with `$select`. Prefer capture-in-resolver over `expect_any_instanc
 contract items 3, 4.
 Files: extend `select_spec.rb` both trees + new `od_select_payload` coverage, `.mutant.yml`.
 
-### - [x] Task 4 — `$filter` guards
+### - [ ] Task 4 — `$filter` guards
 Subjects (remove entries): `#assert_filter_valid_for_property`, `#_filter`, `#filter_value`.
 Pin, in both trees: `$filter` on an undeclared property → `UnknownPropertyError`
 `No such property <name>`; a non-collection op on a collection property →
@@ -67,7 +67,7 @@ collection op that succeeds on a collection property; an op with no matching `od
 Files: extend `filter_validation_spec.rb` (entity) / builder equivalent + `filter_date_coercion`,
 `.mutant.yml`.
 
-### - [x] Task 5 — Query-option gating truth table
+### - [ ] Task 5 — Query-option gating truth table
 Subjects (remove entries): `#apply_top`, `#apply_skip`, `#apply_skiptoken`, `#apply_search`.
 Pin, in both trees, the truth table for each of `$top`/`$skip`/`$skiptoken`/`$search`: option
 absent + hook absent → no raise; option absent + hook present → hook not called; option present
@@ -75,7 +75,7 @@ absent + hook absent → no raise; option absent + hook present → hook not cal
 present + hook present → hook applied. Non-`$` query options ignored. PRD contract item 6.
 Files: extend `executor_coverage_spec.rb` (entity) + new builder equivalent, `.mutant.yml`.
 
-### - [x] Task 6 — `$count` / nextLink & plumbing residue
+### - [ ] Task 6 — `$count` / nextLink & plumbing residue
 Subjects (remove entries): `#collection`, `#add_next_link`, `#initialize`, `#apply_remaining`,
 `#individual`, `#prepare_builder`, `#wrapped_context`.
 Pin, in both trees: `@odata.count` present iff `$count=true` exactly (`$count=1` → absent);
@@ -85,7 +85,7 @@ individual requests; non-`$` options ignored. Accept plumbing residue case-by-ca
 contract item 7, "Plumbing residue" group.
 Files: extend `collection_spec.rb` / paging specs both trees, `.mutant.yml`.
 
-### - [x] Task 7 — Docs, gemspec bump & final mutant verify
+### - [ ] Task 7 — Docs, gemspec bump & final mutant verify
 Optionally add one line naming the exact error messages to `doc/using_filter.md` and
 `doc/using_select.md` (matching their "Common Error Cases" sections). If any `lib/` change
 landed across Tasks 1–6, bump `spec.version` patch in `odata_duty.gemspec`. Confirm `.mutant.yml`
