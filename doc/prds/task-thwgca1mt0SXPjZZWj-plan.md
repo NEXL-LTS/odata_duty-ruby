@@ -42,7 +42,7 @@ PRD: [task-thwgca1mt0SXPjZZWj.md](./task-thwgca1mt0SXPjZZWj.md)
   Excerpt: PRD "External API" representative schema; "Behavior & expected I/O" full-document pin;
   Resolution guide rows "Document skeleton", "Capability gating", "Context plumbing".
 
-- [ ] **Task 2 — CollectionPostPath group (9 subjects).**
+- [x] **Task 2 — CollectionPostPath group (9 subjects).**
   Consolidate the create `$oas2` specs (`spec/odata_duty/{entity_set,schema_builder/entity_set}/create/oas2_spec.rb`)
   into the new home, re-anchored to `RSpec.describe OdataDuty::OAS2, '...'`. Pin the exact POST
   operation hash (operationId `Create<Name>`, `produces`, body param `required: true` `$ref`ing
