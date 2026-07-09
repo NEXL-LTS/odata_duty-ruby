@@ -167,10 +167,10 @@ While implementing `$filter`, note the following error scenarios:
   An `and` or single predicate whose operation has no matching hook raises `NoImplementationError` (`"<property> <operation> not supported"`).
 
 - **Unknown property:**
-  A predicate referencing a property that does not exist on the entity raises `UnknownPropertyError`.
+  A predicate referencing a property that does not exist on the entity raises `UnknownPropertyError` (`"No such property <name>"`).
 
 - **Collection property:**
-  Filtering on a collection-valued property raises `InvalidQueryOptionError`.
+  Filtering on a collection-valued property raises `InvalidQueryOptionError` (`"Cannot apply '<operation>' to a collection property '<name>'."`).
 
 - **Uncoercible value:**
   A value that cannot be coerced to the property's declared type raises `InvalidFilterValue`.

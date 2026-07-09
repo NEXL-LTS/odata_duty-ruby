@@ -85,7 +85,7 @@ individual requests; non-`$` options ignored. Accept plumbing residue case-by-ca
 contract item 7, "Plumbing residue" group.
 Files: extend `collection_spec.rb` / paging specs both trees, `.mutant.yml`.
 
-### - [ ] Task 7 — Docs, gemspec bump & final mutant verify
+### - [x] Task 7 — Docs, gemspec bump & final mutant verify
 Optionally add one line naming the exact error messages to `doc/using_filter.md` and
 `doc/using_select.md` (matching their "Common Error Cases" sections). If any `lib/` change
 landed across Tasks 1–6, bump `spec.version` patch in `odata_duty.gemspec`. Confirm `.mutant.yml`

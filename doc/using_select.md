@@ -69,13 +69,13 @@ end
 While implementing `$select`, note the following error scenarios that your service should handle:
 
 - **Unknown Property:**  
-  If a property specified in `$select` does not exist on the entity, an `UnknownPropertyError` will be raised.
+  If a property specified in `$select` does not exist on the entity, an `UnknownPropertyError` will be raised (`"The property '<name>' does not exist"`).
 
 - **Nested Selection on Complex Types:**  
-  Directly selecting nested properties (e.g., `c/s`) is not supported. This will result in an `InvalidQueryOptionError`.
+  Directly selecting nested properties (e.g., `c/s`) is not supported. This will result in an `InvalidQueryOptionError` (`"The property '<name>' is not valid"`).
 
 - **Quoted Identifiers:**  
-  Property names should not be enclosed in quotes. If quotes are detected, an `InvalidQueryOptionError` will be raised.
+  Property names should not be enclosed in quotes. If quotes are detected, an `InvalidQueryOptionError` will be raised (`"The property '<name>' is not valid"`).
 
 ## Summary
 
