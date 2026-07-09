@@ -75,7 +75,7 @@ absent + hook absent → no raise; option absent + hook present → hook not cal
 present + hook present → hook applied. Non-`$` query options ignored. PRD contract item 6.
 Files: extend `executor_coverage_spec.rb` (entity) + new builder equivalent, `.mutant.yml`.
 
-### - [ ] Task 6 — `$count` / nextLink & plumbing residue
+### - [x] Task 6 — `$count` / nextLink & plumbing residue
 Subjects (remove entries): `#collection`, `#add_next_link`, `#initialize`, `#apply_remaining`,
 `#individual`, `#prepare_builder`, `#wrapped_context`.
 Pin, in both trees: `@odata.count` present iff `$count=true` exactly (`$count=1` → absent);

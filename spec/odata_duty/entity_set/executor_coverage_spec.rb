@@ -181,4 +181,11 @@ RSpec.describe OdataDuty::EntitySet, 'executor query option handling' do
     json = schema.delete('ExecCov', context: Context.new)
     expect(json).to include('@odata.context')
   end
+
+  it 'applies query options on an individual request, raising for an unsupported $top' do
+    expect do
+      schema.execute("ExecCovBare('1')", context: Context.new, query_options: { '$top' => '2' })
+    end.to raise_error(OdataDuty::NoImplementationError,
+                       '$top not implemented for ExecCovBareSet')
+  end
 end

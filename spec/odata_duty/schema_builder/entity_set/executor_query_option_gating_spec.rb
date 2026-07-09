@@ -138,5 +138,12 @@ module OdataDuty
     it 'ignores a non-$ query option' do
       expect(hookful('top' => '2')['value'].size).to eq(5)
     end
+
+    it 'applies query options on an individual request, raising for an unsupported $top' do
+      expect do
+        schema.execute("Hookless('1')", context: Context.new, query_options: { '$top' => '2' })
+      end.to raise_error(OdataDuty::NoImplementationError,
+                         '$top not implemented for GatingHooklessResolver')
+    end
   end
 end

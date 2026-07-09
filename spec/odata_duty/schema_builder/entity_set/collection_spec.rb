@@ -166,6 +166,13 @@ module OdataDuty
             expect(count).to eq(102)
           end
 
+          it 'omits @odata.count unless $count is exactly the string true' do
+            json_string = schema.execute('LargeCollection', context: Context.new,
+                                                            query_options: { '$count' => '1' })
+            response = Oj.load(json_string)
+            expect(response).not_to have_key('@odata.count')
+          end
+
           it do
             json_string = schema.execute('LargeCollection',
                                          context: Context.new,
