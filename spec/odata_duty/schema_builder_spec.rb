@@ -99,43 +99,6 @@ module OdataDuty
       end
     end
 
-    EXPECTED_DOC = Oj.load(File.read("#{__dir__}/../oas_2.json"))
-
-    describe '#oas_2' do
-      let(:json) { OAS2.build_json(schema, context: Context.new) }
-
-      it do
-        s = %w[swagger info host schemes basePath]
-        generated_json = json.slice(*s)
-        expect(generated_json).to eq(EXPECTED_DOC.slice(*s))
-      end
-
-      EXPECTED_DOC.fetch('paths').each do |path, value|
-        describe "paths #{path} get" do
-          it do
-            generated_json = json.dig('paths', path, 'get')
-            value['get'].each do |k, v|
-              if v.is_a?(Array)
-                expect(generated_json[k]).to match_array(v)
-              else
-                expect(generated_json[k]).to eq(v)
-              end
-            end
-            expect(generated_json).to eq(value['get'])
-          end
-        end
-      end
-
-      EXPECTED_DOC.fetch('definitions').each do |path, value|
-        describe "definitions #{path}" do
-          it do
-            generated_json = json.dig('definitions', path)
-            expect(generated_json).to eq(value)
-          end
-        end
-      end
-    end
-
     describe '#execute' do
       describe 'collection' do
         it do

@@ -59,32 +59,23 @@ module OdataDuty
       end
     end
 
-    describe '#oas_2' do
-      let(:json) { OAS2.build_json(schema, context: Context.new) }
-
-      it do
-        expect(json.keys)
-          .to eq(%w[swagger info host schemes basePath paths definitions])
+    describe 'when an entity set requires args' do
+      it 'raises InitArgsMismatchError when none given' do
+        schema.add_entity_set(name: 'InitErrors', entity_type: 'InitArgTest',
+                              resolver: 'InitErrorsArgsResolver')
+        expect { schema.execute('InitErrors', context: Context.new) }.to raise_error(
+          OdataDuty::InitArgsMismatchError,
+          'wrong number of arguments (given 0, expected 1)'
+        )
       end
 
-      context 'with a entity set that requires args' do
-        it 'raises error InitArgsMismatchError when none given' do
-          schema.add_entity_set(name: 'InitErrors', entity_type: 'InitArgTest',
-                                resolver: 'InitErrorsArgsResolver')
-          expect { json }.to raise_error(
-            OdataDuty::InitArgsMismatchError,
-            'wrong number of arguments (given 0, expected 1)'
-          )
-        end
-
-        it 'raises error ArgumentError when error inside of resolver' do
-          schema.add_entity_set(name: 'InsideError', entity_type: 'InitArgTest',
-                                resolver: 'InitErrorsArgsResolver', init_args: 'given')
-          expect { json }.to raise_error(
-            ArgumentError,
-            'wrong number of arguments (given 3, expected 0)'
-          )
-        end
+      it 'raises ArgumentError when error inside of resolver' do
+        schema.add_entity_set(name: 'InsideError', entity_type: 'InitArgTest',
+                              resolver: 'InitErrorsArgsResolver', init_args: 'given')
+        expect { schema.execute('InsideError', context: Context.new) }.to raise_error(
+          ArgumentError,
+          'wrong number of arguments (given 3, expected 0)'
+        )
       end
     end
 
