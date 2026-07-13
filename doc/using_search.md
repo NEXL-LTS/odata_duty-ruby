@@ -1,7 +1,7 @@
 # Using `$search` with OdataDuty
 
 The `$search` query option in OData allows clients to perform free-text searches across entity contents. This provides a flexible way to find entities that match search terms without requiring specific property-based filtering.  
-OdataDuty will call the `od_search` method on your entity set—if defined—to allow you to implement custom search logic optimized for your data store. if your `OdataDuty::EntitySet` does not implement `od_search` it will raise an `InvalidQueryOptionError`.
+OdataDuty will call the `od_search` method on your entity set—if defined—to allow you to implement custom search logic optimized for your data store. If your `OdataDuty::EntitySet` does not implement `od_search`, it will raise an `OdataDuty::NoImplementationError`.
 
 This guide explains how to implement `od_search` in your custom `OdataDuty::EntitySet` class.
 
