@@ -16,12 +16,6 @@ matcher:
   # survivors (see spec/using_mutant.md). Never add entries.
   ignore:
     - "OdataDuty::EdmxSchema.metadata_xml"
-    - "OdataDuty::EnumMember#initialize"
-    - "OdataDuty::EnumType#__to_value"
-    - "OdataDuty::EnumType.member"
-    - "OdataDuty::EnumType.members"
-    - "OdataDuty::EnumType::Metadata#name"
-    - "OdataDuty::EnumType::Metadata#property_type"
     - "OdataDuty::Filter#initialize"
     - "OdataDuty::Filter#operation"
     - "OdataDuty::Filter.split_outside_quotes"

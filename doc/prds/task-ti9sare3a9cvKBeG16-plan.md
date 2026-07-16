@@ -33,7 +33,7 @@ survivors. **Never add ignore entries.**
   all survivors (add specs, or accept a mutation and simplify `lib/odata_duty/entity_type.rb`
   leaving output identical). `bundle exec rake` green. Class DSL only (builder key mappers are Task 3).
 
-- [ ] **Task 2 — Class-DSL enum type.**
+- [x] **Task 2 — Class-DSL enum type.**
   Remove these 6 entries: `OdataDuty::EnumMember#initialize`, `EnumType#__to_value`,
   `EnumType.member`, `EnumType.members`, `EnumType::Metadata#name`,
   `EnumType::Metadata#property_type`. Add public-API specs under `spec/odata_duty/entity_set/**`
