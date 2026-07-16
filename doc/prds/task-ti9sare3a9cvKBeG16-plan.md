@@ -53,7 +53,7 @@ survivors. **Never add ignore entries.**
   key (quoted), exercised via `schema.execute`; a second `property_ref` raises the same
   `RuntimeError`. Kill all survivors on the 4 subjects. `bundle exec rake` green.
 
-- [ ] **Task 4 — Builder-DSL enum + type/container plumbing.**
+- [x] **Task 4 — Builder-DSL enum + type/container plumbing.**
   Remove these 5 entries: `OdataDuty::SchemaBuilder::EnumType#to_value`,
   `SchemaBuilder::ComplexType#property`, `SchemaBuilder::Container#initialize`,
   `SchemaBuilder::DataType#initialize`, `SchemaBuilder::DataType#scalar?`. Add public-API specs
