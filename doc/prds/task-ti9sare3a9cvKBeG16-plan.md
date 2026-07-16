@@ -65,7 +65,7 @@ survivors. **Never add ignore entries.**
   complex/entity, observed via `$metadata`/`$oas2` placement. Kill all survivors on the 5
   subjects. `bundle exec rake` green.
 
-- [ ] **Task 5 — Update `spec/using_mutant.md` debt count.**
+- [x] **Task 5 — Update `spec/using_mutant.md` debt count.**
   The ratchet's recorded count/rationale ("221 of 339 subjects … 3248 mutations, ~67%") is now
   stale after removing 25 entries. Update the count in `spec/using_mutant.md` to reflect the new
   ignore-list size (recompute from the final `.mutant.yml`). No other doc changes (behavior is
