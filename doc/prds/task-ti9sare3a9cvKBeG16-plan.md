@@ -45,7 +45,7 @@ survivors. **Never add ignore entries.**
   Reach through `Schema.metadata_xml`, the `$oas2` doc, `.create`/`.execute`. Kill all survivors
   on the 6 subjects. `bundle exec rake` green. Class DSL only (builder enum is Task 4).
 
-- [ ] **Task 3 — Builder-DSL entity key mappers.**
+- [x] **Task 3 — Builder-DSL entity key mappers.**
   Remove these 4 entries: `OdataDuty::SchemaBuilder::EntityType#int_mapper`, `#mapper`,
   `#property_ref`, `#string_mapper`. Add public-API specs under
   `spec/odata_duty/schema_builder/**` mirroring Task 1 for the builder DSL: build a schema with
