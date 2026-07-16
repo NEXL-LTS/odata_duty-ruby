@@ -33,7 +33,7 @@ survivors. **Never add ignore entries.**
   all survivors (add specs, or accept a mutation and simplify `lib/odata_duty/entity_type.rb`
   leaving output identical). `bundle exec rake` green. Class DSL only (builder key mappers are Task 3).
 
-- [x] **Task 2 — Class-DSL enum type.**
+- [ ] **Task 2 — Class-DSL enum type.**
   Remove these 6 entries: `OdataDuty::EnumMember#initialize`, `EnumType#__to_value`,
   `EnumType.member`, `EnumType.members`, `EnumType::Metadata#name`,
   `EnumType::Metadata#property_type`. Add public-API specs under `spec/odata_duty/entity_set/**`
@@ -45,7 +45,7 @@ survivors. **Never add ignore entries.**
   Reach through `Schema.metadata_xml`, the `$oas2` doc, `.create`/`.execute`. Kill all survivors
   on the 6 subjects. `bundle exec rake` green. Class DSL only (builder enum is Task 4).
 
-- [x] **Task 3 — Builder-DSL entity key mappers.**
+- [ ] **Task 3 — Builder-DSL entity key mappers.**
   Remove these 4 entries: `OdataDuty::SchemaBuilder::EntityType#int_mapper`, `#mapper`,
   `#property_ref`, `#string_mapper`. Add public-API specs under
   `spec/odata_duty/schema_builder/**` mirroring Task 1 for the builder DSL: build a schema with
@@ -53,7 +53,7 @@ survivors. **Never add ignore entries.**
   key (quoted), exercised via `schema.execute`; a second `property_ref` raises the same
   `RuntimeError`. Kill all survivors on the 4 subjects. `bundle exec rake` green.
 
-- [x] **Task 4 — Builder-DSL enum + type/container plumbing.**
+- [ ] **Task 4 — Builder-DSL enum + type/container plumbing.**
   Remove these 5 entries: `OdataDuty::SchemaBuilder::EnumType#to_value`,
   `SchemaBuilder::ComplexType#property`, `SchemaBuilder::Container#initialize`,
   `SchemaBuilder::DataType#initialize`, `SchemaBuilder::DataType#scalar?`. Add public-API specs
@@ -65,7 +65,7 @@ survivors. **Never add ignore entries.**
   complex/entity, observed via `$metadata`/`$oas2` placement. Kill all survivors on the 5
   subjects. `bundle exec rake` green.
 
-- [x] **Task 5 — Update `spec/using_mutant.md` debt count.**
+- [ ] **Task 5 — Update `spec/using_mutant.md` debt count.**
   The ratchet's recorded count/rationale ("221 of 339 subjects … 3248 mutations, ~67%") is now
   stale after removing 25 entries. Update the count in `spec/using_mutant.md` to reflect the new
   ignore-list size (recompute from the final `.mutant.yml`). No other doc changes (behavior is
