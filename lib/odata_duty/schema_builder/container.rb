@@ -4,7 +4,7 @@ module OdataDuty
       attr_reader :name, :_defined_at_
 
       def initialize(name:)
-        @name = name.to_str.clone.freeze
+        @name = name.clone
         @_defined_at_ = caller.find { |line| !line.include?('/lib/odata_duty/') }
 
         return if Property.valid_name?(@name)

@@ -11,7 +11,7 @@ module OdataDuty
         @properties = []
       end
 
-      def property(name, *args, line__defined__at: caller[0], **kwargs)
+      def property(name, *args, line__defined__at: caller.first, **kwargs)
         if properties.any? { |p| p.name == name.to_sym }
           raise PropertyAlreadyDefinedError, "#{name} is already defined"
         end

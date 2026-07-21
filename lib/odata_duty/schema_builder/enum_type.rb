@@ -19,7 +19,7 @@ module OdataDuty
       end
 
       def to_value(val, _context)
-        return val if val.nil? || members.map(&:name).include?(val)
+        return val if members.map(&:name).include?(val)
 
         raise InvalidValue, "#{val} is not a valid member of #{members}"
       end

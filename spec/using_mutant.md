@@ -50,8 +50,9 @@ Two options, per mutant's own guidance:
 
 Mutant has no partial-coverage threshold — one survivor in a matched subject fails the run.
 When CI was made blocking, 221 of 339 subjects had pre-existing survivors (3248 mutations,
-~67% coverage overall), so those subjects are listed under `matcher: ignore:` in `.mutant.yml`,
-the same pattern as `.rubocop_todo.yml`. Rules of the ratchet:
+~67% coverage overall), so those subjects were listed under `matcher: ignore:` in `.mutant.yml`,
+the same pattern as `.rubocop_todo.yml`; ongoing cleanup has since shrunk that list to 80
+entries. Rules of the ratchet:
 
 - **Never add entries.** A PR that can't pass mutation CI needs better tests, not a bigger
   ignore list.

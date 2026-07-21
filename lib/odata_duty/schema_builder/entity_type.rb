@@ -30,13 +30,13 @@ module OdataDuty
 
       def int_mapper(context, selected:)
         MapperBuilder.build(self, selected: selected) do |result, obj|
-          result['@odata.id'] = "#{context.current['odata_url_base']}(#{obj.id})"
+          result['@odata.id'] = "#{context.current.fetch('odata_url_base')}(#{obj.id})"
         end
       end
 
       def string_mapper(context, selected:)
         MapperBuilder.build(self, selected: selected) do |result, obj|
-          result['@odata.id'] = "#{context.current['odata_url_base']}('#{obj.id}')"
+          result['@odata.id'] = "#{context.current.fetch('odata_url_base')}('#{obj.id}')"
         end
       end
 

@@ -3,7 +3,7 @@ module OdataDuty
     attr_reader :name
 
     def initialize(name)
-      @name = name.to_str.clone.freeze
+      @name = name.to_str
     end
   end
 
@@ -12,10 +12,8 @@ module OdataDuty
       @members ||= []
     end
 
-    def self.member(*args, **kwargs)
-      EnumMember.new(*args, **kwargs).tap do |m|
-        members << m
-      end
+    def self.member(name)
+      members << EnumMember.new(name)
     end
 
     class Metadata
@@ -34,7 +32,7 @@ module OdataDuty
       end
 
       def name
-        enum_type.to_s.split('::').last.gsub(/EnumType\z/, '').gsub(/Enum\z/, '')
+        enum_type.to_s.split('::').last.sub(/EnumType\z/, '').sub(/Enum\z/, '')
       end
 
       def metadata_type
@@ -61,7 +59,7 @@ module OdataDuty
     end
 
     def __to_value
-      return object if object.nil? || __member_names.include?(object)
+      return object if __member_names.include?(object)
 
       raise InvalidValue, "#{object} is not a valid member of #{__member_names}"
     end

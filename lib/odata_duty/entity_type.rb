@@ -24,7 +24,7 @@ module OdataDuty
       end
 
       def name
-        entity_type.to_s.split('::').last.gsub(/EntityType\z/, '').gsub(/Entity\z/, '')
+        entity_type.to_s.split('::').last.sub(/EntityType\z/, '').sub(/Entity\z/, '')
       end
 
       def metadata_type
@@ -55,18 +55,18 @@ module OdataDuty
 
     def self.int_mapper(context, selected:)
       MapperBuilder.build(self, selected: selected) do |result, obj|
-        result['@odata.id'] = "#{context.current['odata_url_base']}(#{obj.id})"
+        result['@odata.id'] = "#{context.current.fetch('odata_url_base')}(#{obj.id})"
       end
     end
 
     def self.string_mapper(context, selected:)
       MapperBuilder.build(self, selected: selected) do |result, obj|
-        result['@odata.id'] = "#{context.current['odata_url_base']}('#{obj.id}')"
+        result['@odata.id'] = "#{context.current.fetch('odata_url_base')}('#{obj.id}')"
       end
     end
 
     def self._defined_at_
-      Object.const_source_location(to_s).join(':')
+      const_source_location(to_s).join(':')
     end
   end
 end
