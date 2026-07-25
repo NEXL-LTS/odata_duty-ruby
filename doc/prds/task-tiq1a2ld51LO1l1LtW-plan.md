@@ -60,7 +60,7 @@ Equivalent mutations requiring accept-refactors:
   `singletons` method (flag it). Files: `lib/odata_duty.rb`, `spec/odata_duty/entity_set/**`.
   Depends on: none.
 
-- [x] **Task 2 — Class DSL: `Schema` request dispatch.**
+- [ ] **Task 2 — Class DSL: `Schema` request dispatch.**
   Remove `Schema.execute`, `.create`, `.update`, `.delete` from `.mutant.yml`; kill survivors with
   specs under `spec/odata_duty/entity_set/**`. Pin GET dispatch (same URL family → `Users`
   collection, `Users(1)` individual, `Users/$count` count, each a distinct asserted result);
@@ -72,7 +72,7 @@ Equivalent mutations requiring accept-refactors:
   Files: `lib/odata_duty.rb` (only if an accept-refactor is needed — likely none),
   `spec/odata_duty/entity_set/**`. Depends on: Task 1 (shares schemas/fixtures patterns).
 
-- [x] **Task 3 — Builder DSL: `SchemaBuilder::Schema` structure & introspection.**
+- [ ] **Task 3 — Builder DSL: `SchemaBuilder::Schema` structure & introspection.**
   Remove `SchemaBuilder::Schema#initialize`, `#inspect`, `#all_containers`, `#complex_types`,
   `#entity_sets`, `#individual_entity_sets` from `.mutant.yml`; kill survivors with specs under
   `spec/odata_duty/schema_builder/**`. Pin: `initialize` freezes each of
@@ -89,14 +89,14 @@ Equivalent mutations requiring accept-refactors:
   `all_types.select { |t| t.instance_of?(ComplexType) }` (flag both). Files:
   `lib/odata_duty/schema_builder.rb`, `spec/odata_duty/schema_builder/**`. Depends on: none.
 
-- [x] **Task 4 — Builder DSL: `SchemaBuilder::Schema` request dispatch.**
+- [ ] **Task 4 — Builder DSL: `SchemaBuilder::Schema` request dispatch.**
   Remove `SchemaBuilder::Schema#execute`, `#create`, `#update`, `#delete` from `.mutant.yml`; kill
   survivors with specs under `spec/odata_duty/schema_builder/**`. Same dispatch/effect/default/
   pass-through/error assertions as Task 2, but through the builder DSL (real `SetResolver`
   subclasses referenced by string name). Files: `lib/odata_duty/schema_builder.rb` (accept-refactor
   unlikely), `spec/odata_duty/schema_builder/**`. Depends on: Task 3.
 
-- [x] **Task 5 — Documentation: update the ratchet count.**
+- [ ] **Task 5 — Documentation: update the ratchet count.**
   In `spec/using_mutant.md`, update the "shrunk that list to 80 entries" figure to reflect the 33
   removals (→ 47). No `doc/` guide changes and no `CLAUDE.md` Features entry (PRD §8: no new
   consumer capability). Depends on: Tasks 1–4 (all removals landed).
