@@ -89,7 +89,7 @@ Equivalent mutations requiring accept-refactors:
   `all_types.select { |t| t.instance_of?(ComplexType) }` (flag both). Files:
   `lib/odata_duty/schema_builder.rb`, `spec/odata_duty/schema_builder/**`. Depends on: none.
 
-- [ ] **Task 4 — Builder DSL: `SchemaBuilder::Schema` request dispatch.**
+- [x] **Task 4 — Builder DSL: `SchemaBuilder::Schema` request dispatch.**
   Remove `SchemaBuilder::Schema#execute`, `#create`, `#update`, `#delete` from `.mutant.yml`; kill
   survivors with specs under `spec/odata_duty/schema_builder/**`. Same dispatch/effect/default/
   pass-through/error assertions as Task 2, but through the builder DSL (real `SetResolver`

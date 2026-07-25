@@ -84,15 +84,15 @@ module OdataDuty
         Executor.execute(url: url, context: context, query_options: query_options, schema: self)
       end
 
-      def create(url, context:, query_options: {})
+      def create(url, context:, query_options: nil)
         Executor.create(url: url, context: context, query_options: query_options, schema: self)
       end
 
-      def update(url, context:, query_options: {})
+      def update(url, context:, query_options: nil)
         Executor.update(url: url, context: context, query_options: query_options, schema: self)
       end
 
-      def delete(url, context:, query_options: {})
+      def delete(url, context:, query_options: nil)
         Executor.delete(url: url, context: context, query_options: query_options, schema: self)
       end
 
