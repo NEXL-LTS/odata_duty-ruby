@@ -60,7 +60,7 @@ Equivalent mutations requiring accept-refactors:
   `singletons` method (flag it). Files: `lib/odata_duty.rb`, `spec/odata_duty/entity_set/**`.
   Depends on: none.
 
-- [ ] **Task 2 — Class DSL: `Schema` request dispatch.**
+- [x] **Task 2 — Class DSL: `Schema` request dispatch.**
   Remove `Schema.execute`, `.create`, `.update`, `.delete` from `.mutant.yml`; kill survivors with
   specs under `spec/odata_duty/entity_set/**`. Pin GET dispatch (same URL family → `Users`
   collection, `Users(1)` individual, `Users/$count` count, each a distinct asserted result);

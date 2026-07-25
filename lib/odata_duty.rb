@@ -277,15 +277,15 @@ module OdataDuty
       Executor.execute(url: url, context: context, query_options: query_options, schema: self)
     end
 
-    def self.create(url, context:, query_options: {})
+    def self.create(url, context:, query_options: nil)
       Executor.create(url: url, context: context, query_options: query_options, schema: self)
     end
 
-    def self.update(url, context:, query_options: {})
+    def self.update(url, context:, query_options: nil)
       Executor.update(url: url, context: context, query_options: query_options, schema: self)
     end
 
-    def self.delete(url, context:, query_options: {})
+    def self.delete(url, context:, query_options: nil)
       Executor.delete(url: url, context: context, query_options: query_options, schema: self)
     end
 
