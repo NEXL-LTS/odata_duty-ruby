@@ -13,7 +13,7 @@ class StructureIndividualResolver < OdataDuty::SetResolver
 end
 
 module OdataDuty
-  RSpec.describe SchemaBuilder, 'Schema structure and introspection (builder DSL)' do
+  RSpec.describe SchemaBuilder::Schema, 'Schema structure and introspection (builder DSL)' do
     def build(namespace: 'SampleSpace', **kwargs, &block)
       block ||= proc {}
       SchemaBuilder.build(namespace: namespace, **kwargs, &block)
@@ -160,9 +160,10 @@ module OdataDuty
       end
     end
 
-    describe 'complex_types via $oas2 definitions' do
+    describe 'complex_types via $metadata' do
       let(:schema) do
         build do |s|
+          s.add_enum_type(name: 'CtStatus') { |e| e.member 'Active' }
           badge = s.add_complex_type(name: 'PlainBadge') { |c| c.property 'label', String }
           widget = s.add_entity_type(name: 'CtWidget') do |et|
             et.property_ref 'id', String
@@ -173,14 +174,9 @@ module OdataDuty
         end
       end
 
-      let(:definitions) { OAS2.build_json(schema, context: Context.new)['definitions'] }
-
-      it 'includes the plain complex type definition' do
-        expect(definitions).to have_key('PlainBadge')
-      end
-
-      it 'does not treat an entity type as a plain complex type definition' do
-        expect(definitions['CtWidget']).not_to eq(definitions['PlainBadge'])
+      it 'renders only the plain complex type as a <ComplexType>, not entity or enum types' do
+        names = schema.metadata_xml.scan(/<ComplexType Name="([^"]+)"/).flatten
+        expect(names).to eq(['PlainBadge'])
       end
     end
 
