@@ -96,7 +96,7 @@ Equivalent mutations requiring accept-refactors:
   subclasses referenced by string name). Files: `lib/odata_duty/schema_builder.rb` (accept-refactor
   unlikely), `spec/odata_duty/schema_builder/**`. Depends on: Task 3.
 
-- [ ] **Task 5 — Documentation: update the ratchet count.**
+- [x] **Task 5 — Documentation: update the ratchet count.**
   In `spec/using_mutant.md`, update the "shrunk that list to 80 entries" figure to reflect the 33
   removals (→ 47). No `doc/` guide changes and no `CLAUDE.md` Features entry (PRD §8: no new
   consumer capability). Depends on: Tasks 1–4 (all removals landed).
