@@ -235,12 +235,8 @@ module OdataDuty
         metadata_types.select { |mt| mt.metadata_type == :enum }
       end
 
-      def singletons
-        []
-      end
-
       def endpoints
-        entity_sets + singletons
+        entity_sets
       end
 
       def check_names
@@ -258,22 +254,16 @@ module OdataDuty
     end
 
     def self.metadata_xml
-      require 'erb'
-
       metadata = __metadata
       metadata.check_names
 
-      b = binding
-      # create and run templates, filling member data variables
-      erb = ERB.new(File.read("#{__dir__}/metadata.xml.erb"), trim_mode: '<>')
-      erb.location = ["#{__dir__}/metadata.xml.erb", 1]
-      erb.result b
+      ERB.new(File.read("#{__dir__}/metadata.xml.erb")).result(binding)
     end
 
     def self.index_hash(metadata_url)
       {
         '@odata.context': metadata_url,
-        value: __metadata.endpoints.map do |e|
+        value: endpoints.map do |e|
           { name: e.name, kind: e.kind, url: e.url }
         end
       }
@@ -287,15 +277,15 @@ module OdataDuty
       Executor.execute(url: url, context: context, query_options: query_options, schema: self)
     end
 
-    def self.create(url, context:, query_options: {})
+    def self.create(url, context:, query_options: nil)
       Executor.create(url: url, context: context, query_options: query_options, schema: self)
     end
 
-    def self.update(url, context:, query_options: {})
+    def self.update(url, context:, query_options: nil)
       Executor.update(url: url, context: context, query_options: query_options, schema: self)
     end
 
-    def self.delete(url, context:, query_options: {})
+    def self.delete(url, context:, query_options: nil)
       Executor.delete(url: url, context: context, query_options: query_options, schema: self)
     end
 

@@ -63,16 +63,14 @@ module OdataDuty
       end
 
       def complex_types
-        all_types.select { |t| t.is_a?(ComplexType) && !t.is_a?(EntityType) }
+        all_types.select { |t| t.instance_of?(ComplexType) }
       end
 
       def entity_types
         all_types.grep(EntityType)
       end
 
-      def entity_sets
-        all_containers.grep(EntitySet)
-      end
+      def entity_sets = all_containers
 
       def collection_entity_sets
         entity_sets.select { |t| t.resolver_class.method_defined?(:collection) }
@@ -86,15 +84,15 @@ module OdataDuty
         Executor.execute(url: url, context: context, query_options: query_options, schema: self)
       end
 
-      def create(url, context:, query_options: {})
+      def create(url, context:, query_options: nil)
         Executor.create(url: url, context: context, query_options: query_options, schema: self)
       end
 
-      def update(url, context:, query_options: {})
+      def update(url, context:, query_options: nil)
         Executor.update(url: url, context: context, query_options: query_options, schema: self)
       end
 
-      def delete(url, context:, query_options: {})
+      def delete(url, context:, query_options: nil)
         Executor.delete(url: url, context: context, query_options: query_options, schema: self)
       end
 
