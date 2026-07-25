@@ -201,5 +201,27 @@ module OdataDuty
         expect(paths).not_to include('/CollectionOnly({id})')
       end
     end
+
+    describe 'collection_entity_sets via $oas2 paths' do
+      let(:schema) do
+        build do |s|
+          entity = s.add_entity_type(name: 'PathWidget') { |et| et.property_ref 'id', String }
+          s.add_entity_set(name: 'CollectionOnly', entity_type: entity,
+                           resolver: 'StructureCollectionResolver')
+          s.add_entity_set(name: 'HasIndividual', entity_type: entity,
+                           resolver: 'StructureIndividualResolver')
+        end
+      end
+
+      let(:paths) { OAS2.build_json(schema, context: Context.new)['paths'].keys }
+
+      it 'exposes a collection path for a set whose resolver defines collection' do
+        expect(paths).to include('/CollectionOnly')
+      end
+
+      it 'does not expose a collection path for a set without a collection resolver' do
+        expect(paths).not_to include('/HasIndividual')
+      end
+    end
   end
 end
