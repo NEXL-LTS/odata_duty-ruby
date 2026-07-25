@@ -72,7 +72,7 @@ Equivalent mutations requiring accept-refactors:
   Files: `lib/odata_duty.rb` (only if an accept-refactor is needed — likely none),
   `spec/odata_duty/entity_set/**`. Depends on: Task 1 (shares schemas/fixtures patterns).
 
-- [ ] **Task 3 — Builder DSL: `SchemaBuilder::Schema` structure & introspection.**
+- [x] **Task 3 — Builder DSL: `SchemaBuilder::Schema` structure & introspection.**
   Remove `SchemaBuilder::Schema#initialize`, `#inspect`, `#all_containers`, `#complex_types`,
   `#entity_sets`, `#individual_entity_sets` from `.mutant.yml`; kill survivors with specs under
   `spec/odata_duty/schema_builder/**`. Pin: `initialize` freezes each of
