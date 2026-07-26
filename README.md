@@ -145,6 +145,8 @@ end
 
 # `OAS2.build_json` requires a builder-DSL schema (`SchemaBuilder.build`), not a class-based `Schema`.
 def oas2
+  # CORS header so Power Automate can import `$oas2` from URL — see doc/using_oas2.md.
+  response.set_header('Access-Control-Allow-Origin', '*')
   render json: OdataDuty::OAS2.build_json(schema)
 end
 
