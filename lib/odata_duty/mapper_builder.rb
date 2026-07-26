@@ -10,7 +10,7 @@ module OdataDuty
     def self.build_class(complex_type, selected:)
       @dynamic_classes ||= {}
       @dynamic_classes[complex_type] ||= {}
-      complex_classes = @dynamic_classes[complex_type]
+      complex_classes = @dynamic_classes.fetch(complex_type)
       selected_key = selected&.map(&:name)&.sort
       complex_classes[selected_key] ||= eval_erb_class(complex_type, selected: selected)
     end
@@ -22,7 +22,6 @@ module OdataDuty
 
     def self.eval_erb_class(complex_type, selected:)
       properties = selected || complex_type.properties
-      properties.nil?
       class_result = ERB_TEMPLATE.result(binding)
 
       eval(class_result) # rubocop:disable Security/Eval
@@ -78,7 +77,7 @@ module OdataDuty
     end
 
     def confirm_one_of(name, value, valid_values)
-      return value if value.nil?
+      return nil if value.nil?
       return value if valid_values.include?(value)
 
       raise InvalidValue, "Property #{name} must be one of #{valid_values} and not #{value}"

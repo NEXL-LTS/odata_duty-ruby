@@ -26,10 +26,15 @@ class ContextCoercionDetails < OdataDuty::ComplexType
   property 'kind', ContextAwareEnum
 end
 
+class CollectionContextDetails < OdataDuty::ComplexType
+  property 'kinds', [ContextAwareEnum]
+end
+
 class ContextCoercionEntity < OdataDuty::EntityType
   property_ref 'id', String, computed: false
   property 'kind', ContextAwareEnum
   property 'details', ContextCoercionDetails
+  property 'collection_details', CollectionContextDetails
 end
 
 class ContextCoercionSet < OdataDuty::EntitySet
@@ -47,7 +52,9 @@ class ContextCoercionSet < OdataDuty::EntitySet
 
   def build(input)
     details = input.details
-    OpenStruct.new(id: '1', kind: input.kind,
+    collection_details = input.collection_details
+    collection_details&.kinds
+    OpenStruct.new(id: '1', kind: input.kind, collection_details: nil,
                    details: details && OpenStruct.new(kind: details.kind))
   end
 end
@@ -75,6 +82,16 @@ RSpec.describe OdataDuty::EntitySet do
                                                    query_options: { 'kind' => 'Sales' })
       expect(Oj.load(json)['kind']).to eq('Sales')
       expect(ctx.coerced).to eq(['Sales'])
+    end
+
+    it 'threads the context into every element of a collection enum on create' do
+      ctx = RecordingContext.new
+      schema.create('ContextCoercion', context: ctx,
+                                       query_options: {
+                                         'id' => '1',
+                                         'collection_details' => { 'kinds' => %w[Ops Sales] }
+                                       })
+      expect(ctx.coerced).to eq(%w[Ops Sales])
     end
 
     it 'threads the context into an enum nested in a complex type on create' do

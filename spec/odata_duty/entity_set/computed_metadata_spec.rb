@@ -4,6 +4,7 @@ class ComputedMetadataEntity < OdataDuty::EntityType
   property_ref 'id', String
   property 'created_at', DateTime, computed: true
   property 'name', String
+  property 'nickname', String, computed: false
 end
 
 class ComputedMetadataSet < OdataDuty::EntitySet
@@ -29,6 +30,10 @@ RSpec.describe OdataDuty::Schema, 'Computed property metadata' do
 
   it 'does not render the Computed annotation for a writable property' do
     expect(property_xml('name')).not_to include('Org.OData.Core.V1.Computed')
+  end
+
+  it 'treats computed: false as read-write with no Computed annotation' do
+    expect(property_xml('nickname')).not_to include('Org.OData.Core.V1.Computed')
   end
 
   it 'renders the Computed annotation for the entity key by default' do

@@ -8,10 +8,12 @@ module OdataDuty
 
       begin
         call_od_after_init(init_args)
+      rescue InitArgsMismatchError => e
+        e.backtrace.insert(1, entity_set._defined_at_)
+        raise
       rescue StandardError => e
-        insert_at = e.is_a?(InitArgsMismatchError) ? 1 : 2
-        e.backtrace.insert(insert_at, entity_set._defined_at_)
-        raise e
+        e.backtrace.insert(2, entity_set._defined_at_)
+        raise
       end
     end
 
@@ -34,10 +36,10 @@ module OdataDuty
     end
 
     def handle_init_args_error(arg_error)
-      raise arg_error unless arg_error.backtrace[0].include?("od_after_init'")
+      raise unless arg_error.backtrace.first.include?("od_after_init'")
 
-      err = InitArgsMismatchError.new(arg_error.message)
-      err.set_backtrace(arg_error.backtrace.clone)
+      err = InitArgsMismatchError.new(arg_error)
+      err.set_backtrace(arg_error.backtrace)
 
       raise err
     end

@@ -133,6 +133,7 @@ module OdataDuty
         simple = s.add_entity_type(name: 'BuilderFilterValidation') do |et|
           et.property_ref 'id', String
           et.property 'name', String
+          et.property 'count', Integer
         end
         s.add_entity_set(name: 'BuilderFilterValidation', entity_type: simple,
                          resolver: 'BuilderFilterValidationResolver')
@@ -176,6 +177,20 @@ module OdataDuty
         .to raise_error(OdataDuty::UnknownPropertyError, 'No such property bogus')
     end
 
+    %w[add sub mul div mod].each do |operator|
+      it "rejects the #{operator} arithmetic operator" do
+        expect { execute('BuilderFilterValidation', "id #{operator} 1 eq 2") }
+          .to raise_error(OdataDuty::NotYetSupportedError,
+                          'filtering with arithmetic operators not supported')
+      end
+    end
+
+    it 'rejects grouping operators and functions with a descriptive message' do
+      expect { execute('BuilderFilterValidation', "(name eq 'a')") }
+        .to raise_error(OdataDuty::NotYetSupportedError,
+                        'filtering does not support functions or Grouping Operators')
+    end
+
     it 'filters a declared non-collection property without raising' do
       json = execute('BuilderFilterValidation', "name eq 'a'")
       expect(Oj.load(json)['value'].map { |v| v['name'] }).to contain_exactly('a')
@@ -187,9 +202,19 @@ module OdataDuty
                         "Cannot apply 'eq' to a collection property 'tags'.")
     end
 
+    it 'raises InvalidFilterValue naming the bad value and property when coercion fails' do
+      expect { execute('BuilderFilterValidation', 'count eq abc') }
+        .to raise_error(OdataDuty::InvalidFilterValue, 'Invalid value abc for count')
+    end
+
     it 'coerces the filter value through the property using the request context' do
       execute('BuilderFilterContext', "code eq 'x'")
       expect(BuilderFilterContextCapture.value).to eq('Hash:x')
+    end
+
+    it 'passes a quoted literal containing a comma through as a single value' do
+      execute('BuilderFilterContext', "code eq 'Smith, John'")
+      expect(BuilderFilterContextCapture.value).to eq('Hash:Smith, John')
     end
 
     it 'prefers the property-specific hook when one exists' do
