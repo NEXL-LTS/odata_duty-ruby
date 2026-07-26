@@ -6,7 +6,7 @@
 
 ## Consuming `$oas2` from Power Automate
 
-Power Automate (and Power Apps) can turn the document into a [custom connector](https://learn.microsoft.com/en-us/connectors/custom-connectors/define-openapi-definition). It accepts OpenAPI **2.0 only** (not 3.0) and the document must be **under 1 MB** — both of which OdataDuty's output satisfies.
+Power Automate (and Power Apps) can turn the document into a [custom connector](https://learn.microsoft.com/en-us/connectors/custom-connectors/define-openapi-definition). It accepts OpenAPI **2.0 only** (not 3.0), which is exactly what OdataDuty emits, and the document must be **under 1 MB**. The rendered size grows with your schema (entity types, properties, enums), so a very large schema could approach that limit — check the byte size if you have hundreds of entities.
 
 There are two ways to import, and they behave differently:
 

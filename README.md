@@ -249,6 +249,7 @@ end
 - [Using `$search`](doc/using_search.md)
 - [Using `create`, `update`, and `delete`](doc/using_create_update_and_delete.md)
 - [Using `computed` (read-only) properties](doc/using_computed.md)
+- [Using `$oas2` (OpenAPI/Swagger) with Power Automate](doc/using_oas2.md)
 
 > **Documentation convention:** Every externally-facing feature (a new DSL option,
 > query option, or protocol surface) ships with a `doc/using_*.md` guide and a link
