@@ -92,6 +92,18 @@ module OdataDuty
           Class.new(EntityType) { property 'élan', String }
         end.not_to raise_error
       end
+
+      it 'accepts a Symbol name, matching String behavior' do
+        expect do
+          Class.new(EntityType) { property :id, String }
+        end.not_to raise_error
+      end
+
+      it 'rejects an invalid Symbol name with InvalidNCNamesError, not NoMethodError' do
+        expect do
+          Class.new(EntityType) { property :'bad-name', String }
+        end.to raise_error(InvalidNCNamesError, '"bad-name" is not a valid property name')
+      end
     end
   end
 end

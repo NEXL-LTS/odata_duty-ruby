@@ -72,6 +72,28 @@ module OdataDuty
           end
         end.to raise_error(InvalidNCNamesError, '"a b" is not a valid property name')
       end
+
+      it 'accepts Symbol property names, matching String behavior' do
+        expect do
+          SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+            s.add_entity_type(name: 'SymbolNames') do |et|
+              et.property_ref :id, String
+              et.property :name, String
+            end
+          end
+        end.not_to raise_error
+      end
+
+      it 'rejects an invalid Symbol name with InvalidNCNamesError, not NoMethodError' do
+        expect do
+          SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
+            s.add_entity_type(name: 'SymbolNames') do |et|
+              et.property_ref :id, String
+              et.property :'bad-name', String
+            end
+          end
+        end.to raise_error(InvalidNCNamesError, '"bad-name" is not a valid property name')
+      end
     end
   end
 end
