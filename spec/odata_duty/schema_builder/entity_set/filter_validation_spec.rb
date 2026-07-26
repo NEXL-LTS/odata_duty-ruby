@@ -176,6 +176,20 @@ module OdataDuty
         .to raise_error(OdataDuty::UnknownPropertyError, 'No such property bogus')
     end
 
+    %w[add sub mul div mod].each do |operator|
+      it "rejects the #{operator} arithmetic operator" do
+        expect { execute('BuilderFilterValidation', "id #{operator} 1 eq 2") }
+          .to raise_error(OdataDuty::NotYetSupportedError,
+                          'filtering with arithmetic operators not supported')
+      end
+    end
+
+    it 'rejects grouping operators and functions with a descriptive message' do
+      expect { execute('BuilderFilterValidation', "(name eq 'a')") }
+        .to raise_error(OdataDuty::NotYetSupportedError,
+                        'filtering does not support functions or Grouping Operators')
+    end
+
     it 'filters a declared non-collection property without raising' do
       json = execute('BuilderFilterValidation', "name eq 'a'")
       expect(Oj.load(json)['value'].map { |v| v['name'] }).to contain_exactly('a')
@@ -190,6 +204,11 @@ module OdataDuty
     it 'coerces the filter value through the property using the request context' do
       execute('BuilderFilterContext', "code eq 'x'")
       expect(BuilderFilterContextCapture.value).to eq('Hash:x')
+    end
+
+    it 'passes a quoted literal containing a comma through as a single value' do
+      execute('BuilderFilterContext', "code eq 'Smith, John'")
+      expect(BuilderFilterContextCapture.value).to eq('Hash:Smith, John')
     end
 
     it 'prefers the property-specific hook when one exists' do

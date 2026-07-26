@@ -39,6 +39,20 @@ RSpec.describe OdataDuty::EntitySet, 'filter validation errors' do
       .to raise_error(OdataDuty::NotYetSupportedError, /arithmetic operators/)
   end
 
+  %w[add sub mul div mod].each do |operator|
+    it "rejects the #{operator} arithmetic operator" do
+      expect { execute("id #{operator} 1 eq 2") }
+        .to raise_error(OdataDuty::NotYetSupportedError,
+                        'filtering with arithmetic operators not supported')
+    end
+  end
+
+  it 'rejects grouping operators and functions with a descriptive message' do
+    expect { execute("(name eq 'a')") }
+      .to raise_error(OdataDuty::NotYetSupportedError,
+                      'filtering does not support functions or Grouping Operators')
+  end
+
   it 'rejects nested property filtering' do
     expect { execute('address/city eq \'x\'') }
       .to raise_error(OdataDuty::NotYetSupportedError, /nested property filtering/)
@@ -149,6 +163,12 @@ RSpec.describe OdataDuty::EntitySet, 'filter value coercion via the request cont
     schema.execute('FilterContext', context: Context.new,
                                     query_options: { '$filter' => "code eq 'x'" })
     expect(FilterContextCapture.value).to eq('Hash:x')
+  end
+
+  it 'passes a quoted literal containing a comma through as a single value' do
+    schema.execute('FilterContext', context: Context.new,
+                                    query_options: { '$filter' => "code eq 'Smith, John'" })
+    expect(FilterContextCapture.value).to eq('Hash:Smith, John')
   end
 end
 
