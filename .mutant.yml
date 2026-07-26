@@ -52,7 +52,3 @@ matcher:
     - "OdataDuty::Property::SingleProp#load_type_instance_vars"
     - "OdataDuty::Property::SingleProp#to_oas2_type"
     - "OdataDuty::Property::SingleProp#to_value"
-    - "OdataDuty::SetResolver#entity_set"
-    - "OdataDuty::SetResolver#handle_init_args_error"
-    - "OdataDuty::SetResolver#initialize"
-    - "OdataDuty::SetResolver#od_next_link_skiptoken"
