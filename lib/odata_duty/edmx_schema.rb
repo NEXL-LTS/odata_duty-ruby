@@ -1,3 +1,5 @@
+require 'erb'
+
 module OdataDuty
   module EdmxSchema
     def self.index_hash(schema)
@@ -10,13 +12,8 @@ module OdataDuty
     end
 
     def self.metadata_xml(metadata)
-      require 'erb'
-
       b = binding
-      # create and run templates, filling member data variables
-      erb = ERB.new(File.read("#{__dir__}/../metadata.xml.erb"), trim_mode: '<>')
-      erb.location = ["#{__dir__}/../metadata.xml.erb", 1]
-      erb.result b
+      ERB.new(File.read("#{__dir__}/../metadata.xml.erb")).result(b)
     end
   end
 end
