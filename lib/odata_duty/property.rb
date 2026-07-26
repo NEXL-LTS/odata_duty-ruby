@@ -13,7 +13,7 @@ module OdataDuty
         raise InvalidNCNamesError, "\"#{name}\" is not a valid property name"
       end
 
-      prop_class = type.is_a?(Array) ? CollectionProp : SingleProp
+      prop_class = type.instance_of?(Array) ? CollectionProp : SingleProp
       prop_class.new(name, type,
                      line__defined__at: line__defined__at,
                      nullable: nullable,
@@ -22,13 +22,8 @@ module OdataDuty
     end
 
     def self.resolve_mutability(name, computed, mutability)
-      if computed != :unset && mutability != :unset
-        raise ArgumentError,
-              "#{name}: pass either `mutability:` or `computed:`, not both — they control " \
-              'the same axis'
-      end
-      return computed ? :computed : :read_write unless computed == :unset
-      return :read_write if mutability == :unset
+      mutability = computed_to_mutability(name, computed, mutability) unless computed == :unset
+      mutability = :read_write if mutability == :unset
       return mutability if MUTABILITIES.include?(mutability)
 
       raise ArgumentError,
@@ -36,8 +31,19 @@ module OdataDuty
             "must be one of #{MUTABILITIES_LIST}"
     end
 
+    def self.computed_to_mutability(name, computed, mutability)
+      unless mutability == :unset
+        raise ArgumentError,
+              "#{name}: pass either `mutability:` or `computed:`, not both \u2014 they control " \
+              'the same axis'
+      end
+      computed ? :computed : :read_write
+    end
+
+    NAME_REGEXP = Regexp.new('\A(?:\p{L}|_)(?:[\p{L}\p{Nd}_])*\z').freeze
+
     def self.valid_name?(name)
-      name.to_s.match?(/\A(?:\p{L}|_)(?:[\p{L}\p{Nd}_])*\z/)
+      name.match?(NAME_REGEXP)
     end
   end
 end
