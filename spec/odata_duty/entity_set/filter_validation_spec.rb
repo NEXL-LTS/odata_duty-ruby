@@ -69,6 +69,43 @@ RSpec.describe OdataDuty::EntitySet, 'filter validation errors' do
   end
 end
 
+class FilterCoercionFailureEntity < OdataDuty::EntityType
+  property_ref 'id', String
+  property 'count', Integer
+end
+
+class FilterCoercionFailureSet < OdataDuty::EntitySet
+  entity_type FilterCoercionFailureEntity
+
+  def od_after_init
+    @records = []
+  end
+
+  def od_filter_eq(property_name, value)
+    @records = @records.select { |r| r.public_send(property_name) == value }
+  end
+
+  def collection
+    @records
+  end
+end
+
+class FilterCoercionFailureSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
+  entity_sets [FilterCoercionFailureSet]
+end
+
+RSpec.describe OdataDuty::EntitySet, 'filter value that fails type coercion' do
+  subject(:schema) { FilterCoercionFailureSchema }
+
+  it 'raises InvalidFilterValue naming the bad value and the property' do
+    expect do
+      schema.execute('FilterCoercionFailure', context: Context.new,
+                                              query_options: { '$filter' => 'count eq abc' })
+    end.to raise_error(OdataDuty::InvalidFilterValue, 'Invalid value abc for count')
+  end
+end
+
 class FilterCollectionEntity < OdataDuty::EntityType
   property_ref 'id', String
   property 'tags', [String]

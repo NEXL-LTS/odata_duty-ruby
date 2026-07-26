@@ -5,6 +5,8 @@ class MethodOverrideEntity < OdataDuty::EntityType
   property 'over', String
   property 'second_id', String, method: :id
   property 'second_over', String, method: :over
+  property 'string_method_over', String, method: 'over'
+  property 'computed_id', String, method: ->(obj) { "computed-#{obj.id}" }
 
   def over
     'overridden'
@@ -41,7 +43,9 @@ RSpec.describe OdataDuty::EntitySet, 'Can Override the default name and/or url' 
             'id' => '1',
             'second_id' => '1',
             'over' => 'overridden',
-            'second_over' => 'overridden'
+            'second_over' => 'overridden',
+            'string_method_over' => 'overridden',
+            'computed_id' => 'computed-1'
           }],
           '@odata.context' => 'http://localhost:3000/api/$metadata#MethodOverride'
         )

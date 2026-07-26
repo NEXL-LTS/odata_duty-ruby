@@ -5,6 +5,24 @@ class EmptyEntity < OdataDuty::EntityType
   property 'another', String
 end
 
+class UntypedPropertyEntity < OdataDuty::EntityType
+  property_ref 'id', String
+  property 'untyped'
+end
+
+class UntypedPropertySet < OdataDuty::EntitySet
+  entity_type UntypedPropertyEntity
+
+  def collection
+    []
+  end
+end
+
+class UntypedPropertySchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
+  entity_sets [UntypedPropertySet]
+end
+
 module OdataDuty
   RSpec.describe EntitySet, 'Can setup property' do
     subject(:schema) { PropertyRefsTestSchema }
@@ -20,6 +38,21 @@ module OdataDuty
         expect do
           EmptyEntity.property 'another', String
         end.to raise_error(PropertyAlreadyDefinedError, 'another is already defined')
+      end
+    end
+
+    describe 'property type resolution' do
+      it 'defaults to Edm.String when no type is given' do
+        properties = UntypedPropertySchema.metadata_xml
+        doc = parse_xml_from_string(properties)
+        untyped = entity_types_from_doc(doc)['UntypedProperty'][:properties]
+        expect(untyped).to include(name: 'untyped', type: 'Edm.String', nullable: 'true')
+      end
+
+      it 'raises for an unsupported property type' do
+        expect do
+          Class.new(EntityType) { property 'bad', nil }
+        end.to raise_error(RuntimeError, /Invalid type nil for bad/)
       end
     end
 

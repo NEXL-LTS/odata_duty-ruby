@@ -133,6 +133,7 @@ module OdataDuty
         simple = s.add_entity_type(name: 'BuilderFilterValidation') do |et|
           et.property_ref 'id', String
           et.property 'name', String
+          et.property 'count', Integer
         end
         s.add_entity_set(name: 'BuilderFilterValidation', entity_type: simple,
                          resolver: 'BuilderFilterValidationResolver')
@@ -199,6 +200,11 @@ module OdataDuty
       expect { execute('BuilderFilterCollection', "tags eq 'x'") }
         .to raise_error(OdataDuty::InvalidQueryOptionError,
                         "Cannot apply 'eq' to a collection property 'tags'.")
+    end
+
+    it 'raises InvalidFilterValue naming the bad value and property when coercion fails' do
+      expect { execute('BuilderFilterValidation', 'count eq abc') }
+        .to raise_error(OdataDuty::InvalidFilterValue, 'Invalid value abc for count')
     end
 
     it 'coerces the filter value through the property using the request context' do
