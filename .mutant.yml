@@ -15,12 +15,6 @@ matcher:
   # mutations when CI was made blocking. When you touch one, delete its entry and kill the
   # survivors (see spec/using_mutant.md). Never add entries.
   ignore:
-    - "OdataDuty::MapperBuilder#confirm_boolean"
-    - "OdataDuty::MapperBuilder#confirm_one_of"
-    - "OdataDuty::MapperBuilder#obj_to_base_hash"
-    - "OdataDuty::MapperBuilder#obj_to_hash"
-    - "OdataDuty::MapperBuilder.build_class"
-    - "OdataDuty::MapperBuilder.eval_erb_class"
     - "OdataDuty::McpInputSchemas#create_input_schema"
     - "OdataDuty::McpInputSchemas#delete_input_schema"
     - "OdataDuty::McpInputSchemas#search_input_schema"
