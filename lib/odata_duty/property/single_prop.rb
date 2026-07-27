@@ -7,11 +7,10 @@ module OdataDuty
       attr_reader :name, :nullable, :calling_method, :line__defined__at, :raw_type, :type,
                   :set_type, :method_name, :mutability
 
-      def initialize(name, type = String, line__defined__at: nil, nullable: true, method: nil,
-                     mutability: :read_write)
+      def initialize(name, type, line__defined__at:, nullable:, method:, mutability:)
         @line__defined__at = line__defined__at
-        @name = name.to_str.to_sym
-        @calling_method = method.respond_to?(:call) ? method : nil
+        @name = name.to_sym
+        @calling_method = method if method.respond_to?(:call)
         method = nil if method.respond_to?(:call)
         @method_name = (method || name).to_sym
         @nullable = nullable ? true : false
@@ -44,7 +43,7 @@ module OdataDuty
       end
 
       def calling_method?
-        !!calling_method
+        !calling_method.nil?
       end
 
       def nullable?
@@ -86,11 +85,11 @@ module OdataDuty
       def to_value(value, context)
         convert(value, context)
       rescue InvalidValue => e
-        raise InvalidValue, "#{name} : #{e.message}"
+        raise InvalidValue, "#{name} : #{e}"
       end
 
       def convert(value, context)
-        return value if value.nil?
+        return if value.nil?
 
         @set_type.to_value(value, context)
       end
@@ -114,9 +113,8 @@ module OdataDuty
         { '$ref' => "#/definitions/#{raw_type.name}" }
       end
 
-      def collection?
-        false
-      end
+      # nil (falsy) rather than false: callers only consume truthiness
+      def collection?; end
 
       private
 

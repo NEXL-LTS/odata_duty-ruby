@@ -43,40 +43,34 @@ module OdataDuty
     end
 
     def self.split_outside_quotes(str, separator)
-      masked = mask_quoted(str)
-      segments = []
-      start = 0
-      while (index = masked.index(separator, start))
-        segments << str[start...index]
-        start = index + separator.length
+      remaining = str.dup
+      mask_quoted(str).split(separator).map do |masked_segment|
+        segment = remaining.slice!(0, masked_segment.length)
+        remaining.slice!(0, separator.length)
+        segment
       end
-      segments << str[start..]
-      segments
     end
 
     private_class_method :mask_quoted, :split_outside_quotes
 
-    attr_reader :filter_string
-
     def initialize(filter_string)
-      @filter_string = filter_string.to_str.clone.freeze
-      @components = @filter_string.split(' ', 3).map(&:freeze)
+      @property_name, @operation, @value = filter_string.split(nil, 3)
     end
 
     def value
-      @components.last.delete_prefix("'").delete_suffix("'")
+      @value.delete_prefix("'").delete_suffix("'")
     end
 
     def operation
-      @components[1].to_sym
+      @operation.to_sym
     end
 
     def property_name
-      @components.first.tap do |name|
-        if name.include?('/')
-          raise NotYetSupportedError, 'nested property filtering not supported yet'
-        end
-      end.to_sym
+      if @property_name.include?('/')
+        raise NotYetSupportedError, 'nested property filtering not supported yet'
+      end
+
+      @property_name.to_sym
     end
   end
 end

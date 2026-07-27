@@ -11,6 +11,7 @@ module OdataDuty
           et.property_ref 'id', String
           et.property 'created_at', DateTime, computed: true
           et.property 'name', String
+          et.property 'nickname', String, computed: false
         end
 
         s.add_entity_set(name: 'ComputedMetadata', entity_type: entity,
@@ -29,6 +30,10 @@ module OdataDuty
 
     it 'does not render the Computed annotation for a writable property' do
       expect(property_xml('name')).not_to include('Org.OData.Core.V1.Computed')
+    end
+
+    it 'treats computed: false as read-write with no Computed annotation' do
+      expect(property_xml('nickname')).not_to include('Org.OData.Core.V1.Computed')
     end
 
     it 'renders the Computed annotation for the entity key by default' do

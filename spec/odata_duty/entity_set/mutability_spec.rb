@@ -26,11 +26,12 @@ RSpec.describe OdataDuty::EntityType, 'mutability keyword validation' do
                        /read_write.*immutable.*non_insertable.*computed/m)
   end
 
-  it 'raises ArgumentError when both mutability and computed are supplied' do
+  it 'raises ArgumentError naming the property and the two conflicting keywords' do
     expect do
       Class.new(OdataDuty::EntityType) do
         property 'conflict', String, mutability: :immutable, computed: true
       end
-    end.to raise_error(ArgumentError)
+    end.to raise_error(ArgumentError,
+                       /conflict:.*`mutability:`.*`computed:`.*not both.*same axis/m)
   end
 end

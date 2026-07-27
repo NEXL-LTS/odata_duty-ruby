@@ -139,7 +139,8 @@ module OdataDuty
         it do
           expect do
             schema.execute('BoolWithInvalid', context: Context.new)
-          end.to raise_error(OdataDuty::InvalidValue)
+          end.to raise_error(OdataDuty::InvalidValue,
+                             'Property boolean must be a boolean and not boolean')
         end
       end
     end

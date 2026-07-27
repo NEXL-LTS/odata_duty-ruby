@@ -39,6 +39,20 @@ RSpec.describe OdataDuty::EntitySet, 'filter validation errors' do
       .to raise_error(OdataDuty::NotYetSupportedError, /arithmetic operators/)
   end
 
+  %w[add sub mul div mod].each do |operator|
+    it "rejects the #{operator} arithmetic operator" do
+      expect { execute("id #{operator} 1 eq 2") }
+        .to raise_error(OdataDuty::NotYetSupportedError,
+                        'filtering with arithmetic operators not supported')
+    end
+  end
+
+  it 'rejects grouping operators and functions with a descriptive message' do
+    expect { execute("(name eq 'a')") }
+      .to raise_error(OdataDuty::NotYetSupportedError,
+                      'filtering does not support functions or Grouping Operators')
+  end
+
   it 'rejects nested property filtering' do
     expect { execute('address/city eq \'x\'') }
       .to raise_error(OdataDuty::NotYetSupportedError, /nested property filtering/)
@@ -52,6 +66,43 @@ RSpec.describe OdataDuty::EntitySet, 'filter validation errors' do
   it 'filters a declared non-collection property without raising' do
     json = execute("name eq 'a'")
     expect(Oj.load(json)['value'].map { |v| v['name'] }).to contain_exactly('a')
+  end
+end
+
+class FilterCoercionFailureEntity < OdataDuty::EntityType
+  property_ref 'id', String
+  property 'count', Integer
+end
+
+class FilterCoercionFailureSet < OdataDuty::EntitySet
+  entity_type FilterCoercionFailureEntity
+
+  def od_after_init
+    @records = []
+  end
+
+  def od_filter_eq(property_name, value)
+    @records = @records.select { |r| r.public_send(property_name) == value }
+  end
+
+  def collection
+    @records
+  end
+end
+
+class FilterCoercionFailureSchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
+  entity_sets [FilterCoercionFailureSet]
+end
+
+RSpec.describe OdataDuty::EntitySet, 'filter value that fails type coercion' do
+  subject(:schema) { FilterCoercionFailureSchema }
+
+  it 'raises InvalidFilterValue naming the bad value and the property' do
+    expect do
+      schema.execute('FilterCoercionFailure', context: Context.new,
+                                              query_options: { '$filter' => 'count eq abc' })
+    end.to raise_error(OdataDuty::InvalidFilterValue, 'Invalid value abc for count')
   end
 end
 
@@ -149,6 +200,12 @@ RSpec.describe OdataDuty::EntitySet, 'filter value coercion via the request cont
     schema.execute('FilterContext', context: Context.new,
                                     query_options: { '$filter' => "code eq 'x'" })
     expect(FilterContextCapture.value).to eq('Hash:x')
+  end
+
+  it 'passes a quoted literal containing a comma through as a single value' do
+    schema.execute('FilterContext', context: Context.new,
+                                    query_options: { '$filter' => "code eq 'Smith, John'" })
+    expect(FilterContextCapture.value).to eq('Hash:Smith, John')
   end
 end
 
