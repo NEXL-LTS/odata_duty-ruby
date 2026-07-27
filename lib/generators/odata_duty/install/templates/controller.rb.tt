@@ -8,6 +8,9 @@ class <%= controller_class %> < ApplicationController
   end
 
   def oas2
+    # Power Automate's "Import from URL" is a browser-side cross-origin fetch; without this CORS
+    # header it fails with a misleading "couldn't download" error even though the server 200s.
+    response.set_header('Access-Control-Allow-Origin', '*')
     render json: OdataDuty::OAS2.build_json(schema)
   end
 
