@@ -1,4 +1,5 @@
 require 'delegate'
+require 'uri'
 
 module OdataDuty
   class ContextWrapper < SimpleDelegator

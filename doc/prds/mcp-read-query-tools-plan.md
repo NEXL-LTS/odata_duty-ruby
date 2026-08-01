@@ -50,7 +50,7 @@ tooling limitation, flagged to the user at the end rather than papered over.
 
 ## Task 2 — Remove read resources, templates, and the `resources` capability
 
-- [ ] **Text:** Remove the MCP read resources and templates and the `resources` server capability:
+- [x] **Text:** Remove the MCP read resources and templates and the `resources` server capability:
   drop `direct_resources`, `resource_templates`, `count_resource`, `templates_for_endpoint`, and
   `read_resource` (and the `resources_read_handler`) from `McpServerBuilder`; construct the server
   with `capabilities: { tools: {} }` and no `resources:`/`resource_templates:`. After this,

@@ -88,22 +88,6 @@ RSpec.describe OdataDuty::Schema, 'to_mcp_server' do
     end
   end
 
-  describe 'resources/templates/list' do
-    let(:template_names) do
-      request = {
-        'jsonrpc' => '2.0', 'method' => 'resources/templates/list', 'params' => {}, 'id' => 'r-1'
-      }
-      call(request)['result']['resourceTemplates'].map { |t| t['uriTemplate'] }
-    end
-
-    it 'lists a collection template for each declared entity set' do
-      expect(template_names).to include(
-        'Searchables?$top={top}&$skip={skip}',
-        'Plains?$top={top}&$skip={skip}'
-      )
-    end
-  end
-
   describe 'initialize' do
     it 'reports the schema title and version as server info' do
       request = {
