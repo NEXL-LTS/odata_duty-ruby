@@ -21,10 +21,12 @@ OdataDuty is a *library*. Its product is its **external API**: the DSL a gem con
 
 1. **Read the idea.** Use `$ARGUMENTS`. If it's empty, ask the user to describe the goal in their own words (free text, not a multiple-choice question).
 2. **Gather context quickly.** Read `README.md`, `CLAUDE.md`, and the most relevant existing guides in `doc/` (`using_search.md`, `using_select.md`, `using_init_args.md`, `odata_crash_course.md`, `mcp_crash_course.md`). Skim the public surface in `lib/odata_duty.rb` and any directly relevant spec under `spec/odata_duty/**` to see how similar capabilities already behave today. Identify the **closest existing guide** — the new capability will usually extend that guide or warrant a new one in the same style.
-3. **Ask a small batch of clarifying questions** with `AskUserQuestion` (2–4 at once, not one at a time). Ask only what you genuinely can't infer from context. Center them on:
+3. **Loop on clarifying questions until nothing is unresolved.** Ask in batches with `AskUserQuestion` (2–4 at once, not one at a time), then **keep looping**: read the answers, and whenever an answer leaves a gap, contradicts something, or opens a new decision, ask the next batch. Continue until you have zero open questions — every decision needed to write a complete, unambiguous PRD is settled. The PRD you produce **must not contain an "Open questions" section**; resolve each such point with the user instead of deferring it into the document. Favor tight batches over a long one-at-a-time dialogue, but do not stop early just to keep it short — clarity is the exit condition, not question count. Ask only what you genuinely can't infer from context; if the codebase already answers something, don't ask it. Center the questions on:
    - **Goal** — the consumer problem this solves, or (for a fix) the current wrong behavior vs. the expected behavior.
    - **API shape** — how a consumer invokes it: a new `od_*` hook? a new DSL declaration? a new/changed query option? a change to existing output? And **which DSL(s)** it applies to — class-based, builder, or both. When you present naming options, prefer the OData term (see *Use OData terminology* above) and call out which OData vocabulary annotation it maps to.
    - **What it enables & limits** — the capability from the consumer's perspective, and anything explicitly out of bounds.
+
+   Before drafting, confirm to yourself that no open question remains. If any do, run another batch — do not proceed to the draft with unresolved points.
 4. **Draft the PRD** using the sections below, with **concrete DSL snippets and expected I/O**.
 5. **Review once.** Before showing the draft, do an **OData terminology pass**: walk every consumer-facing name the PRD introduces (keywords, enum values, hooks, query options, output annotations) and confirm each either matches the OData v4 term/vocabulary annotation for that concept — citing it — or is explicitly flagged as a coined name because OData has none. Fix any drift before presenting. Then show the draft and confirm with `AskUserQuestion` (Approve / Revise), noting the terminology check passed. Apply any revisions.
 6. **Write** the PRD to `doc/prds/<kebab-summary>.md` and tell the user the path.
@@ -43,10 +45,11 @@ Match the house style of the existing `doc/*.md` guides: purpose-first, example-
 6. **Common error cases** — which errors are raised and when (e.g. `InvalidQueryOptionError`, `NoImplementationError`, `UnknownPropertyError`, `ResourceNotFoundError`, `InvalidValue`), mirroring the existing guides.
 7. **Scope** — explicit in / out boundaries; which DSL(s) are covered.
 8. **Documentation impact** — name the guide this should **extend** (e.g. `doc/using_search.md`) or the **new** `doc/<name>.md` to add, in the same style. Note it here only — don't write the guide unless the user asks.
-9. **Open questions** — anything unresolved (optional).
+
+The PRD has **no "Open questions" section** — every decision must be resolved with the user in the questioning loop (step 3) before the document is written. If something feels unresolved while drafting, that is a signal to return to step 3 and ask, not to add a caveat to the document.
 
 ## Output
 
-Save to `doc/prds/<kebab-summary>.md` (e.g. `doc/prds/orderby-support.md`), creating `doc/prds/` if needed. Before saving, verify: no internal-implementation prescriptions; every affected DSL has a snippet; expected I/O is concrete; error cases are listed; **every introduced name uses OData terminology and is mapped to its vocabulary term (or flagged as coined)**; and the user approved the draft.
+Save to `doc/prds/<kebab-summary>.md` (e.g. `doc/prds/orderby-support.md`), creating `doc/prds/` if needed. Before saving, verify: no internal-implementation prescriptions; every affected DSL has a snippet; expected I/O is concrete; error cases are listed; **every introduced name uses OData terminology and is mapped to its vocabulary term (or flagged as coined)**; **no "Open questions" section and no unresolved decisions remain** (any that surfaced were settled with the user in step 3); and the user approved the draft.
 
 PRDs are transient: `/build` deletes the PRD (and its plan) in a final commit once it's implemented, so git history is the archive.
