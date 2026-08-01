@@ -127,6 +127,11 @@ module OdataDuty
         entity_set.method_defined?(:od_filter_or)
       end
 
+      def supports_collection?
+        # Check if the entity set class supports read by looking for the collection method
+        entity_set.method_defined?(:collection)
+      end
+
       def supports_create?
         # Check if the entity set class supports create by looking for the create method
         entity_set.method_defined?(:create)

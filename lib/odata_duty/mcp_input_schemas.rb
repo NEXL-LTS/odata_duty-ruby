@@ -11,6 +11,21 @@ module OdataDuty
         'required' => ['$search'] }
     end
 
+    def list_input_schema(supports_search:)
+      properties = {
+        '$filter' => { 'type' => 'string', 'description' => 'OData $filter expression' },
+        '$select' => { 'type' => 'string',
+                       'description' => 'Comma-separated properties to return' }
+      }
+      if supports_search
+        properties['$search'] = { 'type' => 'string',
+                                  'description' => 'Search expression (AND, OR, NOT)' }
+      end
+      properties['$top'] = { 'type' => 'integer', 'description' => 'Max records to return' }
+      properties['$skip'] = { 'type' => 'integer', 'description' => 'Records to skip' }
+      { 'type' => 'object', 'properties' => properties, 'required' => [] }
+    end
+
     def create_input_schema(entity_type)
       writable = entity_type.properties.select(&:settable_on_create?)
       properties = writable.to_h { |p| [p.name.to_s, p.to_oas2] }

@@ -14,16 +14,21 @@ module OdataDuty
         resources: direct_resources(schema),
         resource_templates: resource_templates(schema)
       )
-      register_resources_read(server, schema)
+      server.resources_read_handler do |params, server_context:|
+        McpServerBuilder.read_resource(params[:uri], schema, server_context[:context])
+      end
       schema.endpoints.each { |endpoint| register_endpoint_tools(server, schema, endpoint) }
       server
     end
 
     def register_endpoint_tools(server, schema, endpoint)
+      register_list_tool(server, schema, endpoint) if endpoint.supports_collection?
       register_search_tool(server, schema, endpoint) if endpoint.supports_search?
       register_create_tool(server, schema, endpoint) if endpoint.supports_create?
-      register_update_tool(server, schema, endpoint) if endpoint.supports_update?
-      register_delete_tool(server, schema, endpoint) if endpoint.supports_delete?
+      register_key_tool(server, schema, endpoint, :update, 'Update an existing') if
+        endpoint.supports_update?
+      register_key_tool(server, schema, endpoint, :delete, 'Delete an existing') if
+        endpoint.supports_delete?
     end
 
     def direct_resources(schema)
@@ -53,12 +58,6 @@ module OdataDuty
        )]
     end
 
-    def register_resources_read(server, schema)
-      server.resources_read_handler do |params, server_context:|
-        McpServerBuilder.read_resource(params[:uri], schema, server_context[:context])
-      end
-    end
-
     def read_resource(uri_string, schema, context)
       uri = URI.parse(uri_string)
       query_options = {}
@@ -69,6 +68,13 @@ module OdataDuty
       [{ uri: uri_string, mimeType: mime_type, text: result.to_s }]
     rescue OdataDuty::Error => e
       [{ uri: uri_string, mimeType: 'text/plain', text: e.message.to_s }]
+    end
+
+    def register_list_tool(server, schema, endpoint)
+      input_schema = McpInputSchemas.list_input_schema(supports_search: endpoint.supports_search?)
+      define_tool(server, schema, endpoint, :execute,
+                  name: "list_#{endpoint.name}",
+                  description: "List #{endpoint.name} records", input_schema: input_schema)
     end
 
     def register_search_tool(server, schema, endpoint)
@@ -83,14 +89,6 @@ module OdataDuty
                   name: "create_#{endpoint.name}",
                   description: "Create a new #{endpoint.name} record",
                   input_schema: McpInputSchemas.create_input_schema(endpoint.entity_type))
-    end
-
-    def register_update_tool(server, schema, endpoint)
-      register_key_tool(server, schema, endpoint, :update, 'Update an existing')
-    end
-
-    def register_delete_tool(server, schema, endpoint)
-      register_key_tool(server, schema, endpoint, :delete, 'Delete an existing')
     end
 
     def register_key_tool(server, schema, endpoint, action, verb)
