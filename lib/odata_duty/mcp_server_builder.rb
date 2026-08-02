@@ -16,12 +16,17 @@ module OdataDuty
     end
 
     def register_endpoint_tools(server, schema, endpoint)
-      register_list_tool(server, schema, endpoint) if endpoint.supports_collection?
+      register_collection_tools(server, schema, endpoint) if endpoint.supports_collection?
       register_get_tool(server, schema, endpoint) if endpoint.supports_individual?
       register_search_tool(server, schema, endpoint) if endpoint.supports_search?
       register_create_tool(server, schema, endpoint) if endpoint.supports_create?
       register_update_tool(server, schema, endpoint) if endpoint.supports_update?
       register_delete_tool(server, schema, endpoint) if endpoint.supports_delete?
+    end
+
+    def register_collection_tools(server, schema, endpoint)
+      register_list_tool(server, schema, endpoint)
+      register_count_tool(server, schema, endpoint)
     end
 
     def register_update_tool(server, schema, endpoint)
@@ -37,6 +42,14 @@ module OdataDuty
       define_tool(server, schema, endpoint, :execute,
                   name: "list_#{endpoint.name}",
                   description: "List #{endpoint.name} records", input_schema: input_schema)
+    end
+
+    def register_count_tool(server, schema, endpoint)
+      input_schema = McpInputSchemas.count_input_schema(supports_search: endpoint.supports_search?)
+      define_tool(server, schema, endpoint, :execute,
+                  url_for: ->(_args) { "#{endpoint.url}/$count" },
+                  name: "count_#{endpoint.name}",
+                  description: "Count #{endpoint.name} records", input_schema: input_schema)
     end
 
     def register_search_tool(server, schema, endpoint)
@@ -81,9 +94,9 @@ module OdataDuty
     end
 
     def run_tool(action, url:, schema:, context:, query_options:)
-      json = Executor.public_send(action, url: url, context: context,
-                                          query_options: query_options, schema: schema)
-      MCP::Tool::Response.new([{ type: 'text', text: json }])
+      result = Executor.public_send(action, url: url, context: context,
+                                            query_options: query_options, schema: schema)
+      MCP::Tool::Response.new([{ type: 'text', text: result.to_s }])
     rescue OdataDuty::Error => e
       MCP::Tool::Response.new([{ type: 'text', text: e.message }], error: true)
     end

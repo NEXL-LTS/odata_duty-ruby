@@ -11,6 +11,12 @@ module OdataDuty
         'required' => ['$search'] }
     end
 
+    def count_input_schema(supports_search:)
+      properties = { '$filter' => { 'type' => 'string' } }
+      properties['$search'] = { 'type' => 'string' } if supports_search
+      { 'type' => 'object', 'properties' => properties, 'required' => [] }
+    end
+
     def list_input_schema(supports_search:)
       properties = {
         '$filter' => { 'type' => 'string', 'description' => 'OData $filter expression' },

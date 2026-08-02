@@ -94,7 +94,7 @@ tooling limitation, flagged to the user at the end rather than papered over.
 
 ## Task 4 — `count_<Set>` tool
 
-- [ ] **Text:** Add a `count_<Set>` MCP tool, registered for every set that implements `collection`.
+- [x] **Text:** Add a `count_<Set>` MCP tool, registered for every set that implements `collection`.
   `inputSchema` is an object with optional `$filter` and — only when `od_search` is defined —
   `$search`; `required: []`. `tools/call` runs `Executor.execute` on the `<url>/$count` URL,
   forwarding `$filter`/`$search`, and returns the count as text (e.g. `"42"`) in
