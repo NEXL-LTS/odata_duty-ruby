@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
-## [0.31.0] - 2026-08-02
+## [0.30.1] - 2026-08-02
 
 ### Added
 - `CHANGELOG.md` and a `changelog_uri` gem metadata entry.
@@ -58,8 +58,8 @@ All notable changes to this project are documented here. The format is based on
 See the [git tags](https://github.com/NEXL-LTS/odata_duty-ruby/tags) for the history of
 releases prior to 0.21.0.
 
-[Unreleased]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.31.0...HEAD
-[0.31.0]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.30.0...v0.31.0
+[Unreleased]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.30.1...HEAD
+[0.30.1]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.30.0...v0.30.1
 [0.30.0]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.21.4...v0.30.0
 [0.21.4]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.21.3...v0.21.4
 [0.21.3]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.21.0...v0.21.3
