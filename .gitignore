@@ -20,3 +20,5 @@ simple_profile.json
 /.devcontainer/.env
 
 /.claude/settings.local.json
+# Built gem packages
+*.gem
