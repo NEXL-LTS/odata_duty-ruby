@@ -33,6 +33,11 @@ module OdataDuty
         resolver_class.method_defined?(:collection)
       end
 
+      def supports_individual?
+        # Check if the resolver class supports read-by-id via the individual method
+        resolver_class.method_defined?(:individual)
+      end
+
       def supports_create?
         # Check if the resolver class supports create by looking for the create method
         resolver_class.method_defined?(:create)

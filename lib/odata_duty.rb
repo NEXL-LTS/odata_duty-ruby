@@ -132,6 +132,11 @@ module OdataDuty
         entity_set.method_defined?(:collection)
       end
 
+      def supports_individual?
+        # Check if the entity set class supports read-by-id via the individual method
+        entity_set.method_defined?(:individual)
+      end
+
       def supports_create?
         # Check if the entity set class supports create by looking for the create method
         entity_set.method_defined?(:create)

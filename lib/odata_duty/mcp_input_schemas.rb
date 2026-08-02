@@ -41,6 +41,16 @@ module OdataDuty
       { 'type' => 'object', 'properties' => properties, 'required' => [key.name.to_s] }
     end
 
+    def get_input_schema(entity_type)
+      key = entity_type.property_refs.first
+      properties = {
+        key.name.to_s => key.to_oas2,
+        '$select' => { 'type' => 'string',
+                       'description' => 'Comma-separated properties to return' }
+      }
+      { 'type' => 'object', 'properties' => properties, 'required' => [key.name.to_s] }
+    end
+
     def delete_input_schema(entity_type)
       key = entity_type.property_refs.first
       properties = { key.name.to_s => key.to_oas2 }

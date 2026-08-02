@@ -76,7 +76,7 @@ tooling limitation, flagged to the user at the end rather than papered over.
 
 ## Task 3 — `get_<Set>` read-one-by-key tool
 
-- [ ] **Text:** Add a `get_<Set>` MCP tool, registered for every set that implements `individual`.
+- [x] **Text:** Add a `get_<Set>` MCP tool, registered for every set that implements `individual`.
   `inputSchema` is an object with a required key property (same key-schema shape the `delete_<Set>`
   tool uses — `{ type: string, readOnly: true }` for a String key) plus an optional `$select`;
   `required: [<key>]`. `tools/call` runs `Executor.execute` on the `<url>('{id}')` URL, forwarding

@@ -17,6 +17,7 @@ module OdataDuty
 
     def register_endpoint_tools(server, schema, endpoint)
       register_list_tool(server, schema, endpoint) if endpoint.supports_collection?
+      register_get_tool(server, schema, endpoint) if endpoint.supports_individual?
       register_search_tool(server, schema, endpoint) if endpoint.supports_search?
       register_create_tool(server, schema, endpoint) if endpoint.supports_create?
       register_update_tool(server, schema, endpoint) if endpoint.supports_update?
@@ -50,6 +51,15 @@ module OdataDuty
                   name: "create_#{endpoint.name}",
                   description: "Create a new #{endpoint.name} record",
                   input_schema: McpInputSchemas.create_input_schema(endpoint.entity_type))
+    end
+
+    def register_get_tool(server, schema, endpoint)
+      key = endpoint.entity_type.property_refs.first.name.to_sym
+      define_tool(server, schema, endpoint, :execute,
+                  url_for: ->(args) { "#{endpoint.url}('#{args[key]}')" },
+                  name: "get_#{endpoint.name}",
+                  description: "Get a single #{endpoint.name} record by ID",
+                  input_schema: McpInputSchemas.get_input_schema(endpoint.entity_type))
     end
 
     def register_key_tool(server, schema, endpoint, action, verb)
