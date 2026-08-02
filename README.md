@@ -11,7 +11,7 @@ It’s designed around the principle of _"define once, serve everywhere"_: you m
 - ✅ Define your data model and logic in plain Ruby
 - ✅ Support schema-based APIs (OpenAPI/Swagger)
 - ✅ Avoid repeating business logic in multiple layers or formats
-- ✅ Build for humans and works with reporting tools, automation tools, and LLMs simultaneously
+- ✅ Build for humans and work with reporting tools, automation tools, and LLMs simultaneously
 
 ---
 
