@@ -129,7 +129,7 @@ tooling limitation, flagged to the user at the end rather than papered over.
 
 ## Task 6 — Documentation & indexes
 
-- [ ] **Text:** Rewrite the "Resources and resource templates" section of `doc/using_mcp.md` to
+- [x] **Text:** Rewrite the "Resources and resource templates" section of `doc/using_mcp.md` to
   document `list_<Set>`/`get_<Set>`/`count_<Set>` under "Tools" and state the server is now
   tools-only (read resources removed); update the `initialize` capabilities example to
   `{ "tools": {} }` and the `search_<Set>` tool description to the folded-in `$search`. Add a short

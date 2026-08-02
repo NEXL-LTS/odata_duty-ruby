@@ -14,13 +14,13 @@ Short index of what's implemented; see the linked `doc/` guide for the full cont
 - **Write** — `create` (POST), `update` (PATCH, partial-merge), `delete` (DELETE); each inferred from method presence and reflected in `$oas2`, `$metadata` capability annotations, and MCP tools — `doc/using_create_update_and_delete.md`.
 - **`$filter`** — `od_filter_eq/ne/gt/lt` — `doc/using_filter.md`.
 - **`$select`** — `doc/using_select.md`.
-- **`$search`** — AND/OR/NOT grammar via `od_search`; also drives the MCP search tool — `doc/using_search.md`.
+- **`$search`** — AND/OR/NOT grammar via `od_search`; also adds `$search` to the MCP `list_/count_<Set>` tools — `doc/using_search.md`.
 - **Paging** — `$top`/`$skip` and server-driven `@odata.nextLink` via `od_next_link_skiptoken`.
 - **Computed properties** — `doc/using_computed.md`.
 - **Property mutability** — `mutability: :immutable`/`:non_insertable`/`:computed` per property (create/update settability + `Core` annotations & `Capabilities.InsertRestrictions`; `$oas2` per-operation `<Entity>Create`/`<Entity>Update` request bodies) — `doc/using_mutability.md`.
 - **Init args** — pass per-request data into `od_after_init` — `doc/using_init_args.md`.
 - **Request context** — the `context` object in resolver hooks (delegation, `od_full_url`, `query_options`, `base_url`, `current`), plus `od_context`/`object` in class-DSL property methods — `doc/using_context.md`.
-- **MCP server** — tools/resources over JSON-RPC — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
+- **MCP server** — tools-only over JSON-RPC; reads inferred as `list_/get_/count_<Set>` tools (`$search` on list/count), writes as `create_/update_/delete_<Set>`, no resources — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
 - **Rails generators** — `install` and `entity_set` — `doc/entity_set_generator.md`.
 
 ## Commands
@@ -47,7 +47,7 @@ This split is mirrored in the specs: `spec/odata_duty/entity_set/**` covers the 
 A schema is just metadata until executed. Both DSLs expose `__metadata` objects that the renderers and executor walk.
 
 - **`Executor`** (`executor.rb`) is the core of GET. It resolves a URL to an endpoint, instantiates the set builder/resolver, then dispatches on the URL/query: `(id)` → individual, `/$count` → count, otherwise collection. It applies `$filter` (→ `od_filter_eq/ne/gt/lt`, see `filter.rb`), `$select` (`doc/using_select.md`), `$search` (`doc/using_search.md`), `$top`/`$skip` paging. `Schema.execute` / `.create` delegate here.
-- **`MCPExecutor`** (`mcp_executor.rb`) handles JSON-RPC (`Schema.handle_jsonrpc`): `initialize`, `resources/list`, `resources/templates/list`, `resources/read`, `tools/list`, `tools/call`. It reuses `Executor` under the hood — OData query options are simply forwarded. A `search_<EntitySet>` tool is exposed only for entity sets whose resolver defines `od_search`.
+- **`McpServerBuilder`** (`mcp_server_builder.rb`, with input schemas in `mcp_input_schemas.rb`) builds a tools-only `MCP::Server` from the schema (`schema.to_mcp_server`); the SDK handles the JSON-RPC (`initialize`, `tools/list`, `tools/call`). Reads are exposed as tools inferred from the read hooks: `list_<Set>`/`count_<Set>` (from `collection`) and `get_<Set>` (from `individual`); writes as `create_/update_/delete_<Set>`. Every tool reuses `Executor` under the hood — OData query options are forwarded. `$search` is folded into `list_<Set>`/`count_<Set>` only for sets whose resolver defines `od_search`. No MCP resources are registered (the server advertises only the `tools` capability).
 - **Renderers**: `EdmxSchema` (`metadata_xml` via `lib/metadata.xml.erb`, `index_hash`) and `OAS2` (`oas2.rb` + `oas2/*_path.rb`) produce the `$metadata`, index, and `$oas2` documents.
 - **`*Wrapper` classes** isolate user-supplied objects: `ContextWrapper` (per-request context + URL helpers), `CreateComplexTypeHashWrapper` (coerces/validates POST bodies into typed input), `dynamic_object_wrapper.rb.erb` / `mapper_builder.rb` (build per-entity object→hash mappers from property definitions).
 - **`parslet_search_expression.rb`** parses the `$search` grammar (AND/OR/NOT/terms) into an expression object passed to a resolver's `od_search`.
@@ -59,7 +59,7 @@ User code communicates with the framework through methods/hooks prefixed `od_`, 
 - `od_after_init` — runs after the set/resolver is constructed; typically loads `@records`. Can take positional or keyword args (see `set_resolver.rb` and `doc/using_init_args.md`).
 - `collection`, `individual(id)`, `count` — read operations; `create(input)`, `update(id, input)`, `delete(id)` — write operations (see `doc/using_create_update_and_delete.md`). A missing one raises `NoImplementationError` (the framework rescues `NoMethodError` to detect absence).
 - `od_filter_eq/ne/gt/lt(property_name, value)` — narrow results per `$filter`.
-- `od_search(expression)` — enables `$search` and the MCP search tool.
+- `od_search(expression)` — enables `$search` (in OData and on the MCP `list_/count_<Set>` tools).
 - `od_next_link_skiptoken` — drives server-driven paging `@odata.nextLink`.
 
 When editing, prefer extending these conventions over adding new public API surface.
