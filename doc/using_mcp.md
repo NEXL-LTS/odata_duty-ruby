@@ -131,9 +131,10 @@ discovered key.
   entity key property (`required`) plus an optional `$select`. Calling it returns the individual
   JSON (same shape as `GET /<Set>('1')`). A not-found or uncoercible key is returned as a
   tool-error result (`isError: true`).
-- **`count_<Set>`** — registered for every set that implements `collection`. Its input schema is
+- **`count_<Set>`** — registered for every set that implements `count`. Its input schema is
   all-optional (`required: []`): `$filter`, and — only when the set defines `od_search` — `$search`.
-  Calling it returns the count as text (e.g. `"42"`).
+  Both narrow the count (as they do for the OData `/$count` endpoint); it returns the count as text
+  (e.g. `"42"`).
 - **`create_<Set>`** — registered for every writable set (one that implements
   [`create`](using_create_update_and_delete.md)). Its input schema is built from the entity type's
   properties; non-nullable properties become `required`.

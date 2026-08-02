@@ -39,7 +39,22 @@ class CountMcpSearchableSet < OdataDuty::EntitySet
     @records = @records.select { |r| r.public_send(property_name) == value }
   end
 
-  def od_search(_expression)
+  def od_search(expression)
+    terms = expression.terms.map(&:to_s)
+    @records = @records.select { |r| terms.any? { |t| r.name.include?(t) } }
+  end
+end
+
+class CountMcpNoCountSet < OdataDuty::EntitySet
+  entity_type CountMcpWidgetEntity
+  name 'NoCount'
+  url 'NoCount'
+
+  def od_after_init
+    @records = CountMcpWidget.all
+  end
+
+  def collection
     @records
   end
 end
@@ -74,7 +89,7 @@ end
 
 class CountMcpSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
-  entity_sets [CountMcpSearchableSet, CountMcpPlainSet, CountMcpWriteOnlySet]
+  entity_sets [CountMcpSearchableSet, CountMcpNoCountSet, CountMcpPlainSet, CountMcpWriteOnlySet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'MCP count tool' do
@@ -123,6 +138,12 @@ RSpec.describe OdataDuty::EntitySet, 'MCP count tool' do
     it 'does not expose a count tool for a set that only implements create' do
       expect(tools.map { |t| t['name'] }).not_to include('count_WriteOnly')
     end
+
+    it 'does not expose a count tool for a set that implements collection but not count' do
+      tool_names = tools.map { |t| t['name'] }
+      expect(tool_names).to include('list_NoCount')
+      expect(tool_names).not_to include('count_NoCount')
+    end
   end
 
   describe 'tools/call for count' do
@@ -146,12 +167,20 @@ RSpec.describe OdataDuty::EntitySet, 'MCP count tool' do
       expect(result['content'][0]['text']).to eq('1')
     end
 
-    it 'returns a count without error when $search is supplied' do
+    it 'narrows the count with $search' do
       request_payload['params']['arguments'] = { '$search' => 'First' }
       result = call(request_payload)['result']
 
       expect(result['isError']).to be(false)
-      expect(result['content'][0]['text']).to eq('3')
+      expect(result['content'][0]['text']).to eq('1')
+    end
+
+    it 'surfaces a malformed $search as a tool error' do
+      request_payload['params']['arguments'] = { '$search' => 'apple AND orange OR peach' }
+      result = call(request_payload)['result']
+
+      expect(result['isError']).to be(true)
+      expect(result['content'][0]['text']).to match(%r{Mixed AND/OR operators are not supported})
     end
   end
 end

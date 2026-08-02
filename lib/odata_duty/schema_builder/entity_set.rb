@@ -38,6 +38,11 @@ module OdataDuty
         resolver_class.method_defined?(:individual)
       end
 
+      def supports_count?
+        # Check if the resolver class supports counting via the count method
+        resolver_class.method_defined?(:count)
+      end
+
       def supports_create?
         # Check if the resolver class supports create by looking for the create method
         resolver_class.method_defined?(:create)

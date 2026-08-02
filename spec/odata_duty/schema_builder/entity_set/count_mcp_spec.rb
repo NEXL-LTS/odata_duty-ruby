@@ -30,7 +30,18 @@ class CountMcpSearchableResolver < OdataDuty::SetResolver
     @records = @records.select { |r| r.public_send(property_name) == value }
   end
 
-  def od_search(_expression)
+  def od_search(expression)
+    terms = expression.terms.map(&:to_s)
+    @records = @records.select { |r| terms.any? { |t| r.name.include?(t) } }
+  end
+end
+
+class CountMcpNoCountResolver < OdataDuty::SetResolver
+  def od_after_init
+    @records = CountMcpBuilderRecord.all
+  end
+
+  def collection
     @records
   end
 end
@@ -66,6 +77,8 @@ module OdataDuty
 
         s.add_entity_set(name: 'People', entity_type: entity,
                          resolver: 'CountMcpSearchableResolver')
+        s.add_entity_set(name: 'NoCount', entity_type: entity,
+                         resolver: 'CountMcpNoCountResolver')
         s.add_entity_set(name: 'Plains', entity_type: entity,
                          resolver: 'CountMcpPlainResolver')
         s.add_entity_set(name: 'WriteOnly', entity_type: entity,
@@ -118,6 +131,12 @@ module OdataDuty
       it 'does not expose a count tool for a set that only implements create' do
         expect(tools.map { |t| t['name'] }).not_to include('count_WriteOnly')
       end
+
+      it 'does not expose a count tool for a set that implements collection but not count' do
+        tool_names = tools.map { |t| t['name'] }
+        expect(tool_names).to include('list_NoCount')
+        expect(tool_names).not_to include('count_NoCount')
+      end
     end
 
     describe 'tools/call for count' do
@@ -141,12 +160,20 @@ module OdataDuty
         expect(result['content'][0]['text']).to eq('1')
       end
 
-      it 'returns a count without error when $search is supplied' do
+      it 'narrows the count with $search' do
         request_payload['params']['arguments'] = { '$search' => 'First' }
         result = call(request_payload)['result']
 
         expect(result['isError']).to be(false)
-        expect(result['content'][0]['text']).to eq('3')
+        expect(result['content'][0]['text']).to eq('1')
+      end
+
+      it 'surfaces a malformed $search as a tool error' do
+        request_payload['params']['arguments'] = { '$search' => 'apple AND orange OR peach' }
+        result = call(request_payload)['result']
+
+        expect(result['isError']).to be(true)
+        expect(result['content'][0]['text']).to match(%r{Mixed AND/OR operators are not supported})
       end
     end
   end

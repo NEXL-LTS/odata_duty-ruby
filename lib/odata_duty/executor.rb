@@ -39,6 +39,7 @@ module OdataDuty
       if url.include?('(')
         individual(set_builder, endpoint, wrapped_context, props)
       elsif url.include?('/$count')
+        apply_search(set_builder, query_options['$search'])
         set_builder.count
       else
         collection(set_builder, endpoint, wrapped_context, query_options, props)

@@ -137,6 +137,11 @@ module OdataDuty
         entity_set.method_defined?(:individual)
       end
 
+      def supports_count?
+        # Check if the entity set class supports counting via the count method
+        entity_set.method_defined?(:count)
+      end
+
       def supports_create?
         # Check if the entity set class supports create by looking for the create method
         entity_set.method_defined?(:create)

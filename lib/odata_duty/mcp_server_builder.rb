@@ -25,7 +25,7 @@ module OdataDuty
 
     def register_collection_tools(server, schema, endpoint)
       register_list_tool(server, schema, endpoint)
-      register_count_tool(server, schema, endpoint)
+      register_count_tool(server, schema, endpoint) if endpoint.supports_count?
     end
 
     def register_update_tool(server, schema, endpoint)
