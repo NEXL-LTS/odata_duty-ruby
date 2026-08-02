@@ -34,6 +34,14 @@ Layout/LineLength:
 Style/AccessorGrouping:
   Enabled: false
 
+# `extend self` keeps module methods as single, mutation-testable definitions;
+# `module_function` creates a private-instance/singleton pair that mutant cannot cover.
+# Only enforced for lib/ (mutation-tested); spec helper modules may use either.
+Style/ModuleFunction:
+  EnforcedStyle: extend_self
+  Exclude:
+    - 'spec/**/*'
+
 Lint/ConstantDefinitionInBlock:
   Enabled: false
 
