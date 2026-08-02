@@ -1,9 +1,10 @@
 # Using MCP with OdataDuty
 
 OdataDuty turns the schema you already defined for OData into a [Model Context
-Protocol](mcp_crash_course.md) (MCP) server, so AI agents can search, read, and create your
+Protocol](mcp_crash_course.md) (MCP) server, so AI agents can list, read, search, and write your
 entities through the same data methods that power your REST endpoints. You define the schema once;
-the MCP tools and resources are derived from it automatically.
+the MCP tools are derived from it automatically. The server is **tools-only** — reads are exposed
+as model-invokable tools, not MCP resources.
 
 The MCP layer is built on the official [`mcp` Ruby SDK](https://ruby.sdk.modelcontextprotocol.io/),
 which handles the JSON-RPC plumbing — lifecycle, protocol-version negotiation, capability
@@ -94,7 +95,7 @@ end
 post '/mcp' => 'mcp#create'
 ```
 
-`server_context[:context]` is read back inside every tool and resource handler and forwarded into
+`server_context[:context]` is read back inside every tool handler and forwarded into
 the normal OData execution path — it's the same `context:` you pass to `schema.execute` in your REST
 controller.
 
@@ -113,33 +114,45 @@ npx @modelcontextprotocol/inspector@0.15.0 -e PORT=9292 bundle exec rackup spec/
 
 ## What the schema produces
 
-`to_mcp_server` derives the MCP surface from your schema — you do not register tools or resources
-by hand.
+`to_mcp_server` derives the MCP tool surface from your schema — you do not register tools by hand.
+The server is tools-only; it advertises no MCP resources.
 
 ### Tools
 
-- **`search_<Set>`** — registered for every entity set whose resolver/set defines
-  [`od_search`](using_search.md). Its input schema requires a single `$search` string. Calling it
-  runs the same `$search` execution as the OData endpoint and returns the collection JSON.
+Reads are exposed as tools (inferred from the read data methods), so an agent can complete a full
+loop through tools alone: `list_<Set>` to find records, then `get_/update_/delete_<Set>` by a
+discovered key.
+
+- **`list_<Set>`** — registered for every set that implements `collection`. Its input schema is
+  all-optional (`required: []`): `$filter`, `$select`, `$top` (integer), `$skip` (integer), and —
+  only when the set defines [`od_search`](using_search.md) — `$search`. Calling it runs the same
+  execution as `GET /<Set>` and returns the collection JSON.
+- **`get_<Set>`** — registered for every set that implements `individual`. Its input schema is the
+  entity key property (`required`) plus an optional `$select`. Calling it returns the individual
+  JSON (same shape as `GET /<Set>('1')`). A not-found or uncoercible key is returned as a
+  tool-error result (`isError: true`).
+- **`count_<Set>`** — registered for every set that implements `count`. Its input schema is
+  all-optional (`required: []`): `$filter`, and — only when the set defines `od_search` — `$search`.
+  Both narrow the count (as they do for the OData `/$count` endpoint); it returns the count as text
+  (e.g. `"42"`).
 - **`create_<Set>`** — registered for every writable set (one that implements
-  [`create`](using_create_update_and_delete.md)). Its input schema is built from the entity type's properties;
-  non-nullable properties become `required`.
+  [`create`](using_create_update_and_delete.md)). Its input schema is built from the entity type's
+  properties; non-nullable properties become `required`.
+- **`update_<Set>` / `delete_<Set>`** — registered for sets that implement `update` / `delete` — see
+  [`using_create_update_and_delete.md`](using_create_update_and_delete.md).
 
 `tools/list` returns these with their derived names, descriptions, and input schemas. A successful
-`tools/call` returns the OData JSON inside a text content block
-(`result.content[0].text`).
+`tools/call` returns the result inside a text content block (`result.content[0].text`) — the
+collection/individual JSON for `list_`/`get_`, the numeric count as text for `count_`.
 
-### Resources and resource templates
+### No MCP resources (tools-only)
 
-Per entity set, the server registers:
-
-- an **individual-by-id** template — `<url>('{id}')`,
-- a **paginated-collection** template — `<url>?$top={top}&$skip={skip}`, and
-- a **`<url>/$count`** resource (`text/plain`).
-
-`resources/read` parses the requested URI, runs it through the same OData execution path, and
-returns the result as the resource `text`. The `mimeType` matches what `resources/list` advertised:
-`text/plain` for `/$count`, `application/json` otherwise.
+The server is tools-only: it does **not** register MCP resources or resource templates, and its
+`initialize` capabilities advertise only `{"tools":{}}`. Reads that were previously served as
+resources (individual-by-id, paginated collection, `/$count`) are now served by the `list_<Set>`,
+`get_<Set>`, and `count_<Set>` tools above. Because the `resources` capability is no longer
+advertised, the SDK rejects `resources/list`, `resources/templates/list`, and `resources/read` with
+a JSON-RPC error.
 
 ## Protocol-version negotiation
 
@@ -160,7 +173,7 @@ Response:
 ```json
 {"jsonrpc":"2.0","id":1,"result":{
   "protocolVersion":"2025-06-18",
-  "capabilities":{"tools":{},"resources":{}},
+  "capabilities":{"tools":{}},
   "serverInfo":{"name":"Test OData API","version":"1.0.0"}}}
 ```
 
@@ -170,10 +183,11 @@ The server returns spec-compliant JSON-RPC error objects instead of crashing the
 HTTP 500:
 
 - **Unknown method** → JSON-RPC `-32601` (method not found).
-- **Unknown tool, a `search_` on a non-searchable set, or a `create_` on a read-only set** →
+- **Unknown tool, or a `create_`/`update_`/`delete_` on a set lacking that capability** →
   JSON-RPC `-32602` (invalid params) — such tools are simply not registered.
-- **OData-level errors during a tool call** (e.g. a `$search` parse error, an
-  `InvalidQueryOptionError`) → returned as a tool-error result (`isError: true`) whose content
-  carries the error message, rather than crashing the transport.
-- **OData-level errors during a resource read** (e.g. `ResourceNotFoundError`) → surfaced through
-  the `resources/read` response as `text/plain` text rather than crashing.
+- **`resources/list`, `resources/templates/list`, or `resources/read`** → rejected with a JSON-RPC
+  error: the server is tools-only and no longer advertises the `resources` capability.
+- **OData-level errors during a `list_`/`get_`/`count_`/`create_`/... tool call** (e.g. a `$search`
+  parse error, an `InvalidQueryOptionError`, or a `ResourceNotFoundError` for a missing `get_` key)
+  → returned as a tool-error result (`isError: true`) whose content carries the error message,
+  rather than crashing the transport.

@@ -14,23 +14,11 @@ matcher:
   # Mutation-testing debt ratchet (like .rubocop_todo.yml): subjects below had surviving
   # mutations when CI was made blocking. When you touch one, delete its entry and kill the
   # survivors (see spec/using_mutant.md). Never add entries.
+  #
+  # The three MCP entries below are NOT debt: each has only equivalent mutants at the MCP SDK
+  # boundary that no public-API test can distinguish (a required key/context is always present, and
+  # an OdataDuty::Error renders identically to its message). See the comment on each method.
   ignore:
-    - "OdataDuty::McpInputSchemas#create_input_schema"
-    - "OdataDuty::McpInputSchemas#delete_input_schema"
-    - "OdataDuty::McpInputSchemas#search_input_schema"
-    - "OdataDuty::McpInputSchemas#update_input_schema"
-    - "OdataDuty::McpServerBuilder#build"
-    - "OdataDuty::McpServerBuilder#count_resource"
-    - "OdataDuty::McpServerBuilder#define_tool"
-    - "OdataDuty::McpServerBuilder#direct_resources"
-    - "OdataDuty::McpServerBuilder#read_resource"
-    - "OdataDuty::McpServerBuilder#register_create_tool"
-    - "OdataDuty::McpServerBuilder#register_delete_tool"
-    - "OdataDuty::McpServerBuilder#register_endpoint_tools"
-    - "OdataDuty::McpServerBuilder#register_key_tool"
-    - "OdataDuty::McpServerBuilder#register_resources_read"
-    - "OdataDuty::McpServerBuilder#register_search_tool"
-    - "OdataDuty::McpServerBuilder#register_update_tool"
-    - "OdataDuty::McpServerBuilder#resource_templates"
-    - "OdataDuty::McpServerBuilder#run_tool"
-    - "OdataDuty::McpServerBuilder#templates_for_endpoint"
+    - "OdataDuty::McpServerBuilder#keyed_url_for"   # args[key] vs args.fetch(key)
+    - "OdataDuty::McpServerBuilder#define_tool"     # server_context[:context] vs .fetch/.dig
+    - "OdataDuty::McpServerBuilder#run_tool"        # e.message vs e

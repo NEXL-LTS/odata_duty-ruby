@@ -516,39 +516,31 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         { 'jsonrpc' => '2.0', 'method' => 'tools/list', 'params' => {}, 'id' => 'tools-list-1' }
       end
 
-      it 'returns search tools for entity sets that support search' do
-        tools = call(request_payload)['result']['tools']
-
-        expect(tools).to include(
-          {
-            'name' => 'search_SupportsCollectionSearch',
-            'description' =>
-            'Search SupportsCollectionSearch using expressions with AND, OR, NOT operators',
-            'inputSchema' => {
-              '$schema' => 'https://json-schema.org/draft/2020-12/schema',
-              'type' => 'object',
-              'properties' => {
-                '$search' => {
-                  'type' => 'string',
-                  'description' => 'Search query using expressions with AND, OR, NOT operators'
-                }
-              },
-              'required' => ['$search']
-            }
-          }
-        )
+      def tool_named(name)
+        call(request_payload)['result']['tools'].find { |tool| tool['name'] == name }
       end
 
-      it 'does not return search tools for entity sets that do not support search' do
+      it 'exposes $search through the list tool for entity sets that support search' do
+        properties = tool_named('list_SupportsCollectionSearch')['inputSchema']['properties']
+        expect(properties).to include('$search')
+      end
+
+      it 'omits $search from the list tool for entity sets that do not support search' do
+        properties = tool_named('list_SearchlessCollection')['inputSchema']['properties']
+        expect(properties).not_to include('$search')
+      end
+
+      it 'no longer advertises a standalone search tool' do
         tool_names = call(request_payload)['result']['tools'].map { |tool| tool['name'] }
+        expect(tool_names).not_to include('search_SupportsCollectionSearch')
         expect(tool_names).not_to include('search_SearchlessCollection')
       end
     end
 
-    describe 'tools/call for search' do
+    describe 'tools/call list with $search' do
       let(:request_payload) do
         { 'jsonrpc' => '2.0', 'method' => 'tools/call',
-          'params' => { 'name' => 'search_SupportsCollectionSearch',
+          'params' => { 'name' => 'list_SupportsCollectionSearch',
                         'arguments' => { '$search' => 'Doe' } },
           'id' => 'tools-call-1' }
       end
@@ -557,7 +549,7 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         Oj.load(call(payload)['result']['content'][0]['text'])
       end
 
-      it 'executes search on entity set that supports search' do
+      it 'executes search through the list tool' do
         result = call(request_payload)['result']
         response = Oj.load(result['content'][0]['text'])
 
@@ -577,8 +569,8 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         expect(names).to contain_exactly('John Doe', 'Jane Smith')
       end
 
-      it 'returns a tool-not-found error for a search tool on a non-searchable set' do
-        request_payload['params']['name'] = 'search_SearchlessCollection'
+      it 'returns a tool-not-found error for the removed search tool' do
+        request_payload['params']['name'] = 'search_SupportsCollectionSearch'
 
         error = call(request_payload)['error']
         expect(error['code']).to eq(-32_602)

@@ -174,7 +174,7 @@ module OdataDuty
       end
 
       describe 'initialize' do
-        let(:server_caps) { { 'tools' => {}, 'resources' => {} } }
+        let(:server_caps) { { 'tools' => {} } }
 
         let(:request_payload) do
           {
@@ -243,142 +243,11 @@ module OdataDuty
 
       describe 'resources/list' do
         let(:request_payload) do
-          {
-            'jsonrpc' => '2.0',
-            'method' => 'resources/list',
-            'params' => {},
-            'id' => 'req-5'
-          }
+          { 'jsonrpc' => '2.0', 'method' => 'resources/list', 'params' => {}, 'id' => 'req-5' }
         end
 
-        let(:expected) do
-          {
-            'jsonrpc' => '2.0',
-            'id' => 'req-5',
-            'result' => {
-              'resources' => [
-                {
-                  'uri' => 'People/$count',
-                  'name' => 'People Count',
-                  'description' => 'Get a count of People records',
-                  'mimeType' => 'text/plain'
-                }
-              ]
-            }
-          }
-        end
-
-        it 'returns direct resources' do
-          actual = call(request_payload)
-          actual_indexed = actual['result']['resources'].to_h { |r| [r['uri'], r] }
-          expected_indexed = expected['result']['resources'].to_h { |r| [r['uri'], r] }
-          expect(actual_indexed.keys).to match_array(expected_indexed.keys)
-          actual_indexed.each_key do |key|
-            expect(actual_indexed[key]).to eq(expected_indexed[key])
-          end
-        end
-      end
-
-      describe 'resources/templates/list' do
-        let(:request_payload) do
-          {
-            'jsonrpc' => '2.0',
-            'method' => 'resources/templates/list',
-            'params' => {},
-            'id' => 'req-5'
-          }
-        end
-
-        let(:expected) do
-          {
-            'jsonrpc' => '2.0',
-            'id' => 'req-5',
-            'result' => {
-              'resourceTemplates' => [
-                {
-                  'uriTemplate' => 'People(\'{id}\')',
-                  'name' => 'Person',
-                  'description' => 'Retrieve a specific Person record by ID',
-                  'mimeType' => 'application/json'
-                },
-                {
-                  'uriTemplate' => 'People?$top={top}&$skip={skip}',
-                  'name' => 'Paginated People Collection',
-                  'description' => 'Retrieve paginated People records',
-                  'mimeType' => 'application/json'
-                }
-              ]
-            }
-          }
-        end
-
-        it 'returns resource templates' do
-          actual = call(request_payload)
-
-          actual_indexed = actual['result']['resourceTemplates'].to_h { |r| [r['uriTemplate'], r] }
-          expected_indexed = expected['result']['resourceTemplates'].to_h do |r|
-            [r['uriTemplate'], r]
-          end
-          expect(actual_indexed.keys).to match_array(expected_indexed.keys)
-          actual_indexed.each_key do |key|
-            expect(actual_indexed[key]).to eq(expected_indexed[key])
-          end
-        end
-      end
-
-      describe 'resources/read' do
-        let(:request_payload) do
-          {
-            'jsonrpc' => '2.0',
-            'method' => 'resources/read',
-            'params' => { 'uri' => "People('1')" },
-            'id' => 'req-6'
-          }
-        end
-
-        let(:expected_response) do
-          {
-            'jsonrpc' => '2.0',
-            'id' => 'req-6',
-            'result' => {
-              'contents' => [
-                {
-                  'uri' => "People('1')",
-                  'mimeType' => 'application/json',
-                  'text' => Oj.dump(
-                    'id' => '1',
-                    'user_name' => 'user1',
-                    'name' => 'User',
-                    'emails' => ['user@email.com'],
-                    'address_info' => [
-                      {
-                        'address' => 'address',
-                        'city' => {
-                          'country_region' => 'country',
-                          'name' => 'name',
-                          'region' => 'region'
-                        }
-                      }
-                    ],
-                    'gender' => 'Male',
-                    'concurrency' => 11,
-                    '@odata.id' => 'http://localhost/People(\'1\')',
-                    '@odata.context' => 'http://localhost/$metadata#People/$entity'
-                  )
-                }
-              ]
-            }
-          }
-        end
-
-        it 'retrieves a specific resource successfully' do
-          actual_response = call(request_payload)
-          expect(actual_response.keys).to match_array(expected_response.keys)
-          actual_contents = actual_response['result']['contents'][0]
-          expected_contents = expected_response['result']['contents'][0]
-          expect(actual_contents.keys).to match_array(expected_contents.keys)
-          expect(Oj.load(actual_contents['text'])).to eq(Oj.load(expected_contents['text']))
-          expect(actual_contents).to eq(expected_contents)
+        it 'is no longer supported now that the server is tools-only' do
+          expect(call(request_payload)['error']).not_to be_nil
         end
       end
     end

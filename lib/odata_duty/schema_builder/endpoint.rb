@@ -55,6 +55,18 @@ module OdataDuty
         entity_set.supports_search?
       end
 
+      def supports_collection?
+        entity_set.supports_collection?
+      end
+
+      def supports_individual?
+        entity_set.supports_individual?
+      end
+
+      def supports_count?
+        entity_set.supports_count?
+      end
+
       def update(id, context:)
         wrapper = CreateComplexTypeHashWrapper.new(context.query_options, entity_type,
                                                    operation: :update, context: context)

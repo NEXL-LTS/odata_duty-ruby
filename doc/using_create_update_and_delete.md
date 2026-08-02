@@ -433,6 +433,10 @@ A `tools/call` for `create_<Set>` creates the record, a `tools/call` for `update
 
 A read-only set advertises none of these tools, so calling one raises an "Unknown tool" error (see below).
 
+Because reads are also exposed as tools, an agent can complete a full read→act loop through MCP
+alone: call `list_<Set>` to discover records, pick a key, then call `get_<Set>` / `update_<Set>` /
+`delete_<Set>` by that key. See [`using_mcp.md`](using_mcp.md) for the read tools.
+
 ## Common Error Cases
 
 - **`POST` to a set without `create` / `PATCH` to a set without `update` / `DELETE` to a set without `delete`:**
