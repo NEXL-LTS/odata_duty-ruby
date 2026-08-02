@@ -40,8 +40,8 @@ class CountMcpSearchableSet < OdataDuty::EntitySet
   end
 
   def od_search(expression)
-    terms = expression.terms.map(&:to_s)
-    @records = @records.select { |r| terms.any? { |t| r.name.include?(t) } }
+    pattern = Regexp.union(expression.terms.map(&:to_s))
+    @records = @records.select { |r| r.name.match?(pattern) }
   end
 end
 
