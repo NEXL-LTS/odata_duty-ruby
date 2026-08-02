@@ -109,7 +109,7 @@ tooling limitation, flagged to the user at the end rather than papered over.
 
 ## Task 5 — Remove the `search_<Set>` tool
 
-- [ ] **Text:** Remove the standalone `search_<Set>` tool and `McpInputSchemas.search_input_schema`;
+- [x] **Text:** Remove the standalone `search_<Set>` tool and `McpInputSchemas.search_input_schema`;
   `$search` now lives on `list_/count_<Set>`. `search_<Set>` must no longer appear in any
   `tools/list`, and a `tools/call` for `search_<Set>` returns `Unknown tool` (`-32602`). Update the
   MCP sections of both `spec/odata_duty/entity_set/search_spec.rb` and

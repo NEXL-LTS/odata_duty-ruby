@@ -2,15 +2,6 @@ module OdataDuty
   module McpInputSchemas
     module_function
 
-    def search_input_schema
-      { 'type' => 'object',
-        'properties' => { '$search' => {
-          'type' => 'string',
-          'description' => 'Search query using expressions with AND, OR, NOT operators'
-        } },
-        'required' => ['$search'] }
-    end
-
     def count_input_schema(supports_search:)
       properties = { '$filter' => { 'type' => 'string' } }
       properties['$search'] = { 'type' => 'string' } if supports_search

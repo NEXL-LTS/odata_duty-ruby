@@ -74,17 +74,30 @@ RSpec.describe OdataDuty::Schema, 'to_mcp_server' do
   end
 
   describe 'tools/list' do
-    let(:tool_names) do
+    let(:tools) do
       request = { 'jsonrpc' => '2.0', 'method' => 'tools/list', 'params' => {}, 'id' => 't-1' }
-      call(request)['result']['tools'].map { |t| t['name'] }
+      call(request)['result']['tools']
+    end
+    let(:tool_names) { tools.map { |t| t['name'] } }
+
+    def properties_for(name)
+      tools.find { |t| t['name'] == name }['inputSchema']['properties']
     end
 
-    it 'exposes a search tool for a set whose resolver defines od_search' do
-      expect(tool_names).to include('search_Searchables')
+    it 'exposes list and count tools for a set whose resolver defines collection' do
+      expect(tool_names).to include('list_Searchables', 'count_Searchables')
     end
 
-    it 'does not expose a search tool for a set without od_search' do
-      expect(tool_names).not_to include('search_Plains')
+    it 'no longer exposes a standalone search tool' do
+      expect(tool_names).not_to include('search_Searchables')
+    end
+
+    it 'includes $search in the list tool for a set whose resolver defines od_search' do
+      expect(properties_for('list_Searchables')).to include('$search')
+    end
+
+    it 'omits $search from the list tool for a set without od_search' do
+      expect(properties_for('list_Plains')).not_to include('$search')
     end
   end
 

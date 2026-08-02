@@ -18,7 +18,6 @@ module OdataDuty
     def register_endpoint_tools(server, schema, endpoint)
       register_collection_tools(server, schema, endpoint) if endpoint.supports_collection?
       register_get_tool(server, schema, endpoint) if endpoint.supports_individual?
-      register_search_tool(server, schema, endpoint) if endpoint.supports_search?
       register_create_tool(server, schema, endpoint) if endpoint.supports_create?
       register_update_tool(server, schema, endpoint) if endpoint.supports_update?
       register_delete_tool(server, schema, endpoint) if endpoint.supports_delete?
@@ -50,13 +49,6 @@ module OdataDuty
                   url_for: ->(_args) { "#{endpoint.url}/$count" },
                   name: "count_#{endpoint.name}",
                   description: "Count #{endpoint.name} records", input_schema: input_schema)
-    end
-
-    def register_search_tool(server, schema, endpoint)
-      description = "Search #{endpoint.name} using expressions with AND, OR, NOT operators"
-      define_tool(server, schema, endpoint, :execute,
-                  name: "search_#{endpoint.name}", description: description,
-                  input_schema: McpInputSchemas.search_input_schema)
     end
 
     def register_create_tool(server, schema, endpoint)

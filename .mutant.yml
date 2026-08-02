@@ -17,7 +17,6 @@ matcher:
   ignore:
     - "OdataDuty::McpInputSchemas#create_input_schema"
     - "OdataDuty::McpInputSchemas#delete_input_schema"
-    - "OdataDuty::McpInputSchemas#search_input_schema"
     - "OdataDuty::McpInputSchemas#update_input_schema"
     - "OdataDuty::McpServerBuilder#build"
     - "OdataDuty::McpServerBuilder#define_tool"
@@ -25,6 +24,5 @@ matcher:
     - "OdataDuty::McpServerBuilder#register_delete_tool"
     - "OdataDuty::McpServerBuilder#register_endpoint_tools"
     - "OdataDuty::McpServerBuilder#register_key_tool"
-    - "OdataDuty::McpServerBuilder#register_search_tool"
     - "OdataDuty::McpServerBuilder#register_update_tool"
     - "OdataDuty::McpServerBuilder#run_tool"
