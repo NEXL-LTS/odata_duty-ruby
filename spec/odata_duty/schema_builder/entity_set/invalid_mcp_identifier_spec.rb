@@ -41,6 +41,25 @@ module OdataDuty
       )
     end
 
+    it 'raises for a later invalid property even when an earlier one is valid' do
+      schema = SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost',
+                                   base_path: '') do |s|
+        entity = s.add_entity_type(name: 'SecondPropertyEntity') do |et|
+          et.property_ref 'id', String
+          et.property 'ok', String
+          et.property '日本語', String
+        end
+        s.add_entity_set(name: 'People', entity_type: entity,
+                         resolver: 'InvalidMcpIdBuilderResolver')
+      end
+
+      expect { schema.to_mcp_server }.to raise_error(
+        OdataDuty::InvalidMcpIdentifierError,
+        'SecondPropertyEntity property "日本語" cannot be used as an MCP tool input key — ' \
+        'it must match /\A[a-zA-Z0-9_.-]{1,64}\z/ (create_People)'
+      )
+    end
+
     it 'raises InvalidMcpIdentifierError for an over-64-character property name' do
       long_name = "n#{'a' * 64}"
       schema = schema_with_property(name: 'LongPropertyEntity', property_name: long_name)

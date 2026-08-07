@@ -19,7 +19,7 @@ module OdataDuty
 
     def validate_properties!(endpoint, tool_name, input_schema)
       input_schema.fetch('properties').each_key do |key|
-        next if key.to_s.match?(PROPERTY_KEY_REGEXP)
+        next if key.match?(PROPERTY_KEY_REGEXP)
 
         raise InvalidMcpIdentifierError,
               "#{endpoint.entity_type.name} property \"#{key}\" cannot be used as an MCP tool " \

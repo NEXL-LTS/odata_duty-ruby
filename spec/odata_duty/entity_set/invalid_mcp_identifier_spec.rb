@@ -20,6 +20,27 @@ class InvalidMcpIdNonAsciiPropertySchema < OdataDuty::Schema
   entity_sets [InvalidMcpIdNonAsciiPropertySet]
 end
 
+class InvalidMcpIdSecondPropertyType < OdataDuty::EntityType
+  property_ref :id, Integer
+  property :ok, String
+  property :日本語, String
+end
+
+class InvalidMcpIdSecondPropertySet < OdataDuty::EntitySet
+  entity_type InvalidMcpIdSecondPropertyType
+  name 'People'
+  url 'People'
+
+  def create(params)
+    params
+  end
+end
+
+class InvalidMcpIdSecondPropertySchema < OdataDuty::Schema
+  base_url 'http://localhost:3000/api'
+  entity_sets [InvalidMcpIdSecondPropertySet]
+end
+
 LONG_MCP_PROPERTY_NAME = "n#{'a' * 64}".freeze
 
 class InvalidMcpIdLongPropertyType < OdataDuty::EntityType
@@ -166,6 +187,14 @@ RSpec.describe OdataDuty::Schema, 'to_mcp_server with an unsafe MCP identifier' 
       OdataDuty::InvalidMcpIdentifierError,
       'InvalidMcpIdNonAsciiPropertyType property "日本語" cannot be used as an MCP tool input ' \
       'key — it must match /\\A[a-zA-Z0-9_.-]{1,64}\\z/ (create_People)'
+    )
+  end
+
+  it 'raises for a later invalid property even when an earlier one is valid' do
+    expect { InvalidMcpIdSecondPropertySchema.to_mcp_server }.to raise_error(
+      OdataDuty::InvalidMcpIdentifierError,
+      'InvalidMcpIdSecondPropertyType property "日本語" cannot be used as an MCP tool input ' \
+      'key — it must match /\A[a-zA-Z0-9_.-]{1,64}\z/ (create_People)'
     )
   end
 
