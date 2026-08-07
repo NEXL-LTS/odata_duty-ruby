@@ -20,7 +20,7 @@ Short index of what's implemented; see the linked `doc/` guide for the full cont
 - **Property mutability** — `mutability: :immutable`/`:non_insertable`/`:computed` per property (create/update settability + `Core` annotations & `Capabilities.InsertRestrictions`; `$oas2` per-operation `<Entity>Create`/`<Entity>Update` request bodies) — `doc/using_mutability.md`.
 - **Init args** — pass per-request data into `od_after_init` — `doc/using_init_args.md`.
 - **Request context** — the `context` object in resolver hooks (delegation, `od_full_url`, `query_options`, `base_url`, `current`), plus `od_context`/`object` in class-DSL property methods — `doc/using_context.md`.
-- **MCP server** — tools-only over JSON-RPC; reads inferred as `list_/get_/count_<Set>` tools (`$search` on list/count), writes as `create_/update_/delete_<Set>`, no resources — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
+- **MCP server** — tools-only over JSON-RPC; reads inferred as `list_/get_/count_<Set>` tools, writes as `create_/update_/delete_<Set>`, no resources — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
 - **Rails generators** — `install` and `entity_set` — `doc/entity_set_generator.md`.
 
 ## Commands

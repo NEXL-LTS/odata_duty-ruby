@@ -135,7 +135,7 @@ is against those aliases).
 
 ## Task 3 — Documentation impact
 
-**Status:** - [ ]
+**Status:** - [x]
 
 **Full task text:** Extend `doc/using_mcp.md` per the PRD's Documentation impact section:
 update the "Tools" section's per-tool key lists for `list_<Set>`, `count_<Set>`,
