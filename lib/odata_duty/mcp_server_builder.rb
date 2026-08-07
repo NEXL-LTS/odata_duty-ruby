@@ -5,6 +5,10 @@ module OdataDuty
   module McpServerBuilder
     extend self
 
+    # Inverse of McpInputSchemas::QUERY_OPTION_ALIASES: translates a tool call's `odata_*`
+    # arguments back to their `$`-prefixed OData spelling before they reach Executor.
+    QUERY_OPTION_SPELLINGS = McpInputSchemas::QUERY_OPTION_ALIASES.invert.freeze
+
     def build(schema)
       server = MCP::Server.new(
         name: schema.title,
@@ -90,8 +94,12 @@ module OdataDuty
       server.define_tool(**tool_args) do |server_context:, **args|
         McpServerBuilder.run_tool(action, url: url_for.call(args), schema: schema,
                                           context: server_context[:context],
-                                          query_options: args.transform_keys(&:to_s))
+                                          query_options: McpServerBuilder.query_options_for(args))
       end
+    end
+
+    def query_options_for(args)
+      args.to_h { |key, value| [QUERY_OPTION_SPELLINGS.fetch(key.to_s, key.to_s), value] }
     end
 
     # On the .mutant.yml ignore list: `e.message` has only an equivalent mutant (`e`), since an

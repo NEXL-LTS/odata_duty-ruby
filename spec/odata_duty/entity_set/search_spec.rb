@@ -520,14 +520,14 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         call(request_payload)['result']['tools'].find { |tool| tool['name'] == name }
       end
 
-      it 'exposes $search through the list tool for entity sets that support search' do
+      it 'exposes odata_search through the list tool for entity sets that support search' do
         properties = tool_named('list_SupportsCollectionSearch')['inputSchema']['properties']
-        expect(properties).to include('$search')
+        expect(properties).to include('odata_search')
       end
 
-      it 'omits $search from the list tool for entity sets that do not support search' do
+      it 'omits odata_search from the list tool for entity sets that do not support search' do
         properties = tool_named('list_SearchlessCollection')['inputSchema']['properties']
-        expect(properties).not_to include('$search')
+        expect(properties).not_to include('odata_search')
       end
 
       it 'no longer advertises a standalone search tool' do
@@ -537,11 +537,11 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
       end
     end
 
-    describe 'tools/call list with $search' do
+    describe 'tools/call list with odata_search' do
       let(:request_payload) do
         { 'jsonrpc' => '2.0', 'method' => 'tools/call',
           'params' => { 'name' => 'list_SupportsCollectionSearch',
-                        'arguments' => { '$search' => 'Doe' } },
+                        'arguments' => { 'odata_search' => 'Doe' } },
           'id' => 'tools-call-1' }
       end
 
@@ -561,7 +561,7 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
       end
 
       it 'supports complex search expressions' do
-        request_payload['params']['arguments']['$search'] = 'Doe OR Jane'
+        request_payload['params']['arguments']['odata_search'] = 'Doe OR Jane'
         response = search_value(request_payload)
 
         expect(response['value'].length).to eq(2)
@@ -584,7 +584,7 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
       end
 
       it 'returns a tool-error result for search expression parsing errors' do
-        request_payload['params']['arguments']['$search'] = 'apple AND orange OR peach'
+        request_payload['params']['arguments']['odata_search'] = 'apple AND orange OR peach'
 
         result = call(request_payload)['result']
         expect(result['isError']).to be(true)

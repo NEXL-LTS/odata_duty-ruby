@@ -94,8 +94,8 @@ RSpec.describe OdataDuty::EntitySet, 'MCP get tool' do
       expect(get_tool['inputSchema']['required']).to eq(['id'])
       expect(get_tool['inputSchema']['properties']).to eq(
         'id' => { 'type' => 'string', 'readOnly' => true },
-        '$select' => { 'type' => 'string',
-                       'description' => 'Comma-separated properties to return' }
+        'odata_select' => { 'type' => 'string',
+                            'description' => 'Comma-separated properties to return' }
       )
     end
 
@@ -119,8 +119,8 @@ RSpec.describe OdataDuty::EntitySet, 'MCP get tool' do
       expect(body['name']).to eq('First')
     end
 
-    it 'projects only the selected properties when $select is given' do
-      request_payload['params']['arguments']['$select'] = 'name'
+    it 'projects only the selected properties when odata_select is given' do
+      request_payload['params']['arguments']['odata_select'] = 'name'
       body = Oj.load(call(request_payload)['result']['content'][0]['text'])
 
       expect(body).to include('name' => 'First')

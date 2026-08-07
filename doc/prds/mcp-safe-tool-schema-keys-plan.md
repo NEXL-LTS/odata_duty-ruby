@@ -14,7 +14,7 @@ MCP specs are already duplicated file-for-file across `spec/odata_duty/entity_se
 
 ## Task 1 — Rename the five query-option MCP keys to `odata_*` aliases (Half 1)
 
-**Status:** - [ ]
+**Status:** - [x]
 
 **Full task text:** Add a single shared mapping between the OData system-query-option
 spelling (`$filter`, `$select`, `$search`, `$top`, `$skip`) and its Anthropic-safe MCP alias
