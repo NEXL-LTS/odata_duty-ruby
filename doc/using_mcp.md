@@ -124,22 +124,30 @@ loop through tools alone: `list_<Set>` to find records, then `get_/update_/delet
 discovered key.
 
 - **`list_<Set>`** — registered for every set that implements `collection`. Its input schema is
-  all-optional (`required: []`): `$filter`, `$select`, `$top` (integer), `$skip` (integer), and —
-  only when the set defines [`od_search`](using_search.md) — `$search`. Calling it runs the same
-  execution as `GET /<Set>` and returns the collection JSON.
+  all-optional (`required: []`): `odata_filter`, `odata_select`, `odata_top` (integer),
+  `odata_skip` (integer), and — only when the set defines [`od_search`](using_search.md) —
+  `odata_search`. Calling it runs the same execution as `GET /<Set>` and returns the collection
+  JSON.
 - **`get_<Set>`** — registered for every set that implements `individual`. Its input schema is the
-  entity key property (`required`) plus an optional `$select`. Calling it returns the individual
-  JSON (same shape as `GET /<Set>('1')`). A not-found or uncoercible key is returned as a
-  tool-error result (`isError: true`).
+  entity key property (`required`) plus an optional `odata_select`. Calling it returns the
+  individual JSON (same shape as `GET /<Set>('1')`). A not-found or uncoercible key is returned as
+  a tool-error result (`isError: true`).
 - **`count_<Set>`** — registered for every set that implements `count`. Its input schema is
-  all-optional (`required: []`): `$filter`, and — only when the set defines `od_search` — `$search`.
-  Both narrow the count (as they do for the OData `/$count` endpoint); it returns the count as text
-  (e.g. `"42"`).
+  all-optional (`required: []`): `odata_filter`, and — only when the set defines `od_search` —
+  `odata_search`. Both narrow the count (as they do for the OData `/$count` endpoint); it returns
+  the count as text (e.g. `"42"`).
 - **`create_<Set>`** — registered for every writable set (one that implements
   [`create`](using_create_update_and_delete.md)). Its input schema is built from the entity type's
   properties; non-nullable properties become `required`.
 - **`update_<Set>` / `delete_<Set>`** — registered for sets that implement `update` / `delete` — see
   [`using_create_update_and_delete.md`](using_create_update_and_delete.md).
+
+The five `odata_*` keys above (`odata_filter`/`odata_select`/`odata_search`/`odata_top`/
+`odata_skip`) exist because `$`-prefixed OData query option names are not valid Anthropic
+tool-schema property keys. Each is translated back to its `$`-prefixed OData spelling before
+reaching `Executor`, so calling `list_People` with `{"odata_filter": "name eq 'Alice'"}` runs the
+exact same round trip as `GET /People?$filter=name eq 'Alice'`. Every other argument (record keys,
+create/update property values) passes through unchanged.
 
 `tools/list` returns these with their derived names, descriptions, and input schemas. A successful
 `tools/call` returns the result inside a text content block (`result.content[0].text`) — the
@@ -191,3 +199,16 @@ HTTP 500:
   parse error, an `InvalidQueryOptionError`, or a `ResourceNotFoundError` for a missing `get_` key)
   → returned as a tool-error result (`isError: true`) whose content carries the error message,
   rather than crashing the transport.
+- **`OdataDuty::InvalidMcpIdentifierError`** → raised by `to_mcp_server` itself (before a server
+  is returned), when the Anthropic Messages API's identifier constraints would be violated:
+  either an entity property name reaching a tool's input schema is over 64 characters or
+  outside its allowed character set (e.g. non-ASCII), or an entity-set name pushes a generated
+  tool name (e.g. `list_<Set>`) over 64 characters or outside its allowed character set. For
+  example, a `PersonType` with a
+  `日本語` property raises:
+
+  ```
+  OdataDuty::InvalidMcpIdentifierError:
+  PersonType property "日本語" cannot be used as an MCP tool input key —
+  it must match /\A[a-zA-Z0-9_.-]{1,64}\z/ (create_People)
+  ```

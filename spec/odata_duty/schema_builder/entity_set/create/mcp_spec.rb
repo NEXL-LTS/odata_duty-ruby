@@ -9,6 +9,12 @@ end
 class CreateMcpPersonResolver < OdataDuty::SetResolver
 end
 
+class CreateMcpReservedKeyNamedResolver < OdataDuty::SetResolver
+  def create(params)
+    Struct.new(:id, :odata_select).new('r1', params.odata_select)
+  end
+end
+
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'MCP create tool' do
     subject(:schema) do
@@ -24,6 +30,13 @@ module OdataDuty
                          resolver: 'CreateMcpWidgetResolver')
         s.add_entity_set(name: 'People', entity_type: entity,
                          resolver: 'CreateMcpPersonResolver')
+
+        reserved_key_entity = s.add_entity_type(name: 'CreateMcpReservedKeyNamedEntity') do |et|
+          et.property_ref 'id', String
+          et.property 'odata_select', String
+        end
+        s.add_entity_set(name: 'ReservedKeyNamed', entity_type: reserved_key_entity,
+                         resolver: 'CreateMcpReservedKeyNamedResolver')
       end
     end
 
@@ -91,6 +104,17 @@ module OdataDuty
         request_payload['params']['name'] = 'search_Unknown'
 
         expect(call(request_payload)['error']['code']).to eq(-32_602)
+      end
+
+      it 'passes a property literally named like a reserved odata_* key through unchanged' do
+        request_payload['params']['name'] = 'create_ReservedKeyNamed'
+        request_payload['params']['arguments'] = { 'odata_select' => 'Gadget' }
+
+        result = call(request_payload)['result']
+        record = Oj.load(result['content'][0]['text'])
+
+        expect(result['isError']).to be(false)
+        expect(record).to include('odata_select' => 'Gadget')
       end
     end
   end

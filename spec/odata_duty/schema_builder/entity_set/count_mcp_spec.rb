@@ -114,17 +114,18 @@ module OdataDuty
         expect(count_tool['inputSchema']['type']).to eq('object')
         expect(count_tool['inputSchema']['required']).to eq([])
         expect(count_tool['inputSchema']['properties']).to eq(
-          '$filter' => { 'type' => 'string' },
-          '$search' => { 'type' => 'string' }
+          'odata_filter' => { 'type' => 'string' },
+          'odata_search' => { 'type' => 'string' }
         )
       end
 
-      it 'omits $search from the input schema when the resolver does not define od_search' do
+      it 'omits odata_search from the input schema when the resolver does not define ' \
+         'od_search' do
         count_tool = tool('count_Plains')
 
-        expect(count_tool['inputSchema']['properties']).not_to have_key('$search')
+        expect(count_tool['inputSchema']['properties']).not_to have_key('odata_search')
         expect(count_tool['inputSchema']['properties']).to eq(
-          '$filter' => { 'type' => 'string' }
+          'odata_filter' => { 'type' => 'string' }
         )
       end
 
@@ -152,24 +153,24 @@ module OdataDuty
         expect(result['content'][0]['text']).to eq('3')
       end
 
-      it 'narrows the count with $filter' do
-        request_payload['params']['arguments'] = { '$filter' => "name eq 'First'" }
+      it 'narrows the count with odata_filter' do
+        request_payload['params']['arguments'] = { 'odata_filter' => "name eq 'First'" }
         result = call(request_payload)['result']
 
         expect(result['isError']).to be(false)
         expect(result['content'][0]['text']).to eq('1')
       end
 
-      it 'narrows the count with $search' do
-        request_payload['params']['arguments'] = { '$search' => 'First' }
+      it 'narrows the count with odata_search' do
+        request_payload['params']['arguments'] = { 'odata_search' => 'First' }
         result = call(request_payload)['result']
 
         expect(result['isError']).to be(false)
         expect(result['content'][0]['text']).to eq('1')
       end
 
-      it 'surfaces a malformed $search as a tool error' do
-        request_payload['params']['arguments'] = { '$search' => 'apple AND orange OR peach' }
+      it 'surfaces a malformed odata_search as a tool error' do
+        request_payload['params']['arguments'] = { 'odata_search' => 'apple AND orange OR peach' }
         result = call(request_payload)['result']
 
         expect(result['isError']).to be(true)

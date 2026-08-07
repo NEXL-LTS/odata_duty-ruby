@@ -102,22 +102,22 @@ RSpec.describe OdataDuty::EntitySet, 'MCP list tool' do
       expect(list_tool['inputSchema']['type']).to eq('object')
       expect(list_tool['inputSchema']['required']).to eq([])
       expect(list_tool['inputSchema']['properties']).to eq(
-        '$filter' => { 'type' => 'string', 'description' => 'OData $filter expression' },
-        '$select' => { 'type' => 'string',
-                       'description' => 'Comma-separated properties to return' },
-        '$search' => { 'type' => 'string',
-                       'description' => 'Search expression (AND, OR, NOT)' },
-        '$top' => { 'type' => 'integer', 'description' => 'Max records to return' },
-        '$skip' => { 'type' => 'integer', 'description' => 'Records to skip' }
+        'odata_filter' => { 'type' => 'string', 'description' => 'OData $filter expression' },
+        'odata_select' => { 'type' => 'string',
+                            'description' => 'Comma-separated properties to return' },
+        'odata_search' => { 'type' => 'string',
+                            'description' => 'Search expression (AND, OR, NOT)' },
+        'odata_top' => { 'type' => 'integer', 'description' => 'Max records to return' },
+        'odata_skip' => { 'type' => 'integer', 'description' => 'Records to skip' }
       )
     end
 
-    it 'omits $search from the input schema when the set does not define od_search' do
+    it 'omits odata_search from the input schema when the set does not define od_search' do
       list_tool = tool('list_Plains')
 
-      expect(list_tool['inputSchema']['properties']).not_to have_key('$search')
+      expect(list_tool['inputSchema']['properties']).not_to have_key('odata_search')
       expect(list_tool['inputSchema']['properties'].keys).to eq(
-        ['$filter', '$select', '$top', '$skip']
+        %w[odata_filter odata_select odata_top odata_skip]
       )
     end
 
@@ -140,22 +140,22 @@ RSpec.describe OdataDuty::EntitySet, 'MCP list tool' do
       expect(body['value'].map { |r| r['name'] }).to eq(%w[First Second Third])
     end
 
-    it 'forwards $top verbatim as an OData query option' do
-      request_payload['params']['arguments'] = { '$top' => 2 }
+    it 'forwards odata_top as the $top OData query option' do
+      request_payload['params']['arguments'] = { 'odata_top' => 2 }
       body = Oj.load(call(request_payload)['result']['content'][0]['text'])
 
       expect(body['value'].map { |r| r['name'] }).to eq(%w[First Second])
     end
 
-    it 'surfaces an $select on an undefined property as a tool error' do
-      request_payload['params']['arguments'] = { '$select' => 'nonexistent' }
+    it 'surfaces an odata_select on an undefined property as a tool error' do
+      request_payload['params']['arguments'] = { 'odata_select' => 'nonexistent' }
       result = call(request_payload)['result']
 
       expect(result['isError']).to be(true)
     end
 
-    it 'surfaces a malformed $filter as a tool error' do
-      request_payload['params']['arguments'] = { '$filter' => 'not a filter' }
+    it 'surfaces a malformed odata_filter as a tool error' do
+      request_payload['params']['arguments'] = { 'odata_filter' => 'not a filter' }
       result = call(request_payload)['result']
 
       expect(result['isError']).to be(true)

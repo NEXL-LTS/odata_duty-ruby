@@ -92,12 +92,12 @@ RSpec.describe OdataDuty::Schema, 'to_mcp_server' do
       expect(tool_names).not_to include('search_Searchables')
     end
 
-    it 'includes $search in the list tool for a set whose resolver defines od_search' do
-      expect(properties_for('list_Searchables')).to include('$search')
+    it 'includes odata_search in the list tool for a set whose resolver defines od_search' do
+      expect(properties_for('list_Searchables')).to include('odata_search')
     end
 
-    it 'omits $search from the list tool for a set without od_search' do
-      expect(properties_for('list_Plains')).not_to include('$search')
+    it 'omits odata_search from the list tool for a set without od_search' do
+      expect(properties_for('list_Plains')).not_to include('odata_search')
     end
   end
 
