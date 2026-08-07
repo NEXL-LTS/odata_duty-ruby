@@ -36,6 +36,20 @@ module OdataDuty
       { 'properties' => properties, 'required' => [] }
     end
 
+    # Raises when an entity property is literally named like a reserved `odata_*` alias and
+    # would silently overwrite (or be overwritten by) the reserved query-option key in the same
+    # `properties` hash — see McpServerBuilder's tool-name/property-key validation.
+    def add_alias!(properties, entity_type, query_option_key, value, tool_name:)
+      key = alias_for(query_option_key)
+      if properties.keys.map(&:to_s).include?(key)
+        raise InvalidMcpIdentifierError,
+              "#{entity_type.name} property \"#{key}\" collides with the reserved #{key} " \
+              "query-option key in the #{tool_name} tool input schema"
+      end
+
+      properties[key] = value
+    end
+
     def create_input_schema(entity_type)
       writable = entity_type.properties.select(&:settable_on_create?)
       properties = writable.to_h { |p| [p.name, p.to_oas2] }
@@ -51,12 +65,11 @@ module OdataDuty
       { 'properties' => properties, 'required' => [key.name] }
     end
 
-    def get_input_schema(entity_type)
+    def get_input_schema(entity_type, tool_name:)
       key = entity_type.property_refs.first
-      properties = {
-        key.name => key.to_oas2,
-        alias_for('$select') => query_option('string', 'Comma-separated properties to return')
-      }
+      properties = { key.name => key.to_oas2 }
+      select_value = query_option('string', 'Comma-separated properties to return')
+      add_alias!(properties, entity_type, '$select', select_value, tool_name: tool_name)
       { 'properties' => properties, 'required' => [key.name] }
     end
 

@@ -63,7 +63,7 @@ surface and need updating.
 
 ## Task 2 — Build-time validation of every generated MCP identifier (Half 3)
 
-**Status:** - [ ]
+**Status:** - [x]
 
 **Full task text:** Add `OdataDuty::InvalidMcpIdentifierError` (an `ArgumentError`
 subclass, alongside `InvalidNCNamesError`, in `lib/odata_duty/errors.rb`). In
