@@ -98,11 +98,17 @@ module OdataDuty
       server.define_tool(**tool_args) do |server_context:, **args|
         McpServerBuilder.run_tool(action, url: url_for.call(args), schema: schema,
                                           context: server_context[:context],
-                                          query_options: McpServerBuilder.query_options_for(args))
+                                          query_options: McpServerBuilder.query_options_for(action,
+                                                                                            args))
       end
     end
 
-    def query_options_for(args)
+    # The `odata_*` aliases only stand in for OData query options on read (`:execute`) tools —
+    # `:create`/`:update`/`:delete` tools' arguments are property values, so a property literally
+    # named e.g. `odata_select` must reach Executor unchanged, not get aliased to `$select`.
+    def query_options_for(action, args)
+      return args.transform_keys(&:to_s) unless action == :execute
+
       args.to_h { |key, value| [QUERY_OPTION_SPELLINGS.fetch(key.to_s, key.to_s), value] }
     end
 

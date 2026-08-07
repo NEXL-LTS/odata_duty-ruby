@@ -34,6 +34,26 @@ class McpContextSchema < OdataDuty::Schema
   entity_sets [McpContextSet]
 end
 
+class McpQueryOptionPassthroughSet < OdataDuty::EntitySet
+  entity_type McpContextEntity
+  name 'PassthroughWidgets'
+  url 'PassthroughWidgets'
+
+  def od_after_init
+    @records = [OpenStruct.new(id: '1', name: context.query_options['custom_flag'])]
+  end
+
+  def collection
+    @records
+  end
+end
+
+class McpQueryOptionPassthroughSchema < OdataDuty::Schema
+  namespace 'McpQueryOptionPassthroughSpace'
+  base_url 'http://localhost:3000/api'
+  entity_sets [McpQueryOptionPassthroughSet]
+end
+
 RSpec.describe OdataDuty::EntitySet, 'MCP tool context threading' do
   let(:mcp_server) do
     server = McpContextSchema.to_mcp_server
@@ -63,5 +83,16 @@ RSpec.describe OdataDuty::EntitySet, 'MCP tool context threading' do
     expect(result['isError']).to be(true)
     expect(result['content'][0]['type']).to eq('text')
     expect(result['content'][0]['text']).to include('No such entity')
+  end
+
+  it 'forwards a non-reserved tool argument into context.query_options under its own key' do
+    server = McpQueryOptionPassthroughSchema.to_mcp_server
+    server.server_context = { context: McpContextValue.new('unused') }
+    request = { 'jsonrpc' => '2.0', 'method' => 'tools/call',
+                'params' => { 'name' => 'list_PassthroughWidgets',
+                              'arguments' => { 'custom_flag' => 'seen' } }, 'id' => 'c-3' }
+    content = Oj.load(server.handle_json(Oj.dump(request)))['result']['content'][0]
+
+    expect(Oj.load(content['text'])['value'].first['name']).to eq('seen')
   end
 end
