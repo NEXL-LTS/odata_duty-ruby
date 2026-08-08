@@ -4,15 +4,17 @@ require_relative 'container'
 module OdataDuty
   module SchemaBuilder
     class EntitySet < Container
-      attr_reader :entity_type, :url, :resolver, :init_args
+      attr_reader :entity_type, :url, :resolver, :init_args, :description
 
-      def initialize(entity_type:, resolver:, name: nil, url: nil, init_args: nil)
+      def initialize(entity_type:, resolver:, name: nil, url: nil, init_args: nil,
+                     description: nil)
         @resolver = resolver.clone
         name = name&.to_s || @resolver.split('::').last.sub(/Resolver\z/, '')
         super(name: name)
         @url = (url&.to_s || @name).clone
         @entity_type = entity_type
         @init_args = init_args
+        @description = Property.resolve_description(@name, description)
       end
 
       def entity_type_name = entity_type.name

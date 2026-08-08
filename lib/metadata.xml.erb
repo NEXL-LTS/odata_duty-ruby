@@ -70,6 +70,9 @@
             <EntityContainer Name="Container">
                 <% metadata.entity_sets.each do |entity_set| %>
                     <EntitySet Name="<%= entity_set.name %>" EntityType="<%= metadata.namespace %>.<%= entity_set.entity_type_name %>">
+                        <% if entity_set.description %>
+                            <Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(entity_set.description) %>" />
+                        <% end %>
                         <% if entity_set.supports_search? %>
                             <Annotation Term="Capabilities.SearchRestrictions">
                                 <Record>

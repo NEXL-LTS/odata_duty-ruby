@@ -75,11 +75,19 @@ module OdataDuty
             instance.respond_to?(PARAMETER_REQUIREMENTS[param['name']])
         end
         {
-          'operationId' => "GetCollectionOf#{entity_set.name}",
+          'operationId' => "GetCollectionOf#{entity_set.name}"
+        }.merge(summary_and_description).merge(
           'produces' => ['application/json'],
           'parameters' => parameters,
           'responses' => { '200' => oas2_success_response, 'default' => DEFAULT_ERROR_RESPONSE }
-        }
+        )
+      end
+
+      def summary_and_description
+        return {} unless entity_set.description
+
+        { 'summary' => OperationVerbs.list(entity_set.name),
+          'description' => entity_set.description }
       end
 
       def oas2_success_response

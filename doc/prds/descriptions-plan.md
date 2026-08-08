@@ -376,7 +376,7 @@ Plus the shared "Common error cases" excerpt above, applied to enum-type and enu
 
 ## Task 5 — Entity set `description:` (both DSLs): `$metadata`, `$oas2` operations, MCP tool suffix
 
-- [ ] Status
+- [x] Status
 
 **Full task text:** Add a `description` class macro to the class DSL `OdataDuty::EntitySet`
 (`lib/odata_duty.rb`, alongside `entity_type`/`name`/`url`, validated via the Task 1 helper) and

@@ -1,5 +1,6 @@
 require_relative 'context_wrapper'
 require_relative 'schema_builder/endpoint'
+require_relative 'operation_verbs'
 
 module OdataDuty
   class OAS2
