@@ -230,7 +230,7 @@ Plus the shared "Common error cases" excerpt above, applied to the schema-level
 
 ## Task 3 — Entity type & complex type `description:` (both DSLs)
 
-- [ ] Status
+- [x] Status
 
 **Full task text:** Add a `description` class macro to the class DSL `OdataDuty::ComplexType`
 (`lib/odata_duty/complex_type.rb`) — validated via the Task 1 helper — which `EntityType`
