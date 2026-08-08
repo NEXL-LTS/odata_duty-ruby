@@ -74,6 +74,11 @@ When editing, prefer extending these conventions over adding new public API surf
 - Two-space indent, **99-char line limit**, Ruby 3 syntax. RuboCop metrics are tightened (see `.rubocop.yml`: `MethodLength` 13, `ClassLength`/`ModuleLength` 99, `AbcSize` 30) — keep methods small rather than adding inline disables.
 - Update `doc/` guides and `README.md` when external usage changes; bump `spec.version` in `odata_duty.gemspec` for releases.
 
+## Pull requests
+
+Keep the PR description simple and high level — a short summary of what changed and why, not a
+task-by-task walkthrough or exhaustive file list. Details belong in the commits.
+
 ## Rails integration
 
 Optional, loaded via `railtie.rb` only when Rails is present. Generators under `lib/generators/odata_duty/`: `install` (controller + schema boilerplate) and `entity_set` (entity type, set/resolver, specs, AR concern). See `doc/entity_set_generator.md`. The controller wires `$metadata`, `$oas2`, GET (`schema.execute`), and POST (`schema.create`) — see the README's Rails example.
