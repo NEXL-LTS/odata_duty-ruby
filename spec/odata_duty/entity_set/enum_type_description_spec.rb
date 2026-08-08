@@ -113,4 +113,30 @@ RSpec.describe OdataDuty::EnumType, '$metadata rendering of type-level descripti
   it 'keeps an undescribed member self-closed' do
     expect(xml).to include('<Member Name="One" />')
   end
+
+  it 'renders a member description declared via a freshly-defined enum type' do
+    enum_type = Class.new(OdataDuty::EnumType) do
+      member 'Male', description: 'Recorded as male'
+      member 'Female'
+    end
+    Object.const_set("FreshGenderEnumType#{enum_type.object_id}", enum_type)
+    entity = Class.new(OdataDuty::EntityType) do
+      property_ref 'id', String
+      property 'gender', enum_type
+    end
+    Object.const_set("FreshPersonEntity#{entity.object_id}", entity)
+    set = Class.new(OdataDuty::EntitySet) { entity_type(entity) }
+    set.define_singleton_method(:entity_type_name) { 'FreshPerson' }
+    schema_class = Class.new(OdataDuty::Schema) { base_url('http://x/api') }
+    schema_class.entity_sets([set])
+
+    fresh_xml = schema_class.metadata_xml
+    male_index = fresh_xml.index('<Member Name="Male">')
+    description_index = fresh_xml.index(
+      '<Annotation Term="Org.OData.Core.V1.Description" String="Recorded as male" />'
+    )
+    female_index = fresh_xml.index('<Member Name="Female" />')
+    expect(male_index).to be < description_index
+    expect(description_index).to be < female_index
+  end
 end
