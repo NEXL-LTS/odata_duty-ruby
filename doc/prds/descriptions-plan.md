@@ -481,7 +481,7 @@ Plus the shared "Common error cases" excerpt above, applied to entity-set `descr
 
 ## Task 6 — Documentation impact
 
-- [ ] Status
+- [x] Status
 
 **Full task text:** Add a new guide `doc/using_descriptions.md`, styled like
 `doc/using_computed.md` and `doc/using_mutability.md`: purpose-first overview, both-DSL

@@ -4,6 +4,15 @@
 
 `OAS2.build_json` requires a builder-DSL schema (`SchemaBuilder.build`), not a class-based `Schema`.
 
+A `description:` declared anywhere in the schema (see
+[`doc/using_descriptions.md`](using_descriptions.md)) flows into this document: a schema
+description becomes `info.description`; entity/complex/enum type descriptions become
+`definitions.<Type>.description`; property descriptions become
+`definitions.<Type>.properties.<name>.description`; and an entity-set description adds `summary`
+(the same verb text as the matching MCP tool) plus `description` to every operation for that set
+(`GET` collection and individual, `POST`, `PATCH`, `DELETE`). A set with no description keeps
+today's output exactly — no `summary` or `description` key on its operations.
+
 ## Consuming `$oas2` from Power Automate
 
 Power Automate (and Power Apps) can turn the document into a [custom connector](https://learn.microsoft.com/en-us/connectors/custom-connectors/define-openapi-definition). It accepts OpenAPI **2.0 only** (not 3.0), which is exactly what OdataDuty emits, and the document must be **under 1 MB**. The rendered size grows with your schema (entity types, properties, enums), so a very large schema could approach that limit — check the byte size if you have hundreds of entities.
