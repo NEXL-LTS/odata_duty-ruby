@@ -10,17 +10,17 @@
         <Schema Namespace="<%= metadata.namespace %>" xmlns="http://docs.oasis-open.org/odata/ns/edm">
              <% if metadata.version %><Annotation Term="<%= metadata.namespace %>.Version" String="<%= metadata.version %>" /><% end %>
              <% if metadata.title %><Annotation Term="<%= metadata.namespace %>.Title" String="<%= metadata.title %>" /><% end %>
-             <% if metadata.description %><Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(metadata.description) %>" /><% end %>
+             <% if metadata.description %><Annotation Term="Org.OData.Core.V1.Description" String="<%= escape_xml(metadata.description) %>" /><% end %>
 
              <% metadata.enum_types.each do |enum_type| %>
                 <EnumType Name="<%= enum_type.name %>">
                     <% if enum_type.description %>
-                        <Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(enum_type.description) %>" />
+                        <Annotation Term="Org.OData.Core.V1.Description" String="<%= escape_xml(enum_type.description) %>" />
                     <% end %>
                     <% enum_type.members.each do |member| %>
                         <% if member.description %>
                             <Member Name="<%= member.name %>">
-                                <Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(member.description) %>" />
+                                <Annotation Term="Org.OData.Core.V1.Description" String="<%= escape_xml(member.description) %>" />
                             </Member>
                         <% else %>
                             <Member Name="<%= member.name %>" />
@@ -31,12 +31,12 @@
             <% metadata.complex_types.each do |complex_type| %>
                 <ComplexType Name="<%= complex_type.name %>">
                     <% if complex_type.description %>
-                        <Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(complex_type.description) %>" />
+                        <Annotation Term="Org.OData.Core.V1.Description" String="<%= escape_xml(complex_type.description) %>" />
                     <% end %>
                     <% complex_type.properties.each do |property| %>
                         <% if property.description || property.core_annotation_term %>
                             <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>">
-                                <% if property.description %><Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(property.description) %>" /><% end %>
+                                <% if property.description %><Annotation Term="Org.OData.Core.V1.Description" String="<%= escape_xml(property.description) %>" /><% end %>
                                 <% if property.core_annotation_term %><Annotation Term="<%= property.core_annotation_term %>" Bool="true" /><% end %>
                             </Property>
                         <% else %>
@@ -48,7 +48,7 @@
             <% metadata.entity_types.each do |entity_type| %>
                 <EntityType Name="<%= entity_type.name %>">
                     <% if entity_type.description %>
-                        <Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(entity_type.description) %>" />
+                        <Annotation Term="Org.OData.Core.V1.Description" String="<%= escape_xml(entity_type.description) %>" />
                     <% end %>
                     <Key>
                         <% entity_type.property_refs.each do |property| %>
@@ -58,7 +58,7 @@
                     <% entity_type.properties.each do |property| %>
                         <% if property.description || property.core_annotation_term %>
                             <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>">
-                                <% if property.description %><Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(property.description) %>" /><% end %>
+                                <% if property.description %><Annotation Term="Org.OData.Core.V1.Description" String="<%= escape_xml(property.description) %>" /><% end %>
                                 <% if property.core_annotation_term %><Annotation Term="<%= property.core_annotation_term %>" Bool="true" /><% end %>
                             </Property>
                         <% else %>
@@ -71,7 +71,7 @@
                 <% metadata.entity_sets.each do |entity_set| %>
                     <EntitySet Name="<%= entity_set.name %>" EntityType="<%= metadata.namespace %>.<%= entity_set.entity_type_name %>">
                         <% if entity_set.description %>
-                            <Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(entity_set.description) %>" />
+                            <Annotation Term="Org.OData.Core.V1.Description" String="<%= escape_xml(entity_set.description) %>" />
                         <% end %>
                         <% if entity_set.supports_search? %>
                             <Annotation Term="Capabilities.SearchRestrictions">

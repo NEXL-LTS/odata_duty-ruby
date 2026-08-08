@@ -105,4 +105,14 @@ RSpec.describe OdataDuty::Schema, 'schema description validation' do
     end.to raise_error(OdataDuty::InvalidDescriptionError,
                        'BadDescSpace: description must be a non-empty string')
   end
+
+  it 'raises InvalidDescriptionError for false rather than treating it as omitted' do
+    expect do
+      Class.new(OdataDuty::Schema) do
+        namespace 'BadDescSpace'
+        description false
+      end
+    end.to raise_error(OdataDuty::InvalidDescriptionError,
+                       'BadDescSpace: description must be a non-empty string')
+  end
 end

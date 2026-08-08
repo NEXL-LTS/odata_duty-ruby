@@ -7,7 +7,7 @@ class Oas2EnumDescriptionPeopleResolver < OdataDuty::SetResolver
 end
 
 module OdataDuty
-  RSpec.describe OAS2, 'enum type-level description' do
+  RSpec.describe SchemaBuilder::EnumType, 'enum type-level description via OAS2.build_json' do
     let(:schema) do
       SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '/api') do |s|
         gender = s.add_enum_type(name: 'Gender',
@@ -34,13 +34,16 @@ module OdataDuty
 
     let(:json) { OAS2.build_json(schema, context: Context.new) }
 
-    it 'includes the description on the enum type definition' do
-      expect(json['definitions']['Gender'])
-        .to include('description' => 'Gender as recorded at registration')
+    it 'renders the enum type definition with the description alongside its values' do
+      expect(json['definitions']['Gender']).to eq(
+        'type' => 'string',
+        'enum' => %w[Male Female],
+        'description' => 'Gender as recorded at registration'
+      )
     end
 
-    it 'omits the description key for an enum type without one' do
-      expect(json['definitions']['Plain']).not_to have_key('description')
+    it 'renders the enum type definition without a description key when there is none' do
+      expect(json['definitions']['Plain']).to eq('type' => 'string', 'enum' => ['One'])
     end
   end
 end

@@ -7,7 +7,7 @@ class Oas2TypeDescriptionPeopleResolver < OdataDuty::SetResolver
 end
 
 module OdataDuty
-  RSpec.describe OAS2, 'type-level description' do
+  RSpec.describe SchemaBuilder::ComplexType, 'type-level description via OAS2.build_json' do
     let(:schema) do
       SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost', base_path: '/api') do |s|
         address = s.add_complex_type(name: 'Address', description: 'A postal address') do |c|
@@ -33,21 +33,40 @@ module OdataDuty
 
     let(:json) { OAS2.build_json(schema, context: Context.new) }
 
-    it 'includes the description on the complex type definition' do
-      expect(json['definitions']['Address']).to include('description' => 'A postal address')
+    it 'renders the complex type definition with the description alongside its properties' do
+      expect(json['definitions']['Address']).to eq(
+        'type' => 'object',
+        'description' => 'A postal address',
+        'properties' => { 'street' => { 'type' => 'string', 'x-nullable' => true } }
+      )
     end
 
-    it 'includes the description on the entity type definition, inherited from ComplexType' do
-      expect(json['definitions']['Person'])
-        .to include('description' => 'People present at the event')
+    it 'renders the entity type definition with the description, inherited from ComplexType' do
+      expect(json['definitions']['Person']).to eq(
+        'type' => 'object',
+        'description' => 'People present at the event',
+        'properties' => {
+          'id' => { 'type' => 'string', 'readOnly' => true },
+          'home' => { '$ref' => '#/definitions/Address', 'x-nullable' => true }
+        }
+      )
     end
 
-    it 'omits the description key for a complex type without one' do
-      expect(json['definitions']['Plain']).not_to have_key('description')
+    it 'renders the complex type definition without a description key when there is none' do
+      expect(json['definitions']['Plain']).to eq(
+        'type' => 'object',
+        'properties' => { 'value' => { 'type' => 'string', 'x-nullable' => true } }
+      )
     end
 
-    it 'omits the description key for an entity type without one' do
-      expect(json['definitions']['Plainly']).not_to have_key('description')
+    it 'renders the entity type definition without a description key when there is none' do
+      expect(json['definitions']['Plainly']).to eq(
+        'type' => 'object',
+        'properties' => {
+          'id' => { 'type' => 'string', 'readOnly' => true },
+          'plain' => { '$ref' => '#/definitions/Plain', 'x-nullable' => true }
+        }
+      )
     end
   end
 end

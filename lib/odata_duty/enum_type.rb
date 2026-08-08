@@ -10,7 +10,7 @@ module OdataDuty
 
   class EnumType
     def self.description(text = nil)
-      @description = Property.resolve_description(__metadata.name, text) if text
+      @description = Property.resolve_description(__metadata.name, text) unless text.nil?
       @description
     end
 

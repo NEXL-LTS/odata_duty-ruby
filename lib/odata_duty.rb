@@ -36,7 +36,7 @@ module OdataDuty
     end
 
     def self.description(text = nil)
-      @description = Property.resolve_description(__metadata.name, text) if text
+      @description = Property.resolve_description(__metadata.name, text) unless text.nil?
       @description
     end
 
@@ -186,7 +186,7 @@ module OdataDuty
     end
 
     def self.description(text = nil)
-      @description = Property.resolve_description(namespace, text) if text
+      @description = Property.resolve_description(namespace, text) unless text.nil?
       @description
     end
 
@@ -257,7 +257,7 @@ module OdataDuty
       metadata = __metadata
       metadata.check_names
 
-      ERB.new(File.read("#{__dir__}/metadata.xml.erb")).result(binding)
+      EdmxSchema.metadata_xml(metadata)
     end
 
     def self.index_hash(metadata_url)

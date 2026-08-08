@@ -49,6 +49,15 @@ RSpec.describe OdataDuty::ComplexType, 'type-level description validation' do
     end.to raise_error(OdataDuty::InvalidDescriptionError,
                        'SymbolDescriptionAddress: description must be a non-empty string')
   end
+
+  it 'raises InvalidDescriptionError for false rather than treating it as omitted' do
+    expect do
+      class FalseDescriptionAddressComplexType < OdataDuty::ComplexType
+        description false
+      end
+    end.to raise_error(OdataDuty::InvalidDescriptionError,
+                       'FalseDescriptionAddress: description must be a non-empty string')
+  end
 end
 
 module EntityTypeDescriptionValidationExample
@@ -56,22 +65,9 @@ module EntityTypeDescriptionValidationExample
     description 'People present at the event'
     property_ref 'id', String
   end
-
-  class Undescribed < OdataDuty::EntityType
-    property_ref 'id', String
-  end
 end
 
 RSpec.describe OdataDuty::EntityType, 'type-level description validation' do
-  it 'reads back the exact description declared on an entity type, inherited from ComplexType' do
-    expect(EntityTypeDescriptionValidationExample::Person.description)
-      .to eq('People present at the event')
-  end
-
-  it 'treats omitted description as no description on an entity type' do
-    expect(EntityTypeDescriptionValidationExample::Undescribed.description).to be_nil
-  end
-
   it 'raises InvalidDescriptionError naming the entity type for an empty string' do
     expect do
       class InvalidDescriptionPersonEntity < OdataDuty::EntityType
@@ -100,6 +96,16 @@ RSpec.describe OdataDuty::EntityType, 'type-level description validation' do
       end
     end.to raise_error(OdataDuty::InvalidDescriptionError,
                        'SymbolDescriptionPerson: description must be a non-empty string')
+  end
+
+  it 'raises InvalidDescriptionError for false rather than treating it as omitted' do
+    expect do
+      class FalseDescriptionPersonEntity < OdataDuty::EntityType
+        description false
+        property_ref 'id', String
+      end
+    end.to raise_error(OdataDuty::InvalidDescriptionError,
+                       'FalseDescriptionPerson: description must be a non-empty string')
   end
 end
 

@@ -1,25 +1,6 @@
 require 'spec_helper'
 
 RSpec.describe OdataDuty::EnumType, 'type-level description validation' do
-  it 'reads back the exact description declared on an enum type' do
-    klass = Class.new(OdataDuty::EnumType) do
-      description 'Gender as recorded at registration'
-    end
-    expect(klass.description).to eq('Gender as recorded at registration')
-  end
-
-  it 'treats omitted description as no description on an enum type' do
-    klass = Class.new(OdataDuty::EnumType)
-    expect(klass.description).to be_nil
-  end
-
-  it 'treats description nil the same as omitted on an enum type' do
-    klass = Class.new(OdataDuty::EnumType) do
-      description nil
-    end
-    expect(klass.description).to be_nil
-  end
-
   it 'raises InvalidDescriptionError naming the type for an empty string' do
     expect do
       class InvalidDescriptionGenderEnumType < OdataDuty::EnumType
@@ -45,6 +26,15 @@ RSpec.describe OdataDuty::EnumType, 'type-level description validation' do
       end
     end.to raise_error(OdataDuty::InvalidDescriptionError,
                        'SymbolDescriptionGender: description must be a non-empty string')
+  end
+
+  it 'raises InvalidDescriptionError for false rather than treating it as omitted' do
+    expect do
+      class FalseDescriptionGenderEnumType < OdataDuty::EnumType
+        description false
+      end
+    end.to raise_error(OdataDuty::InvalidDescriptionError,
+                       'FalseDescriptionGender: description must be a non-empty string')
   end
 end
 

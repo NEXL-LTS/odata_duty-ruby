@@ -10,11 +10,14 @@ propagates everywhere it applies, with no per-format duplication.
 
 - **Purpose:** document your domain once — what a `Person` record represents, what `name` means,
   what the `People` set contains — instead of leaving every generated contract unannotated.
-- **Declaration:** `description:` is a keyword everywhere except type-level declarations in the
-  class DSL and the schema in both DSLs, which use a macro/accessor (matching the existing
-  `namespace`/`title`/`version` style).
-- **Always optional:** omitting `description:` leaves output byte-identical to not having the
-  feature at all. `description: nil` is treated exactly the same as omitting it.
+- **Declaration:** `description:` is a keyword everywhere except type-level and entity-set
+  declarations in the class DSL, and the schema in both DSLs — those use a macro/accessor
+  (matching the existing `namespace`/`title`/`version` style).
+- **Always optional:** omitting `description:` leaves `$oas2` and MCP output byte-identical to
+  not having the feature at all, and `$metadata` semantically unchanged — no `Core.Description`
+  annotation is emitted (the template's own whitespace conventions mean the raw XML text isn't
+  byte-for-byte identical, but no element or attribute differs). `description: nil` is treated
+  exactly the same as omitting it.
 - **Convention:** the name mirrors the OData Core vocabulary term `Org.OData.Core.V1.Description`,
   following the same convention as `computed:` (`Core.Computed`) and `mutability: :immutable`
   (`Core.Immutable`) — see [`doc/using_mutability.md`](using_mutability.md).
@@ -132,9 +135,11 @@ description ever appears in a data payload.
 
 ### `$metadata` (EDMX)
 
-Every described element gets an `Org.OData.Core.V1.Description` annotation as its first child
-(before `<Key>`/`<Member>`/other properties), using the vocabulary already referenced at the top of
-the document (aliased `Core`):
+Every described type, member, property, and entity set gets an `Org.OData.Core.V1.Description`
+annotation as its first child (before `<Key>`/`<Member>`/other properties). The schema-level
+annotation is the one exception — it's placed after the existing `Version`/`Title` annotations,
+not first. All of them use the vocabulary already referenced at the top of the document (aliased
+`Core`):
 
 ```xml
 <Schema Namespace="Sample" xmlns="http://docs.oasis-open.org/odata/ns/edm">

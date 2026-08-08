@@ -25,12 +25,13 @@ module OdataDuty
     def self.resolve_description(owner_name, description)
       return if description.nil?
 
-      unless description.respond_to?(:to_str) && description.to_str.match?(/\S/)
+      str = description.to_str if description.respond_to?(:to_str)
+      unless str.is_a?(String) && str.match?(/\S/)
         raise InvalidDescriptionError,
               "#{owner_name}: description must be a non-empty string"
       end
 
-      description.to_str
+      str
     end
 
     def self.resolve_mutability(name, computed, mutability)

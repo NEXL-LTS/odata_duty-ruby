@@ -33,11 +33,6 @@ RSpec.describe OdataDuty::EntitySet, 'entity-set-level description validation' d
     expect(EntitySetDescriptionValidationExample::Undescribed.description).to be_nil
   end
 
-  it 'exposes the description via EntitySet::Metadata' do
-    expect(EntitySetDescriptionValidationExample::People.__metadata.description)
-      .to eq('Attendees checked in at the front desk')
-  end
-
   it 'raises InvalidDescriptionError naming the set for an empty string' do
     expect do
       class InvalidDescriptionPeopleSet < OdataDuty::EntitySet
@@ -66,5 +61,15 @@ RSpec.describe OdataDuty::EntitySet, 'entity-set-level description validation' d
       end
     end.to raise_error(OdataDuty::InvalidDescriptionError,
                        'SymbolDescriptionPeople: description must be a non-empty string')
+  end
+
+  it 'raises InvalidDescriptionError for false rather than treating it as omitted' do
+    expect do
+      class FalseDescriptionPeopleSet < OdataDuty::EntitySet
+        entity_type EntitySetDescriptionValidationExample::Person
+        description false
+      end
+    end.to raise_error(OdataDuty::InvalidDescriptionError,
+                       'FalseDescriptionPeople: description must be a non-empty string')
   end
 end

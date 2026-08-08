@@ -52,23 +52,6 @@ module OdataDuty
         end
       end.to raise_error(InvalidNCNamesError, '"a b" is not a valid property name')
     end
-
-    it 'renders the OAS2 definition with the description alongside type and properties' do
-      complex_type = build_complex_type_with_description('A postal address')
-      expect(complex_type.to_oas2).to eq(
-        'type' => 'object',
-        'description' => 'A postal address',
-        'properties' => { 'street' => { 'type' => 'string', 'x-nullable' => true } }
-      )
-    end
-
-    it 'renders the OAS2 definition without a description key when there is none' do
-      complex_type = build_complex_type_with_description(nil)
-      expect(complex_type.to_oas2).to eq(
-        'type' => 'object',
-        'properties' => { 'street' => { 'type' => 'string', 'x-nullable' => true } }
-      )
-    end
   end
 
   RSpec.describe SchemaBuilder::EntityType, 'type-level description validation' do

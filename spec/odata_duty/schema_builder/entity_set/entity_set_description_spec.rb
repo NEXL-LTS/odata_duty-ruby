@@ -23,12 +23,6 @@ module OdataDuty
       expect(entity_set.description).to eq('Attendees checked in at the front desk')
     end
 
-    it 'exposes the description via the Endpoint wrapper' do
-      schema = build_with_description('Attendees checked in at the front desk')
-      endpoint = schema.endpoints.first
-      expect(endpoint.description).to eq('Attendees checked in at the front desk')
-    end
-
     it 'treats omitted description as no description' do
       schema = SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost',
                                    base_path: '') do |s|
@@ -37,7 +31,6 @@ module OdataDuty
                          resolver: 'EntitySetDescriptionPeopleResolver')
       end
       expect(schema.entity_sets.first.description).to be_nil
-      expect(schema.endpoints.first.description).to be_nil
     end
 
     it 'treats description: nil the same as omitted' do

@@ -46,20 +46,6 @@ module OdataDuty
                         'Gender: description must be a non-empty string')
     end
 
-    it 'renders the OAS2 definition with the description alongside type and enum values' do
-      enum_type = build_enum_with_description('Gender as recorded at registration')
-      expect(enum_type.to_oas2).to eq(
-        'type' => 'string',
-        'enum' => %w[Male Female],
-        'description' => 'Gender as recorded at registration'
-      )
-    end
-
-    it 'renders the OAS2 definition without a description key when there is none' do
-      enum_type = build_enum_with_description(nil)
-      expect(enum_type.to_oas2).to eq('type' => 'string', 'enum' => %w[Male Female])
-    end
-
     describe 'member-level description' do
       def build_member_with_description(description)
         schema = SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
