@@ -21,9 +21,10 @@
             <% metadata.complex_types.each do |complex_type| %>
                 <ComplexType Name="<%= complex_type.name %>">
                     <% complex_type.properties.each do |property| %>
-                        <% if property.core_annotation_term %>
+                        <% if property.description || property.core_annotation_term %>
                             <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>">
-                                <Annotation Term="<%= property.core_annotation_term %>" Bool="true" />
+                                <% if property.description %><Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(property.description) %>" /><% end %>
+                                <% if property.core_annotation_term %><Annotation Term="<%= property.core_annotation_term %>" Bool="true" /><% end %>
                             </Property>
                         <% else %>
                             <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>" />
@@ -39,9 +40,10 @@
                         <% end %>
                     </Key>
                     <% entity_type.properties.each do |property| %>
-                        <% if property.core_annotation_term %>
+                        <% if property.description || property.core_annotation_term %>
                             <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>">
-                                <Annotation Term="<%= property.core_annotation_term %>" Bool="true" />
+                                <% if property.description %><Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(property.description) %>" /><% end %>
+                                <% if property.core_annotation_term %><Annotation Term="<%= property.core_annotation_term %>" Bool="true" /><% end %>
                             </Property>
                         <% else %>
                             <Property Name="<%= property.name %>" Nullable="<%= property.nullable %>" Type="<%= property.collection? ? "Collection(" : "" %><%= property.type.include?(".") ? "" : "#{metadata.namespace}." %><%= property.type %><%= property.collection? ? ")" : "" %>" />

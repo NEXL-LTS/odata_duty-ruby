@@ -69,7 +69,7 @@ PRD: [doc/prds/descriptions.md](descriptions.md)
 
 ## Task 1 — Property-level `description:` (both DSLs) + error class + shared validator
 
-- [ ] Status
+- [x] Status
 
 **Full task text:** Add a `description:` keyword to property definitions in both DSLs
 (`Property.new` in `lib/odata_duty/property.rb`, consumed identically by
