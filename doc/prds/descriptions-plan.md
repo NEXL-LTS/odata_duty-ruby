@@ -153,7 +153,7 @@ Plus the shared "Common error cases" excerpt above (property is the first elemen
 
 ## Task 2 — Schema-level `description:` (both DSLs)
 
-- [ ] Status
+- [x] Status
 
 **Full task text:** Add a `description:` macro to the class DSL `OdataDuty::Schema`
 (`lib/odata_duty.rb`, alongside `namespace`/`version`/`title`, but — unlike those — validated

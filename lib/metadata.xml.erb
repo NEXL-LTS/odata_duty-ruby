@@ -10,6 +10,7 @@
         <Schema Namespace="<%= metadata.namespace %>" xmlns="http://docs.oasis-open.org/odata/ns/edm">
              <% if metadata.version %><Annotation Term="<%= metadata.namespace %>.Version" String="<%= metadata.version %>" /><% end %>
              <% if metadata.title %><Annotation Term="<%= metadata.namespace %>.Title" String="<%= metadata.title %>" /><% end %>
+             <% if metadata.description %><Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(metadata.description) %>" /><% end %>
 
              <% metadata.enum_types.each do |enum_type| %>
                 <EnumType Name="<%= enum_type.name %>">

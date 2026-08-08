@@ -58,8 +58,17 @@ class SchemaMcpSchema < OdataDuty::Schema
   namespace 'SchemaMcpSpace'
   title 'Schema MCP Service'
   version '2.0.0'
+  description 'Directory of people attending the annual conference'
   base_url 'http://localhost:3000/api'
   entity_sets [SchemaMcpSearchableSet, SchemaMcpPlainSet]
+end
+
+class SchemaMcpNoDescriptionSchema < OdataDuty::Schema
+  namespace 'SchemaMcpNoDescSpace'
+  title 'Schema MCP No Description Service'
+  version '1.0.0'
+  base_url 'http://localhost:3000/api'
+  entity_sets [SchemaMcpPlainSet]
 end
 
 RSpec.describe OdataDuty::Schema, 'to_mcp_server' do
@@ -112,6 +121,25 @@ RSpec.describe OdataDuty::Schema, 'to_mcp_server' do
       expect(call(request)['result']['serverInfo']).to eq(
         'name' => 'Schema MCP Service', 'version' => '2.0.0'
       )
+    end
+
+    def initialize_request
+      { 'jsonrpc' => '2.0', 'id' => 'i-2', 'method' => 'initialize',
+        'params' => { 'protocolVersion' => '2025-06-18', 'capabilities' => {},
+                      'clientInfo' => { 'name' => 'RSpec', 'version' => '0.0.1' } } }
+    end
+
+    it 'reports the schema description as instructions' do
+      expect(call(initialize_request)['result']['instructions'])
+        .to eq('Directory of people attending the annual conference')
+    end
+
+    it 'omits instructions entirely when the schema has no description' do
+      server = SchemaMcpNoDescriptionSchema.to_mcp_server
+      server.server_context = { context: Context.new }
+      result = Oj.load(server.handle_json(Oj.dump(initialize_request)))['result']
+
+      expect(result).not_to have_key('instructions')
     end
   end
 end

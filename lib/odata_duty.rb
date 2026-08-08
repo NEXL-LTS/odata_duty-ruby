@@ -206,6 +206,11 @@ module OdataDuty
       @title
     end
 
+    def self.description(text = nil)
+      @description = Property.resolve_description(namespace, text) if text
+      @description
+    end
+
     def self.entity_sets(entity_sets = nil)
       @entity_sets = entity_sets.uniq if entity_sets
       @entity_sets
@@ -225,6 +230,7 @@ module OdataDuty
 
       def version = schema.version
       def title = schema.title
+      def description = schema.description
 
       def namespace
         schema.namespace

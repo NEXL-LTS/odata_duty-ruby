@@ -27,6 +27,7 @@ module OdataDuty
                 'paths' => paths, 'definitions' => definitions }
       info['version'] = schema.version if schema.version
       info['title'] = schema.title if schema.title
+      info['description'] = schema.description if schema.description
     end
 
     ERROR_PROPERTIES = {
