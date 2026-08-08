@@ -14,8 +14,17 @@
 
              <% metadata.enum_types.each do |enum_type| %>
                 <EnumType Name="<%= enum_type.name %>">
+                    <% if enum_type.description %>
+                        <Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(enum_type.description) %>" />
+                    <% end %>
                     <% enum_type.members.each do |member| %>
-                        <Member Name="<%= member.name %>" />
+                        <% if member.description %>
+                            <Member Name="<%= member.name %>">
+                                <Annotation Term="Org.OData.Core.V1.Description" String="<%= OdataDuty::EdmxSchema.escape_xml(member.description) %>" />
+                            </Member>
+                        <% else %>
+                            <Member Name="<%= member.name %>" />
+                        <% end %>
                     <% end %>
                 </EnumType>
             <% end %>

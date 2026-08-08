@@ -293,7 +293,7 @@ Plus the shared "Common error cases" excerpt above, applied to entity-type and c
 
 ## Task 4 — Enum type & enum member `description:` (both DSLs)
 
-- [ ] Status
+- [x] Status
 
 **Full task text:** Add a `description` class macro to the class DSL `OdataDuty::EnumType`
 (`lib/odata_duty/enum_type.rb`) — validated via the Task 1 helper (the builder DSL side already
