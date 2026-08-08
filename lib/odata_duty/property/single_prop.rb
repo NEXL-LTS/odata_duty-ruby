@@ -5,9 +5,10 @@ module OdataDuty
 
     class SingleProp
       attr_reader :name, :nullable, :calling_method, :line__defined__at, :raw_type, :type,
-                  :set_type, :method_name, :mutability
+                  :set_type, :method_name, :mutability, :description
 
-      def initialize(name, type, line__defined__at:, nullable:, method:, mutability:)
+      def initialize(name, type, line__defined__at:, nullable:, method:, mutability:,
+                     description:)
         @line__defined__at = line__defined__at
         @name = name.to_sym
         @calling_method = method if method.respond_to?(:call)
@@ -15,6 +16,7 @@ module OdataDuty
         @method_name = (method || name).to_sym
         @nullable = nullable ? true : false
         @mutability = mutability
+        @description = description
         load_type_instance_vars(type)
       end
 
@@ -104,6 +106,7 @@ module OdataDuty
         to_oas2_type.dup.tap do |oas2|
           oas2.merge!('readOnly' => true) if computed?
           oas2.merge!('x-nullable' => true) if nullable
+          oas2.merge!('description' => description) if description
         end
       end
 

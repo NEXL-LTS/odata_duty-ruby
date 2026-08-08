@@ -11,7 +11,7 @@ module OdataDuty
     end
 
     class Schema
-      attr_reader :namespace, :host, :scheme, :base_path, :base_url, :types
+      attr_reader :namespace, :host, :scheme, :base_path, :base_url, :types, :description
       attr_accessor :version, :title
 
       def initialize(namespace:, host: 'localhost', scheme: 'https', base_path: '')
@@ -22,6 +22,10 @@ module OdataDuty
         @base_url = [scheme, '://', host, base_path].join.freeze
         @types = {}
         @containers = {}
+      end
+
+      def description=(text)
+        @description = Property.resolve_description(namespace, text)
       end
 
       def inspect

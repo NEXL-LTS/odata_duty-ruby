@@ -10,8 +10,8 @@ module OdataDuty
         @members = []
       end
 
-      def member(*)
-        @members << EnumMember.new(*)
+      def member(...)
+        @members << EnumMember.new(...)
       end
 
       def scalar?
@@ -25,7 +25,9 @@ module OdataDuty
       end
 
       def to_oas2
-        { 'type' => 'string', 'enum' => members.map(&:name) }
+        { 'type' => 'string', 'enum' => members.map(&:name) }.tap do |hash|
+          hash['description'] = description if description
+        end
       end
     end
   end

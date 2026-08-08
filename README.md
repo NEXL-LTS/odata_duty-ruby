@@ -74,8 +74,9 @@ See the [Entity Set Generator documentation](doc/entity_set_generator.md) for mo
 require 'odata_duty'
 
 class PersonEntity < OdataDuty::EntityType
+  description 'People present at the event'
   property_ref 'id', String
-  property 'user_name', String, nullable: false
+  property 'user_name', String, nullable: false, description: 'Unique login handle'
   property 'name', String
   property 'emails', [String], nullable: false
 end
@@ -249,6 +250,7 @@ end
 - [Using `$search`](doc/using_search.md)
 - [Using `create`, `update`, and `delete`](doc/using_create_update_and_delete.md)
 - [Using `computed` (read-only) properties](doc/using_computed.md)
+- [Using `description`](doc/using_descriptions.md)
 - [Using `$oas2` (OpenAPI/Swagger) with Power Automate](doc/using_oas2.md)
 
 > **Documentation convention:** Every externally-facing feature (a new DSL option,
@@ -262,7 +264,6 @@ end
 ## TODO
 
 - Add support for composite keys
-- Add support for schema descriptions
 - Extend protocol adapters (MCP tools, resource reading)
 
 ---

@@ -1,6 +1,7 @@
 require 'mcp'
 require 'odata_duty/mcp_input_schemas'
 require 'odata_duty/mcp_identifier_validator'
+require 'odata_duty/operation_verbs'
 
 module OdataDuty
   module McpServerBuilder
@@ -14,6 +15,10 @@ module OdataDuty
       server = MCP::Server.new(
         name: schema.title,
         version: schema.version,
+        # Relies on the `mcp` gem's `initialize` response builder `.compact`-ing away a nil
+        # `instructions:`, so a schema without a description omits the key rather than sending
+        # `"instructions": null` — worth re-checking on `mcp` gem upgrades.
+        instructions: schema.description,
         capabilities: { tools: {} }
       )
       schema.endpoints.each { |endpoint| register_endpoint_tools(server, schema, endpoint) }
@@ -34,23 +39,25 @@ module OdataDuty
     end
 
     def register_update_tool(server, schema, endpoint)
-      register_key_tool(server, schema, endpoint, :update, 'Update an existing')
+      register_key_tool(server, schema, endpoint, :update)
     end
 
     def register_delete_tool(server, schema, endpoint)
-      register_key_tool(server, schema, endpoint, :delete, 'Delete an existing')
+      register_key_tool(server, schema, endpoint, :delete)
     end
 
     def register_list_tool(server, schema, endpoint)
       input_schema = McpInputSchemas.list_input_schema(supports_search: endpoint.supports_search?)
-      tool_args = { name: "list_#{endpoint.name}", description: "List #{endpoint.name} records",
+      description = tool_description(OperationVerbs.list(endpoint.name), endpoint)
+      tool_args = { name: "list_#{endpoint.name}", description: description,
                     input_schema: input_schema }
       define_tool(server, schema, :execute, url_for: ->(_args) { endpoint.url }, **tool_args)
     end
 
     def register_count_tool(server, schema, endpoint)
       input_schema = McpInputSchemas.count_input_schema(supports_search: endpoint.supports_search?)
-      tool_args = { name: "count_#{endpoint.name}", description: "Count #{endpoint.name} records",
+      description = tool_description(OperationVerbs.count(endpoint.name), endpoint)
+      tool_args = { name: "count_#{endpoint.name}", description: description,
                     input_schema: input_schema }
       define_tool(server, schema, :execute,
                   url_for: ->(_args) { "#{endpoint.url}/$count" }, **tool_args)
@@ -59,8 +66,8 @@ module OdataDuty
     def register_create_tool(server, schema, endpoint)
       tool_name = "create_#{endpoint.name}"
       input_schema = McpInputSchemas.create_input_schema(endpoint.entity_type)
-      tool_args = { name: tool_name, description: "Create a new #{endpoint.name} record",
-                    input_schema: input_schema }
+      description = tool_description(OperationVerbs.create(endpoint.name), endpoint)
+      tool_args = { name: tool_name, description: description, input_schema: input_schema }
       McpIdentifierValidator.validate_properties!(endpoint, tool_name, input_schema)
       define_tool(server, schema, :create, url_for: ->(_args) { endpoint.url }, **tool_args)
     end
@@ -68,19 +75,25 @@ module OdataDuty
     def register_get_tool(server, schema, endpoint)
       tool_name = "get_#{endpoint.name}"
       input_schema = McpInputSchemas.get_input_schema(endpoint.entity_type, tool_name: tool_name)
-      tool_args = { name: tool_name, description: "Get a single #{endpoint.name} record by ID",
-                    input_schema: input_schema }
+      description = tool_description(OperationVerbs.get(endpoint.name), endpoint)
+      tool_args = { name: tool_name, description: description, input_schema: input_schema }
       McpIdentifierValidator.validate_properties!(endpoint, tool_name, input_schema)
       define_tool(server, schema, :execute, url_for: keyed_url_for(endpoint), **tool_args)
     end
 
-    def register_key_tool(server, schema, endpoint, action, verb)
+    def register_key_tool(server, schema, endpoint, action)
       tool_name = "#{action}_#{endpoint.name}"
       input_schema = McpInputSchemas.public_send("#{action}_input_schema", endpoint.entity_type)
-      tool_args = { name: tool_name, description: "#{verb} #{endpoint.name} record",
-                    input_schema: input_schema }
+      description = tool_description(OperationVerbs.public_send(action, endpoint.name), endpoint)
+      tool_args = { name: tool_name, description: description, input_schema: input_schema }
       McpIdentifierValidator.validate_properties!(endpoint, tool_name, input_schema)
       define_tool(server, schema, action, url_for: keyed_url_for(endpoint), **tool_args)
+    end
+
+    def tool_description(verb_text, endpoint)
+      return verb_text unless endpoint.description
+
+      "#{verb_text}. #{endpoint.description}"
     end
 
     # Builds the `<url>('<key>')` locator from the tool arguments. The dynamic `args[key]` lookup

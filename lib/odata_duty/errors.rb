@@ -5,6 +5,7 @@ module OdataDuty
   class InvalidNCNamesError < ArgumentError; end
   class InvalidMcpIdentifierError < ArgumentError; end
   class InitArgsMismatchError < ArgumentError; end
+  class InvalidDescriptionError < ArgumentError; end
 
   class RequestError < Error
     attr_reader :code, :target

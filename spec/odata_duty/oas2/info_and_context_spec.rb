@@ -36,6 +36,25 @@ RSpec.describe OdataDuty::OAS2, 'info block and context handling' do
     expect(json['info']).to eq({ 'title' => 'Only Title Service' })
   end
 
+  it 'renders only description in info when only description is set' do
+    schema = build_schema { |s| s.description = 'Only a description' }
+    json = OdataDuty::OAS2.build_json(schema, context: Context.new)
+    expect(json['info']).to eq({ 'description' => 'Only a description' })
+  end
+
+  it 'renders version, title and description together in info when all are set' do
+    schema = build_schema do |s|
+      s.version = '1.0'
+      s.title = 'Sample Service'
+      s.description = 'Directory of people attending the annual conference'
+    end
+    json = OdataDuty::OAS2.build_json(schema, context: Context.new)
+    expect(json['info']).to eq(
+      'version' => '1.0', 'title' => 'Sample Service',
+      'description' => 'Directory of people attending the annual conference'
+    )
+  end
+
   it 'renders the document without a context argument' do
     json = OdataDuty::OAS2.build_json(build_schema)
     expect(json.keys)

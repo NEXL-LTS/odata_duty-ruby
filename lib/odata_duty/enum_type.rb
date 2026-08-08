@@ -1,19 +1,25 @@
 module OdataDuty
   class EnumMember
-    attr_reader :name
+    attr_reader :name, :description
 
-    def initialize(name)
+    def initialize(name, description: nil)
       @name = name.to_str
+      @description = Property.resolve_description(@name, description)
     end
   end
 
   class EnumType
+    def self.description(text = nil)
+      @description = Property.resolve_description(__metadata.name, text) if text
+      @description
+    end
+
     def self.members
       @members ||= []
     end
 
-    def self.member(name)
-      members << EnumMember.new(name)
+    def self.member(name, **)
+      members << EnumMember.new(name, **)
     end
 
     class Metadata
@@ -25,6 +31,10 @@ module OdataDuty
 
       def members
         enum_type.members
+      end
+
+      def description
+        enum_type.description
       end
 
       def scalar?

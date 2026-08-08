@@ -8,7 +8,7 @@ module OdataDuty
     MUTABILITIES_LIST = MUTABILITIES.map(&:inspect).join(', ').freeze
 
     def self.new(name, type = String, line__defined__at: nil, nullable: true, method: nil,
-                 computed: :unset, mutability: :unset)
+                 computed: :unset, mutability: :unset, description: nil)
       unless valid_name?(name)
         raise InvalidNCNamesError, "\"#{name}\" is not a valid property name"
       end
@@ -18,7 +18,19 @@ module OdataDuty
                      line__defined__at: line__defined__at,
                      nullable: nullable,
                      method: method,
-                     mutability: resolve_mutability(name, computed, mutability))
+                     mutability: resolve_mutability(name, computed, mutability),
+                     description: resolve_description(name, description))
+    end
+
+    def self.resolve_description(owner_name, description)
+      return if description.nil?
+
+      unless description.respond_to?(:to_str) && description.to_str.match?(/\S/)
+        raise InvalidDescriptionError,
+              "#{owner_name}: description must be a non-empty string"
+      end
+
+      description.to_str
     end
 
     def self.resolve_mutability(name, computed, mutability)

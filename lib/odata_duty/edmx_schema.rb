@@ -15,5 +15,11 @@ module OdataDuty
       b = binding
       ERB.new(File.read("#{__dir__}/../metadata.xml.erb")).result(b)
     end
+
+    ESCAPE_XML_ENTITIES = { '&' => '&amp;', '"' => '&quot;', '<' => '&lt;' }.freeze
+
+    def self.escape_xml(string)
+      string.gsub(/[&"<]/, ESCAPE_XML_ENTITIES)
+    end
   end
 end
