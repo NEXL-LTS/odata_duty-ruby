@@ -106,7 +106,7 @@ SimpleCov bar (no `add_filter` for `rubocop/`) and RuboCop's own tightened metri
 
 ### Task 3 — Documentation impact
 
-- [ ] **Task text:** Apply the PRD's *Documentation impact* section:
+- [x] **Task text:** Apply the PRD's *Documentation impact* section:
     - **New** `spec/using_public_api_only.md` — contributor guide in the style of
       `spec/using_mutant.md`: what the cop enforces, what the allowlist means, how to
       respond to each of the four messages, and the rule that widening the allowlist is a

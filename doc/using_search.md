@@ -12,6 +12,17 @@ This guide explains how to implement `od_search` in your custom `OdataDuty::Enti
 - **Operators:** Supports AND (explicit or implicit), OR, and NOT operators following OData v4.01 specification.
 - **Flexibility:** The exact matching criteria depend on your implementation, allowing for full-text search, partial matching, or other search strategies.
 
+### Public API: `SearchExpression` and `SearchTerm`
+
+The object your `od_search(expression)` implementation receives is an
+`OdataDuty::SearchExpression`, and its `terms` are `OdataDuty::SearchTerm` objects.
+These, and the following methods, are a formal public commitment you may rely on:
+
+- `expression.terms` — the array of `SearchTerm` objects.
+- `expression.or?` — `true` for an OR expression, `false` for AND.
+- `term.value` — the search word or quoted phrase.
+- `term.not?` — `true` if the term is negated (`NOT`).
+
 ## Implementing `od_search`
 
 To support `$search`, you implement the `od_search` method on your `OdataDuty::EntitySet` subclass. This method should:
