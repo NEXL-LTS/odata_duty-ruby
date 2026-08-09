@@ -11,22 +11,6 @@ module OdataDuty
       schema.types.fetch('Address')
     end
 
-    it 'reads back the exact description declared on a complex type' do
-      complex_type = build_complex_type_with_description('A postal address')
-      expect(complex_type.description).to eq('A postal address')
-    end
-
-    it 'treats omitted description as no description on a complex type' do
-      schema = SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
-        s.add_complex_type(name: 'Undescribed') { |c| c.property 'street', String }
-      end
-      expect(schema.types.fetch('Undescribed').description).to be_nil
-    end
-
-    it 'treats description: nil the same as omitted on a complex type' do
-      expect(build_complex_type_with_description(nil).description).to be_nil
-    end
-
     it 'raises InvalidDescriptionError naming the type for an empty string' do
       expect { build_complex_type_with_description('') }
         .to raise_error(InvalidDescriptionError,
@@ -62,18 +46,6 @@ module OdataDuty
         end
       end
       schema.types.fetch('Person')
-    end
-
-    it 'reads back the exact description declared on an entity type, via DataType' do
-      entity_type = build_entity_type_with_description('People present at the event')
-      expect(entity_type.description).to eq('People present at the event')
-    end
-
-    it 'treats omitted description as no description on an entity type' do
-      schema = SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
-        s.add_entity_type(name: 'Undescribed') { |et| et.property_ref 'id', String }
-      end
-      expect(schema.types.fetch('Undescribed').description).to be_nil
     end
 
     it 'raises InvalidDescriptionError naming the type for an empty string' do

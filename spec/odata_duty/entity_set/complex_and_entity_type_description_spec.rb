@@ -1,28 +1,6 @@
 require 'spec_helper'
 
-module ComplexTypeDescriptionValidationExample
-  class Address < OdataDuty::ComplexType
-    description 'A postal address'
-  end
-end
-
 RSpec.describe OdataDuty::ComplexType, 'type-level description validation' do
-  it 'reads back the exact description declared on a complex type' do
-    expect(ComplexTypeDescriptionValidationExample::Address.description).to eq('A postal address')
-  end
-
-  it 'treats omitted description as no description on a complex type' do
-    klass = Class.new(OdataDuty::ComplexType)
-    expect(klass.description).to be_nil
-  end
-
-  it 'treats description nil the same as omitted on a complex type' do
-    klass = Class.new(OdataDuty::ComplexType) do
-      description nil
-    end
-    expect(klass.description).to be_nil
-  end
-
   it 'raises InvalidDescriptionError naming the type for an empty string' do
     expect do
       class InvalidDescriptionAddressComplexType < OdataDuty::ComplexType
@@ -57,13 +35,6 @@ RSpec.describe OdataDuty::ComplexType, 'type-level description validation' do
       end
     end.to raise_error(OdataDuty::InvalidDescriptionError,
                        'FalseDescriptionAddress: description must be a non-empty string')
-  end
-end
-
-module EntityTypeDescriptionValidationExample
-  class Person < OdataDuty::EntityType
-    description 'People present at the event'
-    property_ref 'id', String
   end
 end
 

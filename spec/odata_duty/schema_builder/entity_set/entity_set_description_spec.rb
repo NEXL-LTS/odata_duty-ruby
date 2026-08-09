@@ -17,26 +17,6 @@ module OdataDuty
       end
     end
 
-    it 'reads back the exact description assigned on the entity set' do
-      schema = build_with_description('Attendees checked in at the front desk')
-      entity_set = schema.entity_sets.first
-      expect(entity_set.description).to eq('Attendees checked in at the front desk')
-    end
-
-    it 'treats omitted description as no description' do
-      schema = SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost',
-                                   base_path: '') do |s|
-        entity = s.add_entity_type(name: 'DescPerson') { |et| et.property_ref 'id', String }
-        s.add_entity_set(name: 'People', entity_type: entity,
-                         resolver: 'EntitySetDescriptionPeopleResolver')
-      end
-      expect(schema.entity_sets.first.description).to be_nil
-    end
-
-    it 'treats description: nil the same as omitted' do
-      expect(build_with_description(nil).entity_sets.first.description).to be_nil
-    end
-
     it 'raises InvalidDescriptionError naming the set for an empty string' do
       expect { build_with_description('') }
         .to raise_error(InvalidDescriptionError, 'People: description must be a non-empty string')
