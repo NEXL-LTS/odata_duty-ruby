@@ -9,6 +9,14 @@ module RuboCop
                         'Specs must exercise the gem through its documented surface.'.freeze
         INTERNAL_METHOD_MSG = '`%<name>s` is an internal method (`__` prefix). ' \
                                'Specs must exercise the gem through its documented surface.'.freeze
+        BYPASS_MSG = '`%<name>s` bypasses method visibility. ' \
+                     'Specs must exercise the gem through its documented surface.'.freeze
+        MOCKING_MSG = '`%<name>s` mocks gem behaviour. ' \
+                      "Specs must assert on the gem's output instead.".freeze
+
+        BYPASS_METHODS = %i[send __send__ instance_variable_get instance_variable_set
+                            instance_eval const_get method].freeze
+        MOCKING_METHODS = %i[expect_any_instance_of allow_any_instance_of stub_const].freeze
 
         def on_const(node)
           return if node.parent&.const_type?
@@ -21,9 +29,13 @@ module RuboCop
 
         def on_send(node)
           name = node.method_name
-          return unless internal_method_call?(node, name)
-
-          add_offense(node.loc.selector, message: format(INTERNAL_METHOD_MSG, name: name))
+          if BYPASS_METHODS.include?(name)
+            add_offense(node.loc.selector, message: format(BYPASS_MSG, name: name))
+          elsif MOCKING_METHODS.include?(name)
+            add_offense(node.loc.selector, message: format(MOCKING_MSG, name: name))
+          elsif internal_method_call?(node, name)
+            add_offense(node.loc.selector, message: format(INTERNAL_METHOD_MSG, name: name))
+          end
         end
         alias on_csend on_send
 

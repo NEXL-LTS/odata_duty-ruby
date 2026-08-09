@@ -106,6 +106,43 @@ RSpec.describe RuboCop::Cop::OdataDuty::PublicApiOnly, :config do
     RUBY
   end
 
+  %w[send instance_variable_get instance_variable_set instance_eval const_get
+     method].each do |bypass_method|
+    it "flags `#{bypass_method}` as a visibility bypass" do
+      source = "set.#{bypass_method}(:converted_id, '1')"
+      underline = (' ' * 'set.'.length) + ('^' * bypass_method.length)
+      expect_offense(<<~RUBY)
+        #{source}
+        #{underline} `#{bypass_method}` bypasses method visibility. Specs must exercise the gem through its documented surface.
+      RUBY
+    end
+  end
+
+  it 'flags __send__ exactly once, as a bypass rather than a __-prefix hit' do
+    expect_offense(<<~RUBY)
+      set.__send__(:converted_id, '1')
+          ^^^^^^^^ `__send__` bypasses method visibility. Specs must exercise the gem through its documented surface.
+    RUBY
+  end
+
+  it 'flags a visibility bypass method with no explicit receiver' do
+    expect_offense(<<~RUBY)
+      send(:converted_id, '1')
+      ^^^^ `send` bypasses method visibility. Specs must exercise the gem through its documented surface.
+    RUBY
+  end
+
+  %w[expect_any_instance_of allow_any_instance_of stub_const].each do |mock_method|
+    it "flags `#{mock_method}` as mocking gem behaviour" do
+      source = "#{mock_method}(PeopleSet).to receive(:od_select)"
+      underline = '^' * mock_method.length
+      expect_offense(<<~RUBY)
+        #{source}
+        #{underline} `#{mock_method}` mocks gem behaviour. Specs must assert on the gem's output instead.
+      RUBY
+    end
+  end
+
   context 'when the config has no Namespace key' do
     let(:cop_config) do
       {

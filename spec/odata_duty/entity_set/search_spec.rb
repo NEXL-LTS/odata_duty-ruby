@@ -152,14 +152,6 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         )
       end
 
-      it 'calls od_search method when implemented' do
-        expect_any_instance_of(SupportsCollectionSearchSet)
-          .to receive(:od_search).with(instance_of(OdataDuty::SearchExpression)).and_call_original
-        schema.execute('SupportsCollectionSearch',
-                       context: Context.new,
-                       query_options: { '$search' => 'Boise' })
-      end
-
       it 'raises error when od_search not implemented' do
         expect do
           schema.execute('SearchlessCollection',
@@ -371,6 +363,13 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         SupportsCollectionSearchSet.last_search_terms = nil
         schema.execute('SupportsCollectionSearch', context: Context.new,
                                                    query_options: { '$search' => value })
+      end
+
+      it 'calls od_search with a real SearchExpression exposing the matched term' do
+        search('Boise')
+        expect(SupportsCollectionSearchSet.last_search_terms).to eq(['Boise'])
+        expect(SupportsCollectionSearchSet.last_search_and).to be(true)
+        expect(SupportsCollectionSearchSet.last_search_or).to be(false)
       end
 
       it 'hands an empty AND expression for an empty search string' do

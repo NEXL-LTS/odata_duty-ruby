@@ -145,7 +145,19 @@ a dedicated example asserting `__send__` produces exactly one offense (not two).
 **Depends on:** Task 2 (the `__`-prefix check must exist to create the `__send__`
 overlap this task resolves).
 
-- [ ]
+- [x]
+
+**Commit-ordering note (judgment call):** the repo's `.githooks/pre-commit` hook runs
+`bundle exec rake` and rejects any commit where it's red, with `--no-verify` off the table
+per this build's rules. Turning on the mocking check makes `bundle exec rubocop` red
+across the whole repo (the 5 known pre-existing `expect_any_instance_of` offences) the
+moment this check lands, and `.rubocop.yml`'s `Include` already covers all specs from
+task 1 — there is no way to commit "checks implemented" and "offences fixed" as two
+separate green commits in this order. Resolution: tasks 3, 4, 5, and 6 are still reviewed
+independently (spec-compliance + code-quality per task, as planned), but their combined
+diff lands in a **single commit** once task 6 is done and the tree is green, since the
+hook makes any earlier commit point in this range impossible without bypassing it. Task
+7 (docs) remains its own commit as planned.
 
 ## Task 4 — RuboCop metrics/lint pass and full-suite `bundle exec rake` on the cop alone
 
@@ -178,7 +190,7 @@ to fix).
 
 **Depends on:** Task 3.
 
-- [ ]
+- [x]
 
 ## Task 5 — Migrate `select_spec.rb`'s four `expect_any_instance_of` offences
 
@@ -221,7 +233,7 @@ changes expected) `spec/odata_duty/schema_builder/**` for an equivalent select s
 **Depends on:** Task 4 (cop is fully implemented and reporting the real offences to fix
 against).
 
-- [ ]
+- [x]
 
 ## Task 6 — Migrate `search_spec.rb`'s constant+mock offence and promote `SearchExpression`/`SearchTerm` to the allowlist
 
@@ -264,7 +276,7 @@ rubocop` must report **zero** offences for `OdataDuty/PublicApiOnly` across the 
 **Depends on:** Task 5 (keeps the two migration tasks independent/reviewable, but ordered
 so the final full-suite-green check happens once, at the end of this task).
 
-- [ ]
+- [x]
 
 ## Task 7 — Documentation: new `spec/using_public_api_only.md`, move `doc/using_coverage.md` → `spec/using_coverage.md`, update `CLAUDE.md` and `doc/using_search.md`
 
