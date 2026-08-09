@@ -2,6 +2,11 @@ require_relative 'mapper_builder'
 
 module OdataDuty
   class ComplexType
+    def self.description(text = nil)
+      @description = Property.resolve_description(__metadata.name, text) unless text.nil?
+      @description
+    end
+
     def self.properties
       @properties ||= []
     end
@@ -33,6 +38,10 @@ module OdataDuty
 
       def property_type
         name
+      end
+
+      def description
+        complex_type.description
       end
 
       def metadata_type

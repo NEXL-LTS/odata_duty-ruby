@@ -1,0 +1,49 @@
+require 'spec_helper'
+
+module EntitySetDescriptionValidationExample
+  class Person < OdataDuty::EntityType
+    property_ref 'id', String
+  end
+end
+
+RSpec.describe OdataDuty::EntitySet, 'entity-set-level description validation' do
+  it 'raises InvalidDescriptionError naming the set for an empty string' do
+    expect do
+      class InvalidDescriptionPeopleSet < OdataDuty::EntitySet
+        entity_type EntitySetDescriptionValidationExample::Person
+        description ''
+      end
+    end.to raise_error(OdataDuty::InvalidDescriptionError,
+                       'InvalidDescriptionPeople: description must be a non-empty string')
+  end
+
+  it 'raises InvalidDescriptionError for a whitespace-only string' do
+    expect do
+      class WhitespaceDescriptionPeopleSet < OdataDuty::EntitySet
+        entity_type EntitySetDescriptionValidationExample::Person
+        description '   '
+      end
+    end.to raise_error(OdataDuty::InvalidDescriptionError,
+                       'WhitespaceDescriptionPeople: description must be a non-empty string')
+  end
+
+  it 'raises InvalidDescriptionError for a value that does not respond to to_str' do
+    expect do
+      class SymbolDescriptionPeopleSet < OdataDuty::EntitySet
+        entity_type EntitySetDescriptionValidationExample::Person
+        description :people
+      end
+    end.to raise_error(OdataDuty::InvalidDescriptionError,
+                       'SymbolDescriptionPeople: description must be a non-empty string')
+  end
+
+  it 'raises InvalidDescriptionError for false rather than treating it as omitted' do
+    expect do
+      class FalseDescriptionPeopleSet < OdataDuty::EntitySet
+        entity_type EntitySetDescriptionValidationExample::Person
+        description false
+      end
+    end.to raise_error(OdataDuty::InvalidDescriptionError,
+                       'FalseDescriptionPeople: description must be a non-empty string')
+  end
+end

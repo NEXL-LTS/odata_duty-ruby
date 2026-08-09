@@ -1,5 +1,6 @@
 require_relative 'context_wrapper'
 require_relative 'schema_builder/endpoint'
+require_relative 'operation_verbs'
 
 module OdataDuty
   class OAS2
@@ -27,6 +28,7 @@ module OdataDuty
                 'paths' => paths, 'definitions' => definitions }
       info['version'] = schema.version if schema.version
       info['title'] = schema.title if schema.title
+      info['description'] = schema.description if schema.description
     end
 
     ERROR_PROPERTIES = {

@@ -9,6 +9,7 @@ module OdataDuty
 
       def name = entity_set.name
       def url = entity_set.url
+      def description = entity_set.description
 
       def new_entity_set(context:)
         entity_set.resolver_class.new(context: context, init_args: entity_set.init_args)

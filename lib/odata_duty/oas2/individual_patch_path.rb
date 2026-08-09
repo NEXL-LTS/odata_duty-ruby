@@ -4,11 +4,12 @@ module OdataDuty
       def self.to_oas2(entity_set)
         path_info = new(entity_set)
         {
-          'operationId' => path_info.operation_id,
+          'operationId' => path_info.operation_id
+        }.merge(path_info.summary_and_description).merge(
           'produces' => path_info.produces,
           'parameters' => path_info.parameters,
           'responses' => path_info.responses
-        }
+        )
       end
 
       def self.request_body_definition(entity_set)
@@ -24,6 +25,13 @@ module OdataDuty
 
       def operation_id
         "Update#{@entity_set.name}"
+      end
+
+      def summary_and_description
+        return {} unless @entity_set.description
+
+        { 'summary' => OperationVerbs.update(@entity_set.name),
+          'description' => @entity_set.description }
       end
 
       def produces

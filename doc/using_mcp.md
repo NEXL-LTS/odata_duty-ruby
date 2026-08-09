@@ -153,6 +153,14 @@ create/update property values) passes through unchanged.
 `tools/call` returns the result inside a text content block (`result.content[0].text`) — the
 collection/individual JSON for `list_`/`get_`, the numeric count as text for `count_`.
 
+If an entity set declares a `description:`, it is appended to **every** tool's generated
+description for that set, joined with `". "` (e.g. `"List People records. Attendees checked in at
+the front desk"`), and each property's `description:` reaches `inputSchema.properties.<name>` on
+every tool that exposes that property. A schema-level `description:` becomes the server
+`instructions` value returned in the `initialize` result (absent when the schema has none). See
+[`doc/using_descriptions.md`](using_descriptions.md) for the full picture across `$metadata`,
+`$oas2`, and MCP.
+
 ### No MCP resources (tools-only)
 
 The server is tools-only: it does **not** register MCP resources or resource templates, and its

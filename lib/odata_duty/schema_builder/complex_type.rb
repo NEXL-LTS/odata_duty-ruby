@@ -27,7 +27,7 @@ module OdataDuty
           'properties' => properties.to_h do |property|
                             [property.name.to_s, property.to_oas2]
                           end
-        }
+        }.tap { |oas2| oas2.merge!('description' => description) if description }
       end
     end
   end

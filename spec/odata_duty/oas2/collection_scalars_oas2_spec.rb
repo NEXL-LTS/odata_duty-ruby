@@ -14,6 +14,7 @@ RSpec.describe OdataDuty::OAS2, 'collection scalar property definitions' do
         et.property_ref 'id', String
         et.property 'ints', [Integer]
         et.property 'strings', [String]
+        et.property 'labels', [String], description: 'Free-form labels attached to the record'
         et.property 'dates', [Date]
         et.property 'datetimes', [DateTime]
         et.property 'bools', [TrueClass]
@@ -39,6 +40,11 @@ RSpec.describe OdataDuty::OAS2, 'collection scalar property definitions' do
   it 'renders an array of strings for a String collection' do
     expect(properties['strings'])
       .to include('type' => 'array', 'items' => { 'type' => 'string' })
+  end
+
+  it 'includes the property description for a described collection property' do
+    expect(properties['labels'])
+      .to include('description' => 'Free-form labels attached to the record')
   end
 
   it 'renders an array of dates for a Date collection' do

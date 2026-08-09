@@ -35,11 +35,20 @@ module OdataDuty
       @url
     end
 
+    def self.description(text = nil)
+      @description = Property.resolve_description(__metadata.name, text) unless text.nil?
+      @description
+    end
+
     class Metadata
       attr_reader :entity_set
 
       def initialize(entity_set)
         @entity_set = entity_set
+      end
+
+      def description
+        entity_set.description
       end
 
       def metadata_types
@@ -118,44 +127,14 @@ module OdataDuty
         raise ResourceNotFoundError, "No such entity #{id}" unless result
       end
 
-      def supports_search?
-        # Check if the entity set class supports search by looking for the od_search method
-        entity_set.method_defined?(:od_search)
-      end
-
-      def supports_filter_or?
-        entity_set.method_defined?(:od_filter_or)
-      end
-
-      def supports_collection?
-        # Check if the entity set class supports read by looking for the collection method
-        entity_set.method_defined?(:collection)
-      end
-
-      def supports_individual?
-        # Check if the entity set class supports read-by-id via the individual method
-        entity_set.method_defined?(:individual)
-      end
-
-      def supports_count?
-        # Check if the entity set class supports counting via the count method
-        entity_set.method_defined?(:count)
-      end
-
-      def supports_create?
-        # Check if the entity set class supports create by looking for the create method
-        entity_set.method_defined?(:create)
-      end
-
-      def supports_update?
-        # Check if the entity set class supports update by looking for the update method
-        entity_set.method_defined?(:update)
-      end
-
-      def supports_delete?
-        # Check if the entity set class supports delete by looking for the delete method
-        entity_set.method_defined?(:delete)
-      end
+      def supports_search? = entity_set.method_defined?(:od_search)
+      def supports_filter_or? = entity_set.method_defined?(:od_filter_or)
+      def supports_collection? = entity_set.method_defined?(:collection)
+      def supports_individual? = entity_set.method_defined?(:individual)
+      def supports_count? = entity_set.method_defined?(:count)
+      def supports_create? = entity_set.method_defined?(:create)
+      def supports_update? = entity_set.method_defined?(:update)
+      def supports_delete? = entity_set.method_defined?(:delete)
 
       def non_insertable_property_names
         @non_insertable_property_names ||=
@@ -206,6 +185,11 @@ module OdataDuty
       @title
     end
 
+    def self.description(text = nil)
+      @description = Property.resolve_description(namespace, text) unless text.nil?
+      @description
+    end
+
     def self.entity_sets(entity_sets = nil)
       @entity_sets = entity_sets.uniq if entity_sets
       @entity_sets
@@ -225,6 +209,7 @@ module OdataDuty
 
       def version = schema.version
       def title = schema.title
+      def description = schema.description
 
       def namespace
         schema.namespace
@@ -272,7 +257,7 @@ module OdataDuty
       metadata = __metadata
       metadata.check_names
 
-      ERB.new(File.read("#{__dir__}/metadata.xml.erb")).result(binding)
+      EdmxSchema.metadata_xml(metadata)
     end
 
     def self.index_hash(metadata_url)

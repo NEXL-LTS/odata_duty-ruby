@@ -3,11 +3,18 @@ module OdataDuty
     class IndividualGetPath < SimpleDelegator
       def to_oas2
         {
-          'operationId' => "GetIndividual#{name}ById",
+          'operationId' => "GetIndividual#{name}ById"
+        }.merge(summary_and_description).merge(
           'produces' => ['application/json'],
           'parameters' => oas2_parameters,
           'responses' => oas2_responses
-        }
+        )
+      end
+
+      def summary_and_description
+        return {} unless description
+
+        { 'summary' => OperationVerbs.get(name), 'description' => description }
       end
 
       def oas2_parameters

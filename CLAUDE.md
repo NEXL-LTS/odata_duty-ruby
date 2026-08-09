@@ -18,6 +18,7 @@ Short index of what's implemented; see the linked `doc/` guide for the full cont
 - **Paging** — `$top`/`$skip` and server-driven `@odata.nextLink` via `od_next_link_skiptoken`.
 - **Computed properties** — `doc/using_computed.md`.
 - **Property mutability** — `mutability: :immutable`/`:non_insertable`/`:computed` per property (create/update settability + `Core` annotations & `Capabilities.InsertRestrictions`; `$oas2` per-operation `<Entity>Create`/`<Entity>Update` request bodies) — `doc/using_mutability.md`.
+- **Descriptions** — `description:` on schema, entity/complex/enum type, enum member, property (incl. `property_ref`), and entity set; renders into `$metadata` (`Core.Description`), `$oas2` (`info`/definitions/properties/operation `summary`+`description`), and MCP (tool descriptions, input-schema property descriptions, server `instructions`) — `doc/using_descriptions.md`.
 - **Init args** — pass per-request data into `od_after_init` — `doc/using_init_args.md`.
 - **Request context** — the `context` object in resolver hooks (delegation, `od_full_url`, `query_options`, `base_url`, `current`), plus `od_context`/`object` in class-DSL property methods — `doc/using_context.md`.
 - **MCP server** — tools-only over JSON-RPC; reads inferred as `list_/get_/count_<Set>` tools, writes as `create_/update_/delete_<Set>`, no resources — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
@@ -68,10 +69,15 @@ When editing, prefer extending these conventions over adding new public API surf
 
 - **The source code is the best source of truth.** Read it before relying on docs, comments, or this file — when they disagree, the code wins. Keep prose (docs, comments) minimal and let the code speak.
 - **Prefer single-line comments.** Avoid multi-line comment blocks in source code; if something needs more than one line of explanation, rename/refactor or move the explanation into `doc/`.
-- Tests must use only the gem's **public API** — do not test internal classes/methods directly (`AGENTS.md`).
+- **Tests must use only the gem's public API.** The public surface is: the schema-definition DSL (class macros / builder methods) and the errors it raises at definition time; `Schema.execute`/`.create`/`.update`/`.delete` (or the builder equivalents) and the JSON/XML they produce; `metadata_xml`/`index_hash`; `OAS2.build_json`; and `to_mcp_server` plus its JSON-RPC calls (`initialize`, `tools/list`, `tools/call`). Never test internal classes/methods directly — common traps: `__metadata`, any `*Wrapper`/`Endpoint` object, or calling `.to_oas2`/`.to_value`/`.mapper` on a type/property object directly. A DSL macro's own reader (e.g. `PersonEntity.description`) is not proof a value propagated — assert against the rendered output (`$metadata`/`$oas2`/MCP) instead.
 - **Tests are public documentation.** Write specs as human-readable usage examples: real named classes and schemas defined the way a consumer would write them, exercised through the public API, with descriptions explaining the case each example helps with. No stubbing (`stub_const`, mocks) of gem internals — if a behavior can only be shown with test machinery, question the behavior instead. The tests ARE the documentation: convey intent through `describe`/`it` descriptions, not explanatory `#` comments in spec files.
 - Two-space indent, **99-char line limit**, Ruby 3 syntax. RuboCop metrics are tightened (see `.rubocop.yml`: `MethodLength` 13, `ClassLength`/`ModuleLength` 99, `AbcSize` 30) — keep methods small rather than adding inline disables.
 - Update `doc/` guides and `README.md` when external usage changes; bump `spec.version` in `odata_duty.gemspec` for releases.
+
+## Pull requests
+
+Keep the PR description simple and high level — a short summary of what changed and why, not a
+task-by-task walkthrough or exhaustive file list. Details belong in the commits.
 
 ## Rails integration
 
