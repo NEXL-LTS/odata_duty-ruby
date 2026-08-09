@@ -323,9 +323,26 @@ enforcement applies, with **no** `add_filter` for `rubocop/`. The cop spec
 requires the cop file, so SimpleCov tracks it from the first example.
 
 This constrains the cop's design: it must carry no defensive or unreachable
-branches, because every branch needs an example that exercises it. Notably, the
-`Namespace` config default needs an example with no `Namespace` key set, and the
-outermost-const guard needs both a nested and a non-nested case.
+branches, because every branch needs an example that exercises it.
+
+Ruby's branch coverage instruments `if`/`unless` (including the modifier form),
+`case`/`when`/`in`, `while`/`until`, ternaries and `&.`. It records **nothing**
+for `||`, `&&`, `||=`, `or`-guard clauses, or a `fetch` with a default. Two
+consequences for this cop:
+
+- `@allowed_constants ||= Set.new(…)` and `cop_config.fetch('Namespace',
+  'OdataDuty')` are already coverage-safe as written. They need no rework, and
+  in particular must **not** be rewritten as `defined?`-guarded memoization —
+  `return @x if defined?(@x)` emits an `if` whose `then` arm only runs on a
+  second call to the same cop instance, which a normal cop spec never makes.
+- The outermost-const guard `return if node.parent&.const_type?` emits two
+  branch groups — the `&.` and the `if` — so it needs four arms covered: a
+  top-level constant (nil parent), a constant whose parent is not a const node,
+  a nested constant (guard taken), and an allowed constant that falls through.
+  The nested-vs-plain examples already listed below cover these naturally.
+
+Any other conditional the cop introduces carries the same obligation, which is
+the real argument for keeping it small.
 
 Mutant is unaffected — `.mutant.yml` sets `includes: lib` and matches subjects
 under `OdataDuty*`, while the cop lives in `rubocop/` under
@@ -349,7 +366,8 @@ It must cover, at minimum:
 - each bypass method, flagged
 - `public_send`, accepted
 - each mocking method, flagged
-- a cop_config with no `Namespace` key, exercising the default
+- a cop_config with no `Namespace` key, exercising the default (not required for
+  branch coverage, since `fetch` emits no branch, but it pins the default)
 
 Heredocs in this file contain internal constant names as *strings*, so the cop
 does not flag its own spec.
