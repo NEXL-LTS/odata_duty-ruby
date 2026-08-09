@@ -65,7 +65,7 @@ spec's first example onward per the PRD).
 
 **Depends on:** nothing (first task).
 
-- [ ]
+- [x]
 
 ## Task 2 — `__`-prefixed internal-method check
 
