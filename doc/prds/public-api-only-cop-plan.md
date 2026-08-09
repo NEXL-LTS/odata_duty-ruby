@@ -3,7 +3,7 @@
 > Implements [public-api-only-cop.md](./public-api-only-cop.md)
 
 ## Task 1: Create the RuboCop cop and its spec
-**Status:** - [ ]
+**Status:** - [x]
 
 **Task text:** Write the custom RuboCop cop `rubocop/cop/odata_duty/public_api_only.rb` that checks for four violations: internal constants not in the allowlist, `__`-prefixed method calls, visibility bypasses (send, __send__, instance_variable_get/set, const_get, instance_eval, method), and mocking methods (expect_any_instance_of, allow_any_instance_of, stub_const). Write its spec at `spec/rubocop/public_api_only_spec.rb` at 100% line and branch coverage.
 
