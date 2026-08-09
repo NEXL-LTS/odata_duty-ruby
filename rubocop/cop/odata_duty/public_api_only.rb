@@ -43,7 +43,8 @@ module RuboCop
         private
 
         def check_internal_method(node)
-          return unless node.method_name.to_s.start_with?('__')
+          return unless node.method_name.to_s.start_with?('__') &&
+                        !%i[__dir__ __FILE__].include?(node.method_name)
           return if node.method_name == :__send__ && bypass_method?(node)
 
           add_offense(node, message: format(MSG_INTERNAL_METHOD, method: node.method_name))

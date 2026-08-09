@@ -107,9 +107,32 @@ class SearchlessCollectionSet < OdataDuty::EntitySet
   end
 end
 
+class CapturingSearchSet < OdataDuty::EntitySet
+  entity_type CollectionSearchTestEntity
+
+  class << self
+    attr_accessor :captured_search_expression
+  end
+
+  ALL_RECORDS = SupportsCollectionSearchSet::ALL_RECORDS
+
+  def od_after_init
+    @records = ALL_RECORDS
+  end
+
+  def od_search(search_expression)
+    self.class.captured_search_expression = search_expression
+    @records
+  end
+
+  def collection
+    @records.map { |r| CamelSnakeStruct.new(r) }
+  end
+end
+
 class CollectionSearchTestSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
-  entity_sets [SupportsCollectionSearchSet, SearchlessCollectionSet]
+  entity_sets [SupportsCollectionSearchSet, SearchlessCollectionSet, CapturingSearchSet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
@@ -152,12 +175,15 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         )
       end
 
-      it 'calls od_search method when implemented' do
-        expect_any_instance_of(SupportsCollectionSearchSet)
-          .to receive(:od_search).with(instance_of(OdataDuty::SearchExpression)).and_call_original
-        schema.execute('SupportsCollectionSearch',
+      it 'calls od_search method with SearchExpression' do
+        schema.execute('CapturingSearch',
                        context: Context.new,
                        query_options: { '$search' => 'Boise' })
+        expr = CapturingSearchSet.captured_search_expression
+        expect(expr).to be_a(OdataDuty::SearchExpression)
+        expect(expr.terms).to be_an(Array)
+        expect(expr.and?).to eq(true)
+        expect(expr.or?).to eq(false)
       end
 
       it 'raises error when od_search not implemented' do

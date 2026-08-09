@@ -133,6 +133,16 @@ RSpec.describe RuboCop::Cop::OdataDuty::PublicApiOnly do
       expect(offenses).to have_attributes(size: 1)
       expect(offenses.first.message).to include('`__metadata` is an internal method')
     end
+
+    it 'does not flag __dir__ builtin' do
+      code = %(path = "#{__dir__}/file.txt")
+      expect(inspect_source(code)).to be_empty
+    end
+
+    it 'does not flag __FILE__ builtin' do
+      code = 'puts __FILE__'
+      expect(inspect_source(code)).to be_empty
+    end
   end
 
   context 'visibility bypasses' do

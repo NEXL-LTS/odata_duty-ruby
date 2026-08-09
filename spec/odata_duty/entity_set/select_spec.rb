@@ -146,38 +146,6 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
                          query_options: { '$select' => '"id"' })
         end.to raise_error(OdataDuty::InvalidQueryOptionError)
       end
-
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[id i]).and_call_original
-        json_string = schema.execute("SupportsCollectionSelect('1')",
-                                     context: Context.new,
-                                     query_options: { '$select' => 'id,i' })
-        response = Oj.load(json_string)
-        expect(response).to eq(
-          {
-            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect/$entity',
-            '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
-            'id' => '1', 'i' => 1
-          }
-        )
-      end
-
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[c id]).and_call_original
-        json_string = schema.execute("SupportsCollectionSelect('1')",
-                                     context: Context.new,
-                                     query_options: { '$select' => 'c' })
-        response = Oj.load(json_string)
-        expect(response).to eq(
-          {
-            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect/$entity',
-            '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
-            'c' => { 's' => '1' }
-          }
-        )
-      end
     end
 
     describe 'collection' do
@@ -235,42 +203,6 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
                          context: Context.new,
                          query_options: { '$select' => '"id"' })
         end.to raise_error(OdataDuty::InvalidQueryOptionError)
-      end
-
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[id i]).and_call_original
-        json_string = schema.execute('SupportsCollectionSelect',
-                                     context: Context.new,
-                                     query_options: { '$select' => 'id,i' })
-        response = Oj.load(json_string)
-        expect(response).to eq(
-          {
-            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect',
-            'value' => [{ '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
-                          'id' => '1', 'i' => 1 },
-                        { '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'2\')',
-                          'id' => '2', 'i' => 2 }]
-          }
-        )
-      end
-
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[c id]).and_call_original
-        json_string = schema.execute('SupportsCollectionSelect',
-                                     context: Context.new,
-                                     query_options: { '$select' => 'c' })
-        response = Oj.load(json_string)
-        expect(response).to eq(
-          {
-            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect',
-            'value' => [{ '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
-                          'c' => { 's' => '1' } },
-                        { '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'2\')',
-                          'c' => { 's' => '2' } }]
-          }
-        )
       end
     end
 

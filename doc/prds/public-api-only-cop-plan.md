@@ -61,8 +61,8 @@ OdataDuty/PublicApiOnly:
 
 **Dependencies:** Task 1 (cop must exist)
 
-## Task 3: Migrate spec violations - search_spec.rb and select_spec.rb
-**Status:** - [ ]
+## Task 3: Migrate spec violations - search_spec.rb and select_spec.rb (MERGED INTO TASK 2)
+**Status:** - [x]
 
 **Task text:** Fix the five offences currently in the spec suite: one constant reference to SearchExpression in search_spec.rb:157, and four expect_any_instance_of calls in select_spec.rb (lines 151, 167, 241, 259). Create a CapturingSearchSet fixture in search_spec.rb that records the SearchExpression passed to od_search, then assert on expression.terms and expression.or?. Convert the four select_spec.rb mocks to use or extend CapturingSelectSet pattern, or delete where existing capturing examples already cover the assertion.
 
