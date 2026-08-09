@@ -147,9 +147,7 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         end.to raise_error(OdataDuty::InvalidQueryOptionError)
       end
 
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[id i]).and_call_original
+      it 'returns only the selected properties for an individual' do
         json_string = schema.execute("SupportsCollectionSelect('1')",
                                      context: Context.new,
                                      query_options: { '$select' => 'id,i' })
@@ -163,9 +161,7 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         )
       end
 
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[c id]).and_call_original
+      it 'returns only the selected complex property for an individual' do
         json_string = schema.execute("SupportsCollectionSelect('1')",
                                      context: Context.new,
                                      query_options: { '$select' => 'c' })
@@ -237,9 +233,7 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         end.to raise_error(OdataDuty::InvalidQueryOptionError)
       end
 
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[id i]).and_call_original
+      it 'returns only the selected properties for a collection' do
         json_string = schema.execute('SupportsCollectionSelect',
                                      context: Context.new,
                                      query_options: { '$select' => 'id,i' })
@@ -255,9 +249,7 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         )
       end
 
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[c id]).and_call_original
+      it 'returns only the selected complex property for a collection' do
         json_string = schema.execute('SupportsCollectionSelect',
                                      context: Context.new,
                                      query_options: { '$select' => 'c' })
@@ -347,6 +339,12 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
       it 'passes all property names plus refs, deduplicated, when $select is absent' do
         schema.execute('CapturingSelect', context: Context.new, query_options: {})
         expect(CapturingSelectSet.captured_select).to eq(%i[id i t c])
+      end
+
+      it 'passes the selected complex property plus refs, deduplicated' do
+        schema.execute('CapturingSelect', context: Context.new,
+                                          query_options: { '$select' => 'c' })
+        expect(CapturingSelectSet.captured_select).to eq(%i[c id])
       end
     end
   end

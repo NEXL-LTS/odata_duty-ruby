@@ -72,7 +72,7 @@ SimpleCov bar (no `add_filter` for `rubocop/`) and RuboCop's own tightened metri
 
 ### Task 2 — Migrate the five existing offences in the suite
 
-- [ ] **Task text:** With the cop enabled (Task 1), `bundle exec rake` now flags five
+- [x] **Task text:** With the cop enabled (Task 1), `bundle exec rake` now flags five
   offences. Resolve all so RuboCop is green:
     - `spec/odata_duty/entity_set/search_spec.rb:157` — the single constant offence AND a
       mock: `expect_any_instance_of(SupportsCollectionSearchSet).to
