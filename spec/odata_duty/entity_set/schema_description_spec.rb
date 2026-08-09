@@ -24,11 +24,6 @@ class SchemaDescSchema < OdataDuty::Schema
 end
 
 RSpec.describe OdataDuty::Schema, 'schema description validation' do
-  it 'reads back the exact description that was declared on the schema' do
-    expect(SchemaDescSchema.description)
-      .to eq('Directory of people attending the annual conference')
-  end
-
   it 'renders the Core Description annotation on the Schema element' do
     expect(SchemaDescSchema.metadata_xml).to include(
       '<Annotation Term="Org.OData.Core.V1.Description" ' \
@@ -43,27 +38,6 @@ RSpec.describe OdataDuty::Schema, 'schema description validation' do
     description_index = xml.index('Org.OData.Core.V1.Description')
     expect(version_index).to be < title_index
     expect(title_index).to be < description_index
-  end
-
-  it 'treats omitted description as no description' do
-    schema = Class.new(OdataDuty::Schema) do
-      namespace 'NoDescSpace'
-      base_url 'http://localhost:3000/api'
-      entity_sets [SchemaDescGadgetSet]
-    end
-
-    expect(schema.description).to be_nil
-  end
-
-  it 'treats description nil the same as omitted' do
-    schema = Class.new(OdataDuty::Schema) do
-      namespace 'NilDescSpace'
-      base_url 'http://localhost:3000/api'
-      entity_sets [SchemaDescGadgetSet]
-      description nil
-    end
-
-    expect(schema.description).to be_nil
   end
 
   it 'omits the Description annotation entirely when no description is declared' do

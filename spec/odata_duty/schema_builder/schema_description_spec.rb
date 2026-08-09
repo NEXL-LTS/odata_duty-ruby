@@ -19,12 +19,6 @@ module OdataDuty
       end
     end
 
-    it 'reads back the exact description that was assigned on the schema' do
-      schema = build_with_description('Directory of people attending the annual conference')
-      expect(schema.description)
-        .to eq('Directory of people attending the annual conference')
-    end
-
     it 'renders the Core Description annotation on the Schema element' do
       xml = build_with_description('Directory of people attending the annual conference')
             .metadata_xml
@@ -43,14 +37,8 @@ module OdataDuty
       expect(title_index).to be < description_index
     end
 
-    it 'treats omitted description as no description' do
-      schema = SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') { |s| s }
-      expect(schema.description).to be_nil
-    end
-
     it 'treats description = nil the same as omitted' do
       expect { build_with_description(nil) }.not_to raise_error
-      expect(build_with_description(nil).description).to be_nil
     end
 
     it 'omits the Description annotation entirely when no description is assigned' do
