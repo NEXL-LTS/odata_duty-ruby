@@ -207,6 +207,16 @@ GET /MyEntitySet?$search="senior developer" AND NOT intern&$filter=age gt 25
 - **Search Expression Structure:**  
   Access `search_expression.terms` for individual search terms, `search_expression.or?`/`search_expression.and?` for operator type, and `term.not?`/`term.value` for term details.
 
+- **Public API:**  
+  `OdataDuty::SearchExpression` and `OdataDuty::SearchTerm` — the objects your `od_search`
+  implementation receives — are formally part of the gem's public API, not internal
+  types. The RuboCop allowlist in `.rubocop.yml` (`OdataDuty/PublicApiOnly`) pins the two
+  class names themselves as safe to reference; the documented contract on top of that is
+  the method surface above — `.terms`, `.or?`, `.and?` on `SearchExpression`, and
+  `.value`, `.not?` on each `SearchTerm`. Rely only on those; anything else on these
+  objects is an implementation detail, even though the cop has no way to flag misuse of
+  it.
+
 - **Usage:**  
   When clients pass a `$search` parameter, OdataDuty parses it into a structured expression and routes it to your `od_search` implementation to return filtered results.
 

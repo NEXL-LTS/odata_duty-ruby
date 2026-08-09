@@ -320,4 +320,4 @@ rely on, noting the RuboCop allowlist now makes this a formal commitment.
 
 **Depends on:** Task 6 (docs should describe the cop's final, fully-migrated behavior).
 
-- [ ]
+- [x]
