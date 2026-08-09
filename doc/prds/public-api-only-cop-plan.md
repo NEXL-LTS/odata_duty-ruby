@@ -23,7 +23,7 @@
 **Dependencies:** None (foundation task)
 
 ## Task 2: Configure the cop in .rubocop.yml
-**Status:** - [ ]
+**Status:** - [x]
 
 **Task text:** Add the cop configuration to `.rubocop.yml` with the require directive, the allowlist of public constants (EntityType, ComplexType, EnumType, EntitySet, SetResolver, Schema, SchemaBuilder, EdmxSchema, OAS2, SearchExpression, SearchTerm, Generators::InstallGenerator, Generators::EntitySetGenerator), and two AllowedConstantPatterns for errors and invalid types.
 

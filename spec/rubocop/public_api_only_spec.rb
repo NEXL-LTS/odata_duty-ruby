@@ -1,8 +1,11 @@
 require 'rubocop'
 require 'rubocop/ast'
 require_relative '../../rubocop/cop/odata_duty/public_api_only'
+require_relative '../support/rubocop_cop_test_helper'
 
 RSpec.describe RuboCop::Cop::OdataDuty::PublicApiOnly do
+  include RubocopCopTestHelper
+
   let(:cop_config) do
     {
       'Namespace' => 'OdataDuty',
@@ -26,49 +29,6 @@ RSpec.describe RuboCop::Cop::OdataDuty::PublicApiOnly do
         '\AOdataDuty::Invalid\w+\z'
       ]
     }
-  end
-
-  def inspect_source(code, cop_cfg = cop_config)
-    config = RuboCop::Config.new(
-      {
-        'AllCops' => { 'TargetRubyVersion' => 3.2 },
-        'OdataDuty/PublicApiOnly' => cop_cfg
-      }
-    )
-    cop = RuboCop::Cop::OdataDuty::PublicApiOnly.new(config)
-    source = RuboCop::AST::ProcessedSource.new(code, 3.2, 'spec/some_spec.rb')
-
-    # Manually trigger the cop's investigation
-    cop.send(:begin_investigation, source)
-    walk_ast(source.ast, cop)
-
-    cop.instance_variable_get(:@current_offenses) || []
-  end
-
-  def walk_ast(node, cop)
-    return unless node.is_a?(RuboCop::AST::Node)
-
-    dispatch_node(node, cop)
-    walk_children(node, cop)
-  end
-
-  def dispatch_node(node, cop)
-    case node.type
-    when :const
-      cop.on_const(node)
-    when :send
-      cop.on_send(node)
-    when :csend
-      cop.on_csend(node)
-    end
-  end
-
-  def walk_children(node, cop)
-    return unless node.respond_to?(:children)
-
-    node.children.each do |child|
-      walk_ast(child, cop) if child.is_a?(RuboCop::AST::Node)
-    end
   end
 
   context 'allowlisted constants' do
@@ -268,6 +228,22 @@ RSpec.describe RuboCop::Cop::OdataDuty::PublicApiOnly do
       offenses = inspect_source(code, config_no_ns)
       expect(offenses).to be_empty
     end
+
+    it 'constants matching patterns are allowed' do
+      code = 'OdataDuty::SomeError'
+      expect(inspect_source(code)).to be_empty
+    end
+
+    it 'constants not matching any pattern are flagged' do
+      code = 'OdataDuty::SomeClass'
+      offenses = inspect_source(code)
+      expect(offenses.size).to eq(1)
+    end
+
+    it 'constants in different namespace are not flagged' do
+      code = 'SomeOther::Class'
+      expect(inspect_source(code)).to be_empty
+    end
   end
 
   context 'spec file detection' do
@@ -281,6 +257,35 @@ RSpec.describe RuboCop::Cop::OdataDuty::PublicApiOnly do
         end
       RUBY
       expect(inspect_source(code)).to be_empty
+    end
+  end
+
+  context 'constant parents' do
+    it 'handles constant in method argument' do
+      code = 'schema.execute(OdataDuty::Executor)'
+      offenses = inspect_source(code)
+      expect(offenses.size).to eq(1)
+      expect(offenses.first.message).to include('`OdataDuty::Executor`')
+    end
+  end
+
+  context 'namespace constant' do
+    it 'accepts bare namespace constant' do
+      code = 'RSpec.describe(OdataDuty) { }'
+      expect(inspect_source(code)).to be_empty
+    end
+
+    it 'accepts bare namespace in describe' do
+      code = 'describe OdataDuty do; end'
+      expect(inspect_source(code)).to be_empty
+    end
+  end
+
+  context 'integration' do
+    it 'multiple violations on same line' do
+      code = 'OdataDuty::Executor.new.send(:method)'
+      offenses = inspect_source(code)
+      expect(offenses.size).to eq(2)
     end
   end
 end

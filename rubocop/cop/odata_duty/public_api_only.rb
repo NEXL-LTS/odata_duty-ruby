@@ -14,7 +14,7 @@ module RuboCop
         MSG_MOCKING = '`%<method>s` mocks gem behaviour. Specs must assert ' \
                       'on the gem\'s output instead.'.freeze
 
-        def initialize(config)
+        def initialize(config, options = nil)
           super
           @allowed_constants = nil
           @allowed_patterns = nil
@@ -89,6 +89,7 @@ module RuboCop
 
         def allowed?(const_name)
           return true unless const_name.start_with?(namespace)
+          return true if const_name == namespace
 
           in_allowed?(const_name)
         end

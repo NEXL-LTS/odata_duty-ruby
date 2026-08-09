@@ -1,3 +1,6 @@
+require:
+  - ./rubocop/cop/odata_duty/public_api_only.rb
+
 AllCops:
   NewCops: enable
   TargetRubyVersion: 3.2
@@ -47,3 +50,26 @@ Lint/ConstantDefinitionInBlock:
 
 Gemspec/AttributeAssignment:
   Enabled: false
+
+OdataDuty/PublicApiOnly:
+  Enabled: true
+  Namespace: OdataDuty
+  Include:
+    - 'spec/**/*_spec.rb'
+  AllowedConstants:
+    - OdataDuty::EntityType
+    - OdataDuty::ComplexType
+    - OdataDuty::EnumType
+    - OdataDuty::EntitySet
+    - OdataDuty::SetResolver
+    - OdataDuty::Schema
+    - OdataDuty::SchemaBuilder
+    - OdataDuty::EdmxSchema
+    - OdataDuty::OAS2
+    - OdataDuty::SearchExpression
+    - OdataDuty::SearchTerm
+    - OdataDuty::Generators::InstallGenerator
+    - OdataDuty::Generators::EntitySetGenerator
+  AllowedConstantPatterns:
+    - '\AOdataDuty::\w*Error\z'
+    - '\AOdataDuty::Invalid\w+\z'
