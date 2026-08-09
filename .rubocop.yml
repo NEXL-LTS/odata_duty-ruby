@@ -1,3 +1,6 @@
+require:
+  - ./rubocop/cop/odata_duty/public_api_only.rb
+
 AllCops:
   NewCops: enable
   TargetRubyVersion: 3.2
@@ -47,3 +50,32 @@ Lint/ConstantDefinitionInBlock:
 
 Gemspec/AttributeAssignment:
   Enabled: false
+
+OdataDuty/PublicApiOnly:
+  Enabled: true
+  Namespace: OdataDuty
+  Include:
+    - 'spec/**/*_spec.rb'
+  AllowedConstants:
+    # Base classes a consumer subclasses
+    - OdataDuty::EntityType
+    - OdataDuty::ComplexType
+    - OdataDuty::EnumType
+    - OdataDuty::EntitySet
+    - OdataDuty::SetResolver
+    - OdataDuty::Schema
+    # Entry points a consumer calls
+    - OdataDuty::SchemaBuilder
+    - OdataDuty::EdmxSchema
+    - OdataDuty::OAS2
+    # Handed to od_search; see doc/using_search.md
+    - OdataDuty::SearchExpression
+    - OdataDuty::SearchTerm
+    # Rails generators, invoked as `bin/rails generate odata_duty:install`
+    - OdataDuty::Generators::InstallGenerator
+    - OdataDuty::Generators::EntitySetGenerator
+  AllowedConstantPatterns:
+    # Errors are part of the contract: consumers rescue them. Deriving these by
+    # pattern means new error classes in errors.rb are public automatically.
+    - '\AOdataDuty::\w*Error\z'
+    - '\AOdataDuty::Invalid\w+\z'

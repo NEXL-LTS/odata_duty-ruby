@@ -72,7 +72,7 @@ SimpleCov bar (no `add_filter` for `rubocop/`) and RuboCop's own tightened metri
 
 ### Task 2 — Migrate the five existing offences in the suite
 
-- [x] **Task text:** With the cop enabled (Task 1), `bundle exec rake` now flags five
+- [ ] **Task text:** With the cop enabled (Task 1), `bundle exec rake` now flags five
   offences. Resolve all so RuboCop is green:
     - `spec/odata_duty/entity_set/search_spec.rb:157` — the single constant offence AND a
       mock: `expect_any_instance_of(SupportsCollectionSearchSet).to
@@ -106,7 +106,7 @@ SimpleCov bar (no `add_filter` for `rubocop/`) and RuboCop's own tightened metri
 
 ### Task 3 — Documentation impact
 
-- [x] **Task text:** Apply the PRD's *Documentation impact* section:
+- [ ] **Task text:** Apply the PRD's *Documentation impact* section:
     - **New** `spec/using_public_api_only.md` — contributor guide in the style of
       `spec/using_mutant.md`: what the cop enforces, what the allowlist means, how to
       respond to each of the four messages, and the rule that widening the allowlist is a
