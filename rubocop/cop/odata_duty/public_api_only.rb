@@ -7,6 +7,8 @@ module RuboCop
       class PublicApiOnly < Base
         CONSTANT_MSG = '`%<name>s` is not part of the public API. ' \
                         'Specs must exercise the gem through its documented surface.'.freeze
+        INTERNAL_METHOD_MSG = '`%<name>s` is an internal method (`__` prefix). ' \
+                               'Specs must exercise the gem through its documented surface.'.freeze
 
         def on_const(node)
           return if node.parent&.const_type?
@@ -17,12 +19,27 @@ module RuboCop
           add_offense(node, message: format(CONSTANT_MSG, name: name))
         end
 
+        def on_send(node)
+          name = node.method_name
+          return unless internal_method_call?(node, name)
+
+          add_offense(node.loc.selector, message: format(INTERNAL_METHOD_MSG, name: name))
+        end
+        alias on_csend on_send
+
         private
 
         def internal_constant?(name)
           name.start_with?("#{namespace}::") &&
             !allowed_constants.include?(name) &&
             allowed_constant_patterns.none? { |pattern| pattern.match?(name) }
+        end
+
+        # A bare `__foo` call has no receiver, so it can only be a spec-local helper or a
+        # Ruby builtin (e.g. `Kernel#__dir__`) — never a gem-internal method, which is
+        # always called on a gem object.
+        def internal_method_call?(node, name)
+          !node.receiver.nil? && name.to_s.start_with?('__')
         end
 
         def namespace

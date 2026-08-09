@@ -74,6 +74,38 @@ RSpec.describe RuboCop::Cop::OdataDuty::PublicApiOnly, :config do
     RUBY
   end
 
+  it 'flags a __-prefixed method call on an explicit receiver' do
+    expect_offense(<<~RUBY)
+      schema.__metadata.entity_sets
+             ^^^^^^^^^^ `__metadata` is an internal method (`__` prefix). Specs must exercise the gem through its documented surface.
+    RUBY
+  end
+
+  it 'flags a __-prefixed method call via safe navigation, regardless of receiver' do
+    expect_offense(<<~RUBY)
+      object&.__wrap
+              ^^^^^^ `__wrap` is an internal method (`__` prefix). Specs must exercise the gem through its documented surface.
+    RUBY
+  end
+
+  it 'accepts a __-prefixed call with no receiver, e.g. Kernel#__dir__' do
+    expect_no_offenses(<<~'RUBY')
+      File.read("#{__dir__}/fixture.json")
+    RUBY
+  end
+
+  it 'accepts a normal, non-__-prefixed method call' do
+    expect_no_offenses(<<~RUBY)
+      schema.metadata
+    RUBY
+  end
+
+  it 'accepts public_send, since it does not start with __' do
+    expect_no_offenses(<<~RUBY)
+      record.public_send(:foo)
+    RUBY
+  end
+
   context 'when the config has no Namespace key' do
     let(:cop_config) do
       {

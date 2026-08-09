@@ -98,7 +98,7 @@ verify the combined single-report behavior for `__send__` specifically.
 
 **Depends on:** Task 1 (cop skeleton must exist).
 
-- [ ]
+- [x]
 
 ## Task 3 — Visibility-bypass and mocking-behaviour checks (with `__send__`/`public_send` edge cases)
 
