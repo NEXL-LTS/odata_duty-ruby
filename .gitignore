@@ -22,3 +22,4 @@ simple_profile.json
 /.claude/settings.local.json
 # Built gem packages
 *.gem
+.cache/agent-apropos/

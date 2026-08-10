@@ -81,6 +81,32 @@ debugging); `rbenv global <version>` changes the default. The full `ruby-build`
 toolchain (compilers, `libssl-dev`, `rustc` for YJIT, …) is installed, so building
 arbitrary versions works offline of any prebuilt binaries.
 
+## Conventions (agent-apropos)
+
+[agent-apropos](https://github.com/NEXL-LTS/agent-apropos) is baked into the image at a pinned
+version (`AGENT_APROPOS_VERSION` build arg in the Dockerfile). It delivers this repo's scoped
+conventions to Claude Code just-in-time: rules live in `doc/conventions/` as markdown with YAML
+frontmatter, and the `PreToolUse`/`PostToolUse` hooks in `.claude/settings.json` inject the ones
+matching the file path or written content being edited. Universal rules stay in `AGENTS.md`
+(`CLAUDE.md` is a symlink to it).
+
+The entrypoint runs `agent-apropos generate` on container start, which rebuilds the trigger index
+(`.cache/agent-apropos/`, gitignored) and the skill wrappers under `.claude/skills/`. After editing
+a convention doc, re-run it yourself:
+
+```sh
+agent-apropos generate   # rebuild the index + skill wrappers
+agent-apropos lint       # validate frontmatter and structure
+agent-apropos doctor     # check the environment and hook wiring
+```
+
+`agent-apropos generate` **owns `.claude/skills/`** — it deletes any skill directory it did not
+generate. Skills must therefore be authored as `doc/conventions/workflows/<slug>.md` with
+`skill: true`; never hand-write a `SKILL.md`.
+
+`agent-apropos.yml` at the repo root points the tool at `doc/conventions` rather than its default
+`docs/conventions`, matching this repo's existing `doc/` directory.
+
 ## Git hooks
 
 The container enables this repo's checked-in git hooks automatically. The Dockerfile
@@ -104,5 +130,6 @@ git config core.hooksPath .githooks
 - rbenv + ruby-build, with the `.ruby-version` Ruby pre-built (Bundler included)
 - Node.js 20 LTS + npm (from NodeSource)
 - `@anthropic-ai/claude-code` (run `claude` in the integrated terminal)
+- `agent-apropos` (pinned; delivers `doc/conventions/` rules to Claude Code — see above)
 - GitHub CLI (`gh`)
 - VS Code extensions: Ruby LSP, RuboCop, YAML, GitLens
