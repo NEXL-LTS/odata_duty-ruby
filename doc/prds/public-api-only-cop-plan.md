@@ -20,7 +20,7 @@ reviewed via `review-task` (spec compliance → code quality), then committed. O
 
 ## Tasks
 
-### - [ ] Task 1 — The `OdataDuty/PublicApiOnly` cop + its spec
+### - [x] Task 1 — The `OdataDuty/PublicApiOnly` cop + its spec
 
 **Task text:** Create the RuboCop cop `RuboCop::Cop::OdataDuty::PublicApiOnly` at
 `rubocop/cop/odata_duty/public_api_only.rb`, test-first, with its spec at
