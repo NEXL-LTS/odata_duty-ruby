@@ -12,11 +12,11 @@ You are the controller. You hold the plan, curate context, dispatch subagents, a
 
 ## Why subagents
 
-Each task goes to a fresh subagent whose entire context you construct: the task text, the relevant PRD excerpt, and the repo rules it must follow. It never inherits your history. This keeps each subagent focused and preserves your context for orchestration. **Fresh subagent per task + two-stage review (spec, then quality) = high quality, fast iteration.**
+Each task goes to a fresh subagent whose entire context you construct: the task text, the relevant PRD excerpt, and the repo rules it must follow. It never inherits your history. This keeps each subagent focused and preserves your context for orchestration. **Fresh subagent per task + a review dispatch that runs spec compliance then code quality = high quality, fast iteration.**
 
-## Trust the review stages
+## Trust the review-task dispatch
 
-Spec-compliance and code-quality review **are** the verification layer — that's their whole purpose. Once both come back ✅ for a task, don't re-run the full suite yourself or re-derive counts the reviewers already confirmed (an offense count, a coverage percentage, "TDD was followed") — that duplicates work the two-stage review already paid for and slows every task down without adding safety. Reserve your own independent checks for claims that are surprising, load-bearing, or trivially cheap to spot-check with a single command.
+The `review-task` skill (`.claude/commands/review-task.md`) **is** the verification layer for each task — that's its whole purpose. Once it reports `REVIEW_OK`, don't re-run the full suite yourself or re-derive counts it already confirmed (an offense count, a coverage percentage, "TDD was followed") — that duplicates work the review already paid for and slows every task down without adding safety. Reserve your own independent checks for claims that are surprising, load-bearing, or trivially cheap to spot-check with a single command.
 
 ## Continuous execution
 
@@ -53,38 +53,40 @@ A PRD is a spec, not a task list — you must decompose it, guided by the codeba
 
 - One task per coherent slice of behavior (e.g. "parse and validate the new query option", "apply it in the collection path", "surface it in `$metadata`", "surface it in `$oas2`", "expose it over MCP").
 - **Split class-DSL and builder-DSL work into sibling tasks** when they're substantial, or keep them in one task when the change is small and symmetric — but the task text must always name *both* DSLs and *both* spec trees so nothing is half-done.
-- **Don't over-split one small file.** If several checks/methods all land on the same small class or file (e.g. four checks on one ~70-line cop), that's usually one task, not one task per check — splitting multiplies the two-stage-review round-trip for tightly coupled edits that get reviewed together anyway regardless of task boundaries. Conversely, don't merge unrelated deliverables (code with docs, or two independent files with no shared logic) into one task to save time — see "never silently drop a planned task" above.
+- **Don't over-split one small file.** If several checks/methods all land on the same small class or file (e.g. four checks on one ~70-line cop), that's usually one task, not one task per check — splitting multiplies the implement-then-review round trip for tightly coupled edits that get reviewed together anyway regardless of task boundaries. Conversely, don't merge unrelated deliverables (code with docs, or two independent files with no shared logic) into one task to save time — see "never silently drop a planned task" above.
 - A final task for the documentation impact named in the PRD.
 
 For each task, write down: the full task text, which files it likely touches (both DSLs), the exact PRD excerpt (API snippet + expected I/O) that defines "done", and how it depends on earlier tasks. Order so each task builds on green predecessors.
 
-**Write the plan to a file.** Save the full plan next to the PRD, named after it with a `-plan.md` ending — for `doc/prds/<slug>.md` write `doc/prds/<slug>-plan.md` (e.g. `doc/prds/orderby-support.md` → `doc/prds/orderby-support-plan.md`). The file links back to its PRD at the top and lists every task in order with, for each: a title, the full task text, likely files (both DSLs + both spec trees), the defining PRD excerpt, dependencies, and a status checkbox (`- [ ]` → `- [x]`). This file is the durable plan of record — each task's checkbox is ticked as that task lands (step 4d). If a `-plan.md` already exists, overwrite it with the freshly derived plan. Commit the new plan file on its own (e.g. `Add build plan for <slug>`) before starting task work, so each task commit stays focused on code.
+**Write the plan to a file.** Save the full plan next to the PRD, named after it with a `-plan.md` ending — for `doc/prds/<slug>.md` write `doc/prds/<slug>-plan.md` (e.g. `doc/prds/orderby-support.md` → `doc/prds/orderby-support-plan.md`). The file links back to its PRD at the top and lists every task in order with, for each: a title, the full task text, likely files (both DSLs + both spec trees), the defining PRD excerpt, dependencies, and a status checkbox (`- [ ]` → `- [x]`). This file is the durable plan of record — each task's checkbox is ticked as that task lands (step 4c). If a `-plan.md` already exists, overwrite it with the freshly derived plan. Commit the new plan file on its own (e.g. `Add build plan for <slug>`) before starting task work, so each task commit stays focused on code.
 
 Then mirror the plan into a `TodoWrite` list and proceed **directly** to execution — no sign-off, no pause. (You may briefly state the plan as you start, but as a status line, not a request for approval.)
 
-### 4. Execute each task — implement, then two-stage review
+### 4. Execute each task — implement, then review
 
 For each task in order:
 
 **a. Dispatch the implementer subagent** (Agent tool) with the prompt in *Implementer prompt* below. Give it the full task text, the PRD excerpt, the file pointers, and the hard rules. If it returns questions before working, answer them completely and re-dispatch — don't rush it into code.
 
 Handle its final status:
-- **DONE** → go to spec review.
+- **DONE** → go to review.
 - **DONE_WITH_CONCERNS** → read the concerns. If they bear on correctness or scope, resolve them before review; if they're observations, note and proceed.
 - **NEEDS_CONTEXT** → supply what's missing, re-dispatch.
 - **BLOCKED** → diagnose: context problem → add context, re-dispatch; needs more reasoning → re-dispatch on a more capable model; too large → split the task; PRD itself is wrong → stop and escalate to the user. Never re-dispatch the same model on the same prompt unchanged.
 
-**b. Spec-compliance review first.** Dispatch a reviewer subagent with the *Spec-compliance reviewer prompt*. It checks the code against the PRD excerpt: every required behavior present, nothing extra, **both DSLs and both spec trees covered**, expected I/O matches. If it finds gaps, the **same implementer** subagent fixes them and you re-review. Loop until ✅. Do not start quality review until spec review is ✅.
+**b. Review the task.** Dispatch a review subagent with the *Review-task dispatch prompt* below, giving it the full task text, the PRD excerpt, and what changed (diff or file list/SHAs). It runs the `review-task` skill — spec compliance then code quality, gated — and returns one verdict:
 
-**c. Code-quality review second.** Dispatch a reviewer subagent with the *Code-quality reviewer prompt*. It checks TDD was followed (tests written first and meaningful, public-API-only, no mock-behavior tests), RuboCop is clean without gratuitous disables, methods stay within the metrics, names read like the surrounding code, and `bundle exec rake` is green. Implementer fixes, you re-review, loop until ✅.
+- **REVIEW_OK** → commit (next step).
+- **SPEC_GAPS** or **QUALITY_ISSUES** → re-dispatch the **same implementer** subagent with the reported list, then dispatch a fresh review subagent to re-review. Loop until `REVIEW_OK`.
+- **NEEDS_CONTEXT** → you omitted something the review dispatch needed; supply it and re-dispatch.
 
-**d. Commit the task.** Once both reviews are ✅ and `bundle exec rake` is green, tick this task's checkbox in the `-plan.md` file (`- [ ]` → `- [x]`), then commit just this task's changes — including the plan-file tick — with a focused message referencing the PRD (e.g. `git add -A && git commit`). One commit per task — never bundle multiple tasks into one commit, and never leave a reviewed task uncommitted. End the commit message with a co-author trailer naming **the model actually running this build** — not a hardcoded placeholder:
+**c. Commit the task.** Once review-task reports `REVIEW_OK`, tick this task's checkbox in the `-plan.md` file (`- [ ]` → `- [x]`), then commit just this task's changes — including the plan-file tick — with a focused message referencing the PRD (e.g. `git add -A && git commit`). One commit per task — never bundle multiple tasks into one commit, and never leave a reviewed task uncommitted. End the commit message with a co-author trailer naming **the model actually running this build** — not a hardcoded placeholder:
 
 ```
 Co-Authored-By: Claude <model name and version, e.g. "Sonnet 5" or "Opus 4.8"> <noreply@anthropic.com>
 ```
 
-**e. Mark the task complete** in `TodoWrite` (its `-plan.md` checkbox was ticked and committed in step d). Next task.
+**d. Mark the task complete** in `TodoWrite` (its `-plan.md` checkbox was ticked and committed in step c). Next task.
 
 ### 5. Final review
 
@@ -101,7 +103,7 @@ git rm --ignore-unmatch doc/prds/<slug>.md doc/prds/<slug>-plan.md
 git commit  # "Remove PRD and plan for <slug> — implemented"
 ```
 
-Give this commit the same co-author trailer used for every task commit (step 4d). The `--ignore-unmatch` flag keeps this robust when only one of the two files exists (e.g. a build resumed from an older session): `git rm` removes whichever file(s) are present and won't fail the cleanup over the missing one. Report what was built, the branch name, the commits — **including this cleanup commit** — and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
+Give this commit the same co-author trailer used for every task commit (step 4c). The `--ignore-unmatch` flag keeps this robust when only one of the two files exists (e.g. a build resumed from an older session): `git rm` removes whichever file(s) are present and won't fail the cleanup over the missing one. Report what was built, the branch name, the commits — **including this cleanup commit** — and the final `rake` result. **Do not push and do not open a PR** — leave the branch local for the user. Mention they can push/PR it themselves when ready.
 
 ## Subagent prompt templates
 
@@ -122,27 +124,21 @@ Construct each subagent's prompt from these. Provide full text — never tell a 
 >
 > Likely files: `<file pointers>`. Context: `<where this task fits>`.
 >
-> **Do not commit** — leave your changes in the working tree. The controller commits the task after both reviews pass, so review fixes stay in the same single commit.
+> **Do not commit** — leave your changes in the working tree. The controller commits the task after `review-task` reports `REVIEW_OK`, so review fixes stay in the same single commit.
 >
 > If anything blocks you or the task is ambiguous, **ask before coding**. When done, report status as one of `DONE`, `DONE_WITH_CONCERNS` (list them), `NEEDS_CONTEXT` (say what), or `BLOCKED` (say why), plus a short summary of files changed and the `rake` result. Your reply is consumed by a controller, not a human — be terse and factual.
 
-### Spec-compliance reviewer prompt
+### Review-task dispatch prompt
 
-> Review whether an implementation matches its spec. Do **not** assess style here — only spec compliance.
+> You are reviewing one task's implementation for the `odata_duty` Ruby gem, dispatched by this repo's `/build` controller.
 >
-> **The spec (PRD excerpt):** `<PRD excerpt>`
+> Invoke the `review-task` skill (Skill tool, `skill: "review-task"`) with these arguments:
 >
-> **What changed:** `<git diff or file list / SHAs>`
+> - **Task:** `<full task text>`
+> - **Spec (PRD excerpt):** `<PRD excerpt: API snippet + expected I/O + relevant error cases>`
+> - **What changed:** `<git diff or file list / SHAs>`
 >
-> Verify: every required behavior is present; the external API matches the PRD's snippets exactly (DSL surface, hook contracts, query option, outputs); expected I/O matches (collection/individual JSON, `$metadata` XML, `$oas2` JSON, MCP shape as applicable); listed error cases are handled; **both DSLs and both spec trees are covered** if the change applies to both; and nothing beyond the spec was added. Report `SPEC_OK`, or list concrete gaps and extras. Be specific and terse — a controller reads this.
-
-### Code-quality reviewer prompt
-
-> Review code quality of this change in the `odata_duty` gem. Assume spec compliance is already confirmed.
->
-> **What changed:** `<git diff / SHAs>`
->
-> Check: TDD was genuinely followed (tests are meaningful, behavior-focused, public-API-only, not testing mocks); `bundle exec rake` passes (RSpec **and** RuboCop); no gratuitous RuboCop disables; methods stay within metrics; new code reads like the surrounding code (naming, idiom, `od_*` convention); the two DSLs are consistent with each other; docs updated if the PRD required it. Report `QUALITY_OK`, or list concrete issues by severity (Critical / Important / Minor). Terse — a controller reads this.
+> Report back exactly what `review-task` tells you to report (`REVIEW_OK`, `SPEC_GAPS: ...`, `QUALITY_ISSUES: ...`, or `NEEDS_CONTEXT: ...`) — don't paraphrase or summarize it.
 
 ## Red flags — never
 
@@ -150,5 +146,5 @@ This is not a recap of the steps above — each item here is something not alrea
 
 - **Push, open a PR, or commit to `main`/`master`.** Work stays as local commits on a feature branch (steps 2 and 6) — worth this repetition given the cost of getting it wrong.
 - **Dispatch implementer subagents in parallel** — they conflict on files.
-- **Let an implementer's self-review stand in for the two review stages.**
+- **Let an implementer's self-review stand in for the `review-task` dispatch.**
 - **Tell a subagent to read the PRD/plan itself** — curate the exact text it needs instead.
