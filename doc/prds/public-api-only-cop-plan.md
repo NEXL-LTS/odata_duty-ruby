@@ -111,7 +111,11 @@ literal cases in `type_and_container_plumbing_spec.rb` / `schema_structure_spec.
 
 **Depends on:** Task 1 (the cop file must exist to be required).
 
-### - [ ] Task 3 — Documentation
+### - [x] Task 3 — Documentation
+
+> **Note:** also fixed a third, stale `doc/using_coverage.md` reference in
+> `.claude/commands/build.md` (a one-line path fix the file-move made necessary), beyond the two
+> references the PRD named.
 
 **Task text:** Apply the PRD's *Documentation impact* section:
 
