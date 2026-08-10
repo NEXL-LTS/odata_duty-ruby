@@ -32,7 +32,7 @@ RUN install -d -m 0755 /etc/apt/keyrings \
 RUN npm install -g @anthropic-ai/claude-code \
  && npm cache clean --force
 
-# agent-apropos — injects docs/conventions/ rules into Claude Code at edit time via git-tracked
+# agent-apropos — injects doc/conventions/ rules into Claude Code at edit time via git-tracked
 # hooks in .claude/settings.json. Pinned; bump the ARG to upgrade. See .devcontainer/README.md.
 ARG AGENT_APROPOS_VERSION=v0.4.0
 RUN curl -fsSL "https://raw.githubusercontent.com/NEXL-LTS/agent-apropos/${AGENT_APROPOS_VERSION}/install.sh" -o /tmp/agent-apropos-install.sh \
