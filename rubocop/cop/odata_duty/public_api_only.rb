@@ -23,9 +23,9 @@ module RuboCop
         def on_const(node)
           return if node.parent&.const_type?
 
-          name = node.source
-          return unless name.start_with?("#{namespace}::")
-          return if allowed_constant?(name)
+name = node.source.delete_prefix('::')
+return unless name.start_with?("#{namespace}::")
+return if allowed_constant?(name)
 
           add_offense(node, message: format(CONSTANT_MSG, name: name))
         end
