@@ -51,6 +51,7 @@ list current** — see `/build` for when to update it.
 ## Scoped conventions
 
 Everything else lives in [`doc/conventions/`](doc/conventions/), delivered just-in-time by
-[agent-apropos](https://github.com/NEXL-LTS/agent-apropos): path-scoped rules arrive when you edit a
-matching file, construct-scoped rules when you write matching code, and workflow skills when the
-task calls for them. Run `agent-apropos generate` after editing any convention doc.
+[agent-apropos](https://github.com/NEXL-LTS/agent-apropos): a scoped rule arrives when you **write**
+to a path it covers or write code its `contents` regex matches, and workflow skills when the task
+calls for them. Reads never inject — reading a convention doc in full only marks it as already in
+context. Run `agent-apropos generate` after editing any convention doc.

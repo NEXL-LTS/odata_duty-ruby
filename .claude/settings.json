@@ -10,21 +10,21 @@
             "timeout": 10
           }
         ]
-      },
-      {
-        "matcher": "Read",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "agent-apropos hook pre --tool claude",
-            "timeout": 10
-          }
-        ]
       }
     ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "agent-apropos hook post --tool claude",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
         "hooks": [
           {
             "type": "command",

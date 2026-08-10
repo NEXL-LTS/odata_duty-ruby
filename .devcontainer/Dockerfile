@@ -34,7 +34,7 @@ RUN npm install -g @anthropic-ai/claude-code \
 
 # agent-apropos — injects docs/conventions/ rules into Claude Code at edit time via git-tracked
 # hooks in .claude/settings.json. Pinned; bump the ARG to upgrade. See .devcontainer/README.md.
-ARG AGENT_APROPOS_VERSION=v0.3.3
+ARG AGENT_APROPOS_VERSION=v0.4.0
 RUN curl -fsSL "https://raw.githubusercontent.com/NEXL-LTS/agent-apropos/${AGENT_APROPOS_VERSION}/install.sh" -o /tmp/agent-apropos-install.sh \
  && AGENT_APROPOS_VERSION="${AGENT_APROPOS_VERSION}" AGENT_APROPOS_BIN_DIR=/usr/local/bin \
       sh /tmp/agent-apropos-install.sh \

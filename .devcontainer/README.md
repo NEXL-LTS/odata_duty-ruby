@@ -86,9 +86,10 @@ arbitrary versions works offline of any prebuilt binaries.
 [agent-apropos](https://github.com/NEXL-LTS/agent-apropos) is baked into the image at a pinned
 version (`AGENT_APROPOS_VERSION` build arg in the Dockerfile). It delivers this repo's scoped
 conventions to Claude Code just-in-time: rules live in `doc/conventions/` as markdown with YAML
-frontmatter, and the `PreToolUse`/`PostToolUse` hooks in `.claude/settings.json` inject the ones
-matching the file path or written content being edited. Universal rules stay in `AGENTS.md`
-(`CLAUDE.md` is a symlink to it).
+frontmatter, and the hooks in `.claude/settings.json` inject the ones whose `paths` and/or
+`contents` match. Injection happens on **writes** only — a read injects nothing, and reading a
+convention doc in full marks it as already in context so no later write re-injects it. Universal
+rules stay in `AGENTS.md` (`CLAUDE.md` is a symlink to it).
 
 The entrypoint runs `agent-apropos generate` on container start, which rebuilds the trigger index
 (`.cache/agent-apropos/`, gitignored) and the skill wrappers under `.claude/skills/`. After editing
