@@ -152,12 +152,14 @@ RSpec.describe OdataDuty::EntitySet, 'Can search through collection results' do
         )
       end
 
-      it 'calls od_search method when implemented' do
-        expect_any_instance_of(SupportsCollectionSearchSet)
-          .to receive(:od_search).with(instance_of(OdataDuty::SearchExpression)).and_call_original
+      it 'hands od_search a single non-OR term for a one-word search' do
+        SupportsCollectionSearchSet.last_search_terms = nil
+        SupportsCollectionSearchSet.last_search_or = nil
         schema.execute('SupportsCollectionSearch',
                        context: Context.new,
                        query_options: { '$search' => 'Boise' })
+        expect(SupportsCollectionSearchSet.last_search_terms).to eq(['Boise'])
+        expect(SupportsCollectionSearchSet.last_search_or).to be(false)
       end
 
       it 'raises error when od_search not implemented' do

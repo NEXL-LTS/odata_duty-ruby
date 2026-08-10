@@ -70,11 +70,17 @@ failure modes), *Coverage and mutation testing*, *Cop spec*.
 
 **Depends on:** nothing.
 
-### - [ ] Task 2 — Enable the cop in `.rubocop.yml` and migrate the five existing offences
+### - [x] Task 2 — Enable the cop in `.rubocop.yml` and migrate the five existing offences
+
+> **Deviation recorded:** the cop also (correctly, per its receiver-agnostic `__` rule) flagged
+> Ruby's own `__dir__` in three files the PRD's audit missed
+> (`spec/odata_duty/oas2/full_document_spec.rb`, `spec/odata_duty/schema_builder_spec.rb`,
+> `spec/odata_duty_spec.rb`). Each was rewritten to the behavior-preserving `File.dirname(__FILE__)`
+> (a str-node argument neither this cop nor RuboCop's `Style/Dir` flags). No assertions changed.
 
 **Task text:** Wire the cop into `.rubocop.yml` exactly as the PRD's *Configuration* block
 specifies: `require: - ./rubocop/cop/odata_duty/public_api_only.rb`, and an `OdataDuty/PublicApiOnly`
-section with `Enabled: true`, `Namespace: OdataDuty`, `Include: ['spec/**/*_spec.rb']`, the twelve
+section with `Enabled: true`, `Namespace: OdataDuty`, `Include: ['spec/**/*_spec.rb']`, the thirteen
 `AllowedConstants`, and the two `AllowedConstantPatterns`
 (`\AOdataDuty::\w*Error\z` and `\AOdataDuty::Invalid\w+\z`). No `Exclude`. Then migrate the five
 offences the cop now flags so `bundle exec rake` is green (this is a single jointly-green commit):
