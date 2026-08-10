@@ -1,10 +1,7 @@
 module RuboCop
   module Cop
     module OdataDuty
-      # Flags specs that reach past the gem's documented public API.
-      #
-      # See doc/prds/public-api-only-cop.md for the full contract.
-      class PublicApiOnly < Base
+      # See spec/using_public_api_only.md for the full contract.
         CONSTANT_MSG = '`%<name>s` is not part of the public API. ' \
                         'Specs must exercise the gem through its documented surface.'.freeze
         INTERNAL_METHOD_MSG = '`%<name>s` is an internal method (`__` prefix). ' \
