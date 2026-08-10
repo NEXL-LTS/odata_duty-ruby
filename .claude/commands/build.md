@@ -14,6 +14,10 @@ You are the controller. You hold the plan, curate context, dispatch subagents, a
 
 Each task goes to a fresh subagent whose entire context you construct: the task text, the relevant PRD excerpt, and the repo rules it must follow. It never inherits your history. This keeps each subagent focused and preserves your context for orchestration. **Fresh subagent per task + two-stage review (spec, then quality) = high quality, fast iteration.**
 
+## Trust the review stages
+
+Spec-compliance and code-quality review **are** the verification layer — that's their whole purpose. Once both come back ✅ for a task, don't re-run the full suite yourself or re-derive counts the reviewers already confirmed (an offense count, a coverage percentage, "TDD was followed") — that duplicates work the two-stage review already paid for and slows every task down without adding safety. Reserve your own independent checks for claims that are surprising, load-bearing, or trivially cheap to spot-check with a single command.
+
 ## Continuous execution
 
 There is **no approval checkpoint**. Once invoked, derive the plan from the PRD using the codebase's own best practices (below) and **go** — execute **all** tasks without pausing to check in. Do not present the plan for sign-off, and do not emit "Should I continue?" prompts or per-task progress summaries; the user already chose to build this PRD by running the command. Stop only for: a `BLOCKED` status you cannot resolve, a genuine ambiguity in the PRD that prevents correct work, or all tasks complete.
@@ -27,6 +31,9 @@ These come from `CLAUDE.md` and are non-negotiable. Bake them into every impleme
 - **Tests use only the gem's public API** (`CLAUDE.md`) — never reach into internal classes/methods (`Executor`, `*Wrapper`, parslet, ERB, mappers). Avoid the anti-patterns in `.claude/skills/test-driven-development/testing-anti-patterns.md`.
 - **Style:** two-space indent, **99-char line limit**, Ruby 3 syntax. RuboCop metrics are tight (`.rubocop.yml`: `MethodLength` 13, `Class/ModuleLength` 99, `AbcSize` 30, `CyclomaticComplexity` 7) — keep methods small rather than adding inline disables.
 - **Green gate:** `bundle exec rake` runs **RSpec and RuboCop** and is the definition of done for every task. A task isn't complete until it's green.
+- **Some tasks are only jointly green.** If a task must enable a check or behavior that breaks currently-passing code until a later task fixes it (e.g., turning on a new lint rule before migrating the violations it flags), don't force it green in isolation and never disable the check to fake a green interim state — that defeats the task. Plan the coupled tasks as an explicit sequence, note the coupling in the plan file, and either land them as one commit or commit the enabling change alone with `git commit --no-verify` as a clearly-labeled interim WIP commit, fixed in the very next commit.
+- **Never silently drop a planned task.** If token or time pressure tempts you to merge or cut a task from the plan, say so explicitly in the plan file and in your final report — don't just omit the work. A dropped task produces the same clean `rake` and clean reviews as a complete one on everything that *was* built, so nothing downstream will catch it unless you flag it yourself.
+- **Debug a red `rake` from live tool output, not speculation.** For a coverage failure, open `coverage/index.html` (or read the offending file/line from the console output) to see exactly which branch was missed before adding a guard — don't add defensive guards for cases you haven't confirmed are real, then chase the coverage number back down. For a RuboCop failure, run `bundle exec rubocop <path>` and read its message directly. See `doc/using_coverage.md`'s Common Error Cases for the full workflow.
 - **Docs:** if the PRD's "Documentation impact" section names a `doc/` guide to add or extend, that is a task too. Bump `spec.version` in `odata_duty.gemspec` only if the user asks.
 - **Keep `CLAUDE.md`'s `## Features` index current.** If this PRD adds a note-worthy, externally visible capability (a new query option, write verb, hook, output format, generator, MCP surface — anything a future session should know exists), add or update its one-line entry in the `## Features` section of `CLAUDE.md`, pointing at the `doc/` guide that documents it. The index is a pointer list, not a place for detail — one line, link to the guide. Skip purely internal refactors that change nothing a consumer can observe.
 
@@ -46,6 +53,7 @@ A PRD is a spec, not a task list — you must decompose it, guided by the codeba
 
 - One task per coherent slice of behavior (e.g. "parse and validate the new query option", "apply it in the collection path", "surface it in `$metadata`", "surface it in `$oas2`", "expose it over MCP").
 - **Split class-DSL and builder-DSL work into sibling tasks** when they're substantial, or keep them in one task when the change is small and symmetric — but the task text must always name *both* DSLs and *both* spec trees so nothing is half-done.
+- **Don't over-split one small file.** If several checks/methods all land on the same small class or file (e.g. four checks on one ~70-line cop), that's usually one task, not one task per check — splitting multiplies the two-stage-review round-trip for tightly coupled edits that get reviewed together anyway regardless of task boundaries. Conversely, don't merge unrelated deliverables (code with docs, or two independent files with no shared logic) into one task to save time — see "never silently drop a planned task" above.
 - A final task for the documentation impact named in the PRD.
 
 For each task, write down: the full task text, which files it likely touches (both DSLs), the exact PRD excerpt (API snippet + expected I/O) that defines "done", and how it depends on earlier tasks. Order so each task builds on green predecessors.
@@ -70,17 +78,19 @@ Handle its final status:
 
 **c. Code-quality review second.** Dispatch a reviewer subagent with the *Code-quality reviewer prompt*. It checks TDD was followed (tests written first and meaningful, public-API-only, no mock-behavior tests), RuboCop is clean without gratuitous disables, methods stay within the metrics, names read like the surrounding code, and `bundle exec rake` is green. Implementer fixes, you re-review, loop until ✅.
 
-**d. Commit the task.** Once both reviews are ✅ and `bundle exec rake` is green, tick this task's checkbox in the `-plan.md` file (`- [ ]` → `- [x]`), then commit just this task's changes — including the plan-file tick — with a focused message referencing the PRD (e.g. `git add -A && git commit`). One commit per task — never bundle multiple tasks into one commit, and never leave a reviewed task uncommitted. End the commit message with the required co-author trailer:
+**d. Commit the task.** Once both reviews are ✅ and `bundle exec rake` is green, tick this task's checkbox in the `-plan.md` file (`- [ ]` → `- [x]`), then commit just this task's changes — including the plan-file tick — with a focused message referencing the PRD (e.g. `git add -A && git commit`). One commit per task — never bundle multiple tasks into one commit, and never leave a reviewed task uncommitted. End the commit message with a co-author trailer naming **the model actually running this build** — not a hardcoded placeholder:
 
 ```
-Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+Co-Authored-By: Claude <model name and version, e.g. "Sonnet 5" or "Opus 4.8"> <noreply@anthropic.com>
 ```
 
 **e. Mark the task complete** in `TodoWrite` (its `-plan.md` checkbox was ticked and committed in step d). Next task.
 
 ### 5. Final review
 
-After all tasks: run `bundle exec rake` yourself to confirm the whole suite + RuboCop are green (recall CI runs `rake` four times to catch flaky tests — if you suspect flakiness, run it a couple more times). Then dispatch one final reviewer over the entire diff (`git diff main...HEAD`) checking the PRD as a whole is satisfied, both DSLs are in sync, docs were updated, the `## Features` index in `CLAUDE.md` carries a one-line entry for any note-worthy capability this PRD added, every task is committed, the `-plan.md` checkboxes are all ticked, and there are no loose ends or uncommitted changes (`git status` clean). The final review runs **with** the PRD and plan still present — it verifies the plan's checkboxes are all ticked.
+After all tasks: run `bundle exec rake` yourself to confirm the whole suite + RuboCop are green (recall CI runs `rake` four times to catch flaky tests — if you suspect flakiness, run it a couple more times). Then dispatch one final reviewer over the entire diff (`git diff main...HEAD`) checking the PRD as a whole is satisfied, both DSLs are in sync, docs were updated, the `## Features` index in `CLAUDE.md` carries a one-line entry for any note-worthy capability this PRD added, every task is committed, the `-plan.md` checkboxes are all ticked, and there are no loose ends or uncommitted changes (`git status` clean). The final review runs **with** the PRD and plan still present — it verifies the plan's checkboxes are all ticked. It can lean on each task's recorded spec/quality verdicts rather than re-deriving them from scratch — its unique job is the aggregate check below, which only a full-diff view can catch.
+
+Give the final reviewer the PRD's own section headers (**External API**, **Behavior & expected I/O**, **Scope**, **Documentation impact**) and have it confirm each one has a corresponding change in the diff, or an explicit, justified "not applicable" — checking the diff in isolation only proves what *was* built is fine, not that nothing was dropped. A task that quietly disappeared from the plan produces the same clean `rake` and clean per-task reviews as full coverage; cross-referencing against the PRD's own table of contents is the only point in the process that catches that.
 
 ### 6. Retire the PRD and plan
 
@@ -106,11 +116,9 @@ Construct each subagent's prompt from these. Provide full text — never tell a 
 > **Definition of done (from the PRD):** `<PRD excerpt: API snippet + expected I/O + relevant error cases>`
 >
 > **Repo rules you must follow:**
-> - Implement in **both** DSLs where applicable — class-based (`lib/odata_duty.rb`, `entity_type.rb`, `complex_type.rb`, `enum_type.rb`) and builder (`lib/odata_duty/schema_builder.rb`, `schema_builder/*`, `set_resolver.rb`) — with specs under **both** `spec/odata_duty/entity_set/**` and `spec/odata_duty/schema_builder/**`. State explicitly if only one DSL applies and why.
-> - Tests use the gem's **public API only** — never internal classes. Avoid the anti-patterns in `.claude/skills/test-driven-development/testing-anti-patterns.md`.
-> - 99-char lines, two-space indent, Ruby 3. Keep methods within RuboCop metrics (MethodLength 13, AbcSize 30, etc.) — small methods over inline disables.
-> - Run `bundle exec rake` (RSpec + RuboCop) until green. You may run a single file with `bundle exec rspec <path>` while iterating, but finish on a full green `rake`.
-> - Prefer extending the `od_*` convention over adding new public surface.
+> - This repo's hard rules above (both DSLs + both spec trees where applicable, public-API-only tests, style/RuboCop metrics, green `bundle exec rake`, `od_*` convention over new public surface).
+> - State explicitly if only one DSL applies to this task, and why.
+> - You may run a single file with `bundle exec rspec <path>` while iterating, but finish on a full green `rake`.
 >
 > Likely files: `<file pointers>`. Context: `<where this task fits>`.
 >
@@ -138,15 +146,9 @@ Construct each subagent's prompt from these. Provide full text — never tell a 
 
 ## Red flags — never
 
-- Implement or commit on `main`/`master` (always branch first, automatically).
-- Pause to ask the user to approve or sign off on the plan (derive it and go).
-- Write implementation code yourself as the controller (dispatch a subagent).
-- Skip either review, or start quality review before spec review is ✅.
-- Move to the next task while a review has open issues, or skip the re-review after a fix.
-- Dispatch implementer subagents in parallel (they conflict on files).
-- Tell a subagent to read the PRD/plan instead of providing the text it needs.
-- Let an implementer's self-review stand in for the two review stages.
-- Mark a task done while `bundle exec rake` is red.
-- Commit a task before both reviews are ✅, or bundle multiple tasks into one commit.
-- Leave the built PRD/plan in the tree after final review passes — always end the branch with the cleanup commit that removes them.
-- **Push, open a PR, or commit to `main`** — work stays as local commits on the feature branch.
+This is not a recap of the steps above — each item here is something not already stated as an imperative in its own step.
+
+- **Push, open a PR, or commit to `main`/`master`.** Work stays as local commits on a feature branch (steps 2 and 6) — worth this repetition given the cost of getting it wrong.
+- **Dispatch implementer subagents in parallel** — they conflict on files.
+- **Let an implementer's self-review stand in for the two review stages.**
+- **Tell a subagent to read the PRD/plan itself** — curate the exact text it needs instead.
