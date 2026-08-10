@@ -27,6 +27,7 @@ Short index of what's implemented; see the linked `doc/` guide for the full cont
 ## Commands
 
 - `bundle exec rake` — full suite: RSpec **and** RuboCop. This is what CI runs (and it runs `rake` four times to surface flaky tests). Also measures and enforces 100% line + branch coverage via SimpleCov — see `doc/using_coverage.md`. Run this before considering work done.
+- **Pre-commit hook** (`.githooks/pre-commit`) runs `bundle exec rake` before every commit and blocks the commit if it's red. Bypass a deliberate, clearly-labeled work-in-progress commit with `git commit --no-verify` — this is the hook's own documented escape hatch, not a workaround. Expect this if a change necessarily passes through a red intermediate state (e.g. a task that enables a check before a later task fixes what it flags).
 - `bundle exec rspec spec/odata_duty/entity_set/collection_spec.rb` — single file.
 - `bundle exec rspec spec/odata_duty/entity_set/collection_spec.rb:42` — single example by line.
 - `bundle exec rubocop` / `bundle exec rubocop -A` — lint / autocorrect.
