@@ -24,11 +24,11 @@ There is **no approval checkpoint**. Once invoked, derive the plan from the PRD 
 
 ## This repo's hard rules (every subagent must honor)
 
-These come from `CLAUDE.md` and are non-negotiable. Bake them into every implementer and reviewer prompt:
+These come from `AGENTS.md` and `doc/conventions/` and are non-negotiable. Bake them into every implementer and reviewer prompt:
 
 - **Two parallel DSLs — keep both in sync.** Most features must be implemented in **both** the class-based DSL (`lib/odata_duty.rb`, `entity_type.rb`, `complex_type.rb`, `enum_type.rb`) and the builder DSL (`lib/odata_duty/schema_builder.rb` + `schema_builder/*` + `set_resolver.rb`), with matching specs under **both** `spec/odata_duty/entity_set/**` and `spec/odata_duty/schema_builder/**`. If a task touches one DSL, confirm whether the other needs the same change — usually it does.
-- **TDD is mandatory.** Follow the repo's own skill: `.claude/skills/test-driven-development/SKILL.md`. No production code without a failing test first. Watch the test fail for the right reason before implementing.
-- **Tests use only the gem's public API** (`CLAUDE.md`) — never reach into internal classes/methods (`Executor`, `*Wrapper`, parslet, ERB, mappers). Avoid the anti-patterns in `.claude/skills/test-driven-development/testing-anti-patterns.md`.
+- **TDD is mandatory.** Follow the repo's own skill: `doc/conventions/workflows/test-driven-development.md`. No production code without a failing test first. Watch the test fail for the right reason before implementing.
+- **Tests use only the gem's public API** (`doc/conventions/specs.md`) — never reach into internal classes/methods (`Executor`, `*Wrapper`, parslet, ERB, mappers). Avoid the anti-patterns in `doc/conventions/workflows/testing-anti-patterns.md`.
 - **Style:** two-space indent, **99-char line limit**, Ruby 3 syntax. RuboCop metrics are tight (`.rubocop.yml`: `MethodLength` 13, `Class/ModuleLength` 99, `AbcSize` 30, `CyclomaticComplexity` 7) — keep methods small rather than adding inline disables.
 - **Green gate:** `bundle exec rake` runs **RSpec and RuboCop** and is the definition of done for every task. A task isn't complete until it's green.
 - **Some tasks are only jointly green.** Prefer modeling jointly-green work — e.g. turning on a new lint rule before migrating the violations it flags — as a **single task**: one implementer dispatch, one `review-task` run, one commit. That way it never has to satisfy the green gate in a red intermediate state, and step 4's normal flow applies unchanged. Only split it into separate tasks if the combined diff would be too large to review as one unit; if you do, the enabling task's commit explicitly skips step 4b's `review-task` gate (its quality stage will correctly report `QUALITY_ISSUES` for the rake failure the task caused on purpose) — commit it directly with `git commit --no-verify`, quote the expected failure in the commit message so the interim state is explicit, and land the fix in the very next task. Never disable the check itself to fake a green interim state — that defeats the task either way.
@@ -111,7 +111,7 @@ Construct each subagent's prompt from these. Provide full text — never tell a 
 
 ### Implementer prompt
 
-> You are implementing one task in the `odata_duty` Ruby gem. Work strictly test-first per `.claude/skills/test-driven-development/SKILL.md`: write one failing test, run it, watch it fail for the right reason, then write the minimal code to pass, then refactor while green.
+> You are implementing one task in the `odata_duty` Ruby gem. Work strictly test-first per `doc/conventions/workflows/test-driven-development.md`: write one failing test, run it, watch it fail for the right reason, then write the minimal code to pass, then refactor while green.
 >
 > **Task:** `<full task text>`
 >

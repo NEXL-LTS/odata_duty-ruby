@@ -26,7 +26,7 @@ If you find gaps or extras, stop here and report `SPEC_GAPS:` followed by a conc
 
 ## Stage 2 — Code quality
 
-Only reached once Stage 1 found no gaps. Check: TDD was genuinely followed (tests are meaningful, behavior-focused, public-API-only, not testing mocks — see `.claude/skills/test-driven-development/testing-anti-patterns.md`); `bundle exec rake` passes (RSpec **and** RuboCop — run it yourself, don't take the implementer's word for it); no gratuitous RuboCop disables; methods stay within the repo's tightened metrics; new code reads like the surrounding code (naming, idiom, the `od_*` convention); the two DSLs are consistent with each other; docs were updated if the PRD required it for this task.
+Only reached once Stage 1 found no gaps. Check: TDD was genuinely followed (tests are meaningful, behavior-focused, public-API-only, not testing mocks — see `doc/conventions/workflows/testing-anti-patterns.md`); `bundle exec rake` passes (RSpec **and** RuboCop — run it yourself, don't take the implementer's word for it); no gratuitous RuboCop disables; methods stay within the repo's tightened metrics; new code reads like the surrounding code (naming, idiom, the `od_*` convention); the two DSLs are consistent with each other; docs were updated if the PRD required it for this task.
 
 If you find issues, report `QUALITY_ISSUES:` followed by a concrete list, severity-tagged (Critical / Important / Minor). Don't silently downgrade a Critical or Important finding to force a pass.
 

@@ -216,8 +216,9 @@ Note it in the "to implement" list and continue to the next item. Do **not** imp
 When you do implement, follow this repo's rules:
 
 - **Follow TDD** — write or update the failing spec first, then make it pass. Use the `test-driven-development` skill.
-- **Keep both DSLs in sync** — most features must change in both the class-based DSL (`spec/odata_duty/entity_set/**`) and the builder DSL (`spec/odata_duty/schema_builder/**`). See CLAUDE.md "Two parallel DSLs."
-- **Tests use only the public API** — never test internal classes/methods directly (`CLAUDE.md`).
+- **Keep both DSLs in sync** — most features must change in both the class-based DSL (`spec/odata_duty/entity_set/**`) and the builder DSL (`spec/odata_duty/schema_builder/**`). See `doc/conventions/dual-dsl.md`.
+- **Tests use only the public API** — never test internal classes/methods directly
+  (`doc/conventions/specs.md`, `doc/conventions/internal-test-access.md`).
 - **Respect the style budget** — two-space indent, 99-char lines, tightened RuboCop metrics (`MethodLength` 13, `ClassLength`/`ModuleLength` 99, `AbcSize` 30). Keep methods small rather than adding inline disables.
 - **Always finish with `bundle exec rake`** and make it green before considering an item done.
 
@@ -440,7 +441,7 @@ rake status: <green / red — details>
 | Moving to next item before resolving current | Wait for an explicit action decision before advancing |
 | Implementing items one at a time as you go | Collect all "implement" items, confirm the list, then implement together |
 | Changing one DSL but not the other | Most features live in both the class DSL and builder DSL — update both spec trees |
-| Testing internal classes/methods | Tests use only the gem's public API (`CLAUDE.md`) |
+| Testing internal classes/methods | Tests use only the gem's public API (`doc/conventions/specs.md`) |
 | Considering an item done without running `rake` | Finish every implement item with a green `bundle exec rake` |
 | Skipping the prevent recurrence step | After every "implement" decision, ask how to prevent this from happening again |
 | Skipping the learnings step | Always ask about implicit learnings even when there are no "won't fix" skips |

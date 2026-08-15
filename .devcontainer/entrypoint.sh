@@ -27,6 +27,18 @@ for dir in /workspaces/*/; do
     run_as_user "cd '$dir' && ./bin/setup" \
       || echo "[entrypoint] bin/setup failed in $dir; continuing"
   fi
+
+  # Rebuild the agent-apropos trigger index and skill wrappers from the repo's conventions dir.
+  # The index is gitignored, so a fresh container has none until this runs. The dir is whatever
+  # agent-apropos.yml says (doc/conventions here), so gate on the config or either default rather
+  # than hardcoding one spelling.
+  if command -v agent-apropos > /dev/null 2>&1 \
+     && { [ -f "$dir/agent-apropos.yml" ] || [ -d "$dir/doc/conventions" ] \
+          || [ -d "$dir/docs/conventions" ]; }; then
+    echo "[entrypoint] Running agent-apropos generate in $dir"
+    run_as_user "cd '$dir' && agent-apropos generate" \
+      || echo "[entrypoint] agent-apropos generate failed in $dir; continuing"
+  fi
 done
 
 exec "$@"
