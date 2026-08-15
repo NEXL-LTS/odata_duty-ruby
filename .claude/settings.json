@@ -1,16 +1,11 @@
 {
+  "permissions": {
+    "deny": [
+      "Read(./.devcontainer/.env)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
-      {
-        "matcher": "Read|Bash|Grep|Glob",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-devcontainer-env.sh",
-            "timeout": 10
-          }
-        ]
-      },
       {
         "matcher": "Edit|Write",
         "hooks": [
