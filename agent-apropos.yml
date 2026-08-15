@@ -1,0 +1,2 @@
+# This repo keeps prose docs in doc/, not docs/ — point agent-apropos at the matching subdir.
+conventions_dir: doc/conventions
