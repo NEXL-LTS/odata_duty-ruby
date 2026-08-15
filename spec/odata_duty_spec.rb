@@ -82,7 +82,7 @@ RSpec.describe OdataDuty do
   describe '#metadata_xml' do
     it 'works' do
       generated_xml = format_xml(SampleSchema.metadata_xml)
-      expected_xml = format_xml(File.read("#{__dir__}/metadata.xml"))
+      expected_xml = format_xml(File.read("#{File.dirname(__FILE__)}/metadata.xml"))
       expect(generated_xml).to eq(expected_xml)
     end
   end

@@ -20,6 +20,11 @@ it only proves the macro stored it. Assert against the rendered output instead: 
 consumers. A spec asserting on internals passes while the user-visible behaviour is broken, and
 fails on refactors that broke nothing.
 
+Most of this is enforced, not just advised: the `OdataDuty/PublicApiOnly` RuboCop cop fails the
+build on an internal constant, a `__`-prefixed method call, a visibility bypass, or a mock — see
+`spec/using_public_api_only.md`. It cannot see a reader called on a locally-held gem object (no type
+inference), so that case still relies on this rule.
+
 ## Verify
 
 Replace the internal call with an assertion on `metadata_xml`, `OAS2.build_json`,
