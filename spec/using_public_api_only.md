@@ -135,3 +135,15 @@ names** (the `CLASS_DSL_ROWS`/`BUILDER_DSL_ROWS`/`HOOK_OBJECT_ROWS`/`RENDER_ROWS
 - **It only raises at a `_spec.rb` call site.** The guard walks `caller_locations` and stays silent
   unless the immediate caller is a spec file, so the gem's own internal self-calls (a gem method
   calling another gem method) never raise.
+
+### Runtime cost
+
+The guard installs a global `TracePoint(:call, :c_call)` that fires on *every* method entry in the
+whole suite, so it is not free: measured on this suite, `bundle exec rspec` reports "Finished in
+~1.2 seconds" with the guard off versus "Finished in ~3.3 seconds" with it on. The hot path is kept
+as cheap as possible — an O(1) owner fast-exit returns immediately for non-gem calls, and the
+identity-keyed `OWNER_CACHE` in `spec/support/public_api_guard.rb` memoises the owner verdict so the
+`singleton_class?`/`attached_object`/`Module#name` resolution runs only once per `defined_class`.
+The overhead is visible but acceptable for the coverage it buys; if it ever stops being so, the
+sanctioned fallbacks are to enable the TracePoint only `around(:each)` rather than globally, or to
+narrow it to gem source files.

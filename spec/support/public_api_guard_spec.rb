@@ -73,6 +73,12 @@ RSpec.describe 'PublicApiGuard' do
     expect { run_search }.not_to raise_error
   end
 
+  it 'accepts an allowlisted to_s on a gem search term obtained via a public hook' do
+    run_search
+    term = GuardSearchResolver.captured_expression.terms.first
+    expect { term.to_s }.not_to raise_error
+  end
+
   it 'raises on a non-allowlisted method of a gem search object called from a spec' do
     run_search
     captured = GuardSearchResolver.captured_expression
