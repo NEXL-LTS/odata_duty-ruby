@@ -54,7 +54,7 @@ Because the guard is under `spec/`, it is **not** coverage- or mutation-enforced
 
 ## Tasks
 
-- [ ] **Task 1 — Build the guard and its own spec (uninstalled).**
+- [x] **Task 1 — Build the guard and its own spec (uninstalled).**
   Create `spec/support/public_api_guard.rb` defining `OdataDuty::NonPublicApiError < StandardError`
   and a module (e.g. `PublicApiGuard`) that: holds the frozen per-class allowlist map (keyed by gem
   class/module, starting from the PRD table); exposes install/uninstall of a single
