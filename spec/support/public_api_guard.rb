@@ -19,18 +19,46 @@ module PublicApiGuard
     error_classes.to_h { |klass| [klass, Set.new(ERROR_METHODS)] }
   end
 
-  METHOD_ROWS = {
+  # Class-DSL definition surface: methods a consumer writes inside a
+  # `class < OdataDuty::Schema` / `< OdataDuty::EntitySet` body (and reads back
+  # in assertions). These readers double as writers, so the guard cannot flag
+  # class-DSL reader misuse of them — an accepted limitation.
+  CLASS_DSL_ROWS = {
     OdataDuty::Schema =>
-      %i[execute create update delete metadata_xml index_hash to_mcp_server],
+      %i[execute create update delete metadata_xml index_hash to_mcp_server
+         namespace version title description entity_sets base_url],
+    OdataDuty::EntitySet => %i[entity_type name url description context od_next_link_skiptoken]
+  }.freeze
+
+  # Builder-DSL entry points.
+  BUILDER_DSL_ROWS = {
     OdataDuty::SchemaBuilder => %i[build],
     OdataDuty::SchemaBuilder::Schema =>
       %i[execute create update delete metadata_xml index_hash to_mcp_server add_entity_type
          add_complex_type add_enum_type add_entity_set version= title= description= inspect],
+    OdataDuty::SetResolver => %i[context od_next_link_skiptoken]
+  }.freeze
+
+  # Objects the gem hands to consumer resolver/property hooks at request time:
+  # the request-context wrapper, the `od_filter_or` predicate value object, and
+  # the class-DSL property-method helpers (`object`/`od_context`).
+  HOOK_OBJECT_ROWS = {
+    OdataDuty::ContextWrapper => %i[base_url od_full_url query_options current],
+    OdataDuty::FilterPredicate => %i[property_name operation value],
+    OdataDuty::ComplexType => %i[object od_context]
+  }.freeze
+
+  # Documented rendering/entry-point surfaces.
+  RENDER_ROWS = {
     OdataDuty::EdmxSchema => %i[metadata_xml index_hash],
     OdataDuty::OAS2 => %i[build_json],
     OdataDuty::SearchExpression => %i[terms or? and?],
     OdataDuty::SearchTerm => %i[value not? to_s]
-  }.transform_values { |names| Set.new(names) }
+  }.freeze
+
+  METHOD_ROWS = [CLASS_DSL_ROWS, BUILDER_DSL_ROWS, HOOK_OBJECT_ROWS, RENDER_ROWS]
+                .reduce(:merge)
+                .transform_values { |names| Set.new(names) }
 
   ALLOWLIST = METHOD_ROWS.merge(error_allowlist)
                          .each_value(&:freeze)
@@ -46,14 +74,28 @@ module PublicApiGuard
     tracepoint.disable
   end
 
+  # Per-run memo of `defined_class -> gem owner (or nil)`. The TracePoint fires on
+  # every method entry in the whole suite, so resolving the owner (singleton_class?,
+  # attached_object, Module#name) on each call dominates the overhead; almost every
+  # call repeats a handful of `defined_class` objects, so caching the verdict keeps
+  # the hot path an O(1) hash lookup after the first sighting.
+  OWNER_CACHE = {}.compare_by_identity
+
   def self.check(trace)
-    owner = resolve_owner(trace.defined_class)
-    return unless gem_class?(owner)
+    owner = gem_owner(trace.defined_class)
+    return unless owner
 
     allowed = ALLOWLIST[owner]
     return if allowed&.include?(trace.method_id)
 
     raise_if_spec_call_site(owner, trace.method_id)
+  end
+
+  def self.gem_owner(defined_class)
+    return OWNER_CACHE[defined_class] if OWNER_CACHE.key?(defined_class)
+
+    owner = resolve_owner(defined_class)
+    OWNER_CACHE[defined_class] = gem_class?(owner) ? owner : nil
   end
 
   def self.resolve_owner(defined_class)
@@ -62,10 +104,14 @@ module PublicApiGuard
     defined_class
   end
 
+  # Resolve the constant name via Module#name directly: gem DSL classes override
+  # `self.name` (e.g. OdataDuty::EntitySet.name) with a different arity.
+  MODULE_NAME = Module.instance_method(:name)
+
   def self.gem_class?(owner)
     return false unless owner.is_a?(Module)
 
-    name = owner.name
+    name = MODULE_NAME.bind_call(owner)
     !name.nil? && name.start_with?('OdataDuty')
   end
 

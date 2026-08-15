@@ -76,7 +76,7 @@ Because the guard is under `spec/`, it is **not** coverage- or mutation-enforced
   method names — do not name `Executor`; drive the internal-method case via builder `schema.types`).
   PRD excerpt: *Mechanism*, *The guarded-receiver rule*, *The guard's spec*, *Common error cases*.
 
-- [ ] **Task 2 — Install the guard globally, finalise the allowlist, and migrate the suite (one
+- [x] **Task 2 — Install the guard globally, finalise the allowlist, and migrate the suite (one
   jointly-green commit).**
   Require and install the guard once from `spec/spec_helper.rb` (a single global interceptor, no
   per-file `using`, no per-example opt-in). Run `bundle exec rake`; the suite will go red. Working

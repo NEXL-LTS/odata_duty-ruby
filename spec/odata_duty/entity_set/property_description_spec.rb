@@ -37,6 +37,24 @@ end
 class DescriptionStringSubclass < String; end
 
 RSpec.describe OdataDuty::EntityType, 'property description validation' do
+  # Render a property named `name` (with the given description) into $metadata and
+  # return just that property's <Property> fragment, so the Core.Description
+  # annotation (or its absence) is asserted on public output, not an internal reader.
+  def name_property_xml(**property_kwargs)
+    entity_type = Class.new(OdataDuty::EntityType) do
+      property_ref 'id', String
+      property 'name', String, **property_kwargs
+    end
+    entity_set = Class.new(OdataDuty::EntitySet) { entity_type entity_type }
+    schema = Class.new(OdataDuty::Schema) do
+      namespace 'PropertyDescriptionSpace'
+      entity_sets [entity_set]
+    end
+    schema.metadata_xml.split('<Property Name="name"')[1].split('<Property ')[0]
+  end
+
+  DESCRIPTION_TERM = 'Term="Org.OData.Core.V1.Description"'.freeze
+
   it 'accepts a description string' do
     expect do
       Class.new(OdataDuty::EntityType) do
@@ -46,24 +64,16 @@ RSpec.describe OdataDuty::EntityType, 'property description validation' do
   end
 
   it 'treats omitted description as no description' do
-    klass = Class.new(OdataDuty::EntityType) do
-      property 'name', String
-    end
-    expect(klass.properties.last.description).to be_nil
+    expect(name_property_xml).not_to include(DESCRIPTION_TERM)
   end
 
   it 'treats description: nil the same as omitted' do
-    klass = Class.new(OdataDuty::EntityType) do
-      property 'name', String, description: nil
-    end
-    expect(klass.properties.last.description).to be_nil
+    expect(name_property_xml(description: nil)).not_to include(DESCRIPTION_TERM)
   end
 
   it 'stores the resolved description on the property' do
-    klass = Class.new(OdataDuty::EntityType) do
-      property 'name', String, description: 'First name or full name'
-    end
-    expect(klass.properties.last.description).to eq('First name or full name')
+    expect(name_property_xml(description: 'First name or full name'))
+      .to include("#{DESCRIPTION_TERM} String=\"First name or full name\"")
   end
 
   it 'raises InvalidDescriptionError naming the property for an empty string' do
@@ -106,12 +116,8 @@ RSpec.describe OdataDuty::EntityType, 'property description validation' do
   end
 
   it 'accepts a to_str-coercible non-String value and stores the coerced String' do
-    klass = Class.new(OdataDuty::EntityType) do
-      property 'name', String, description: DescriptionLikeObject.new('Coerced description')
-    end
-    description = klass.properties.last.description
-    expect(description).to eq('Coerced description')
-    expect(description).to be_a(String)
+    xml = name_property_xml(description: DescriptionLikeObject.new('Coerced description'))
+    expect(xml).to include("#{DESCRIPTION_TERM} String=\"Coerced description\"")
   end
 
   it 'raises InvalidDescriptionError when the to_str-coercible value is blank' do
@@ -124,11 +130,8 @@ RSpec.describe OdataDuty::EntityType, 'property description validation' do
   end
 
   it 'validates and stores the same single to_str call, not two independent calls' do
-    klass = Class.new(OdataDuty::EntityType) do
-      property 'name', String,
-               description: UnstableDescriptionObject.new('Valid description', '')
-    end
-    expect(klass.properties.last.description).to eq('Valid description')
+    xml = name_property_xml(description: UnstableDescriptionObject.new('Valid description', ''))
+    expect(xml).to include("#{DESCRIPTION_TERM} String=\"Valid description\"")
   end
 
   it 'raises InvalidDescriptionError when to_str coerces to a non-String value' do
@@ -141,11 +144,10 @@ RSpec.describe OdataDuty::EntityType, 'property description validation' do
   end
 
   it 'accepts a to_str result that is a String subclass' do
-    klass = Class.new(OdataDuty::EntityType) do
-      property 'name', String,
-               description: DescriptionLikeObject.new(DescriptionStringSubclass.new('Subclass'))
-    end
-    expect(klass.properties.last.description).to eq('Subclass')
+    xml = name_property_xml(
+      description: DescriptionLikeObject.new(DescriptionStringSubclass.new('Subclass'))
+    )
+    expect(xml).to include("#{DESCRIPTION_TERM} String=\"Subclass\"")
   end
 
   it 'still raises PropertyAlreadyDefinedError for a duplicate name regardless of description' do

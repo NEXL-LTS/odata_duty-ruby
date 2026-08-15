@@ -1,5 +1,11 @@
 require 'spec_helper'
 
+class PropertyDescriptionCollectionResolver < OdataDuty::SetResolver
+  def collection
+    []
+  end
+end
+
 module OdataDuty
   RSpec.describe SchemaBuilder::EntityType, 'property description validation' do
     def build_with_description(description)
@@ -17,14 +23,15 @@ module OdataDuty
 
     it 'treats omitted description as no description' do
       schema = SchemaBuilder.build(namespace: 'SampleSpace', host: 'localhost') do |s|
-        s.add_entity_type(name: 'UndescribedBuilderProperty') do |et|
+        entity = s.add_entity_type(name: 'UndescribedBuilderProperty') do |et|
           et.property_ref 'id', String
           et.property 'name', String
         end
+        s.add_entity_set(name: 'UndescribedBuilderProperties', entity_type: entity,
+                         resolver: 'PropertyDescriptionCollectionResolver')
       end
-      entity_type = schema.entity_types.find { |et| et.name == 'UndescribedBuilderProperty' }
-      property = entity_type.properties.find { |p| p.name == :name }
-      expect(property.description).to be_nil
+      property_xml = schema.metadata_xml.split('<Property Name="name"')[1].split('<Property ')[0]
+      expect(property_xml).not_to include('Term="Org.OData.Core.V1.Description"')
     end
 
     it 'treats description: nil the same as omitted' do
