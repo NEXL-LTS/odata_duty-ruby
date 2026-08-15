@@ -94,7 +94,7 @@ Because the guard is under `spec/`, it is **not** coverage- or mutation-enforced
   RuboCop, 100% coverage). PRD excerpt: *External API*, *Behavior & expected I/O* (*Raises* /
   *Accepted* / *Not guarded* / *Migrating the existing suite*), *Coverage / performance*, *Scope*.
 
-- [ ] **Task 3 — Contributor documentation.**
+- [x] **Task 3 — Contributor documentation.**
   Update `spec/using_public_api_only.md` with a section on the runtime guard: what it catches that
   the cop cannot (internal methods on real gem objects), that it complements rather than replaces
   the cop (the strong/weak split), how to respond to a `NonPublicApiError` (assert on rendered
