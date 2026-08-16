@@ -31,14 +31,9 @@ class GuardSearchResolver < OdataDuty::SetResolver
 end
 
 RSpec.describe 'PublicApiGuard' do
-  around do |example|
-    tracepoint = PublicApiGuard.install
-    begin
-      example.run
-    ensure
-      PublicApiGuard.uninstall(tracepoint)
-    end
-  end
+  # The guard is installed globally, once, from spec_helper.rb, so these examples
+  # run under that single interceptor — no per-example install (which would double
+  # up the checks and leave the global TracePoint in place anyway).
 
   def build_schema
     OdataDuty::SchemaBuilder.build(namespace: 'GuardSpace') do |s|
