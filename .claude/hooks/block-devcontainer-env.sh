@@ -12,6 +12,7 @@ set -uo pipefail
 
 payload=$(cat)
 
+haystack=""
 if command -v jq >/dev/null 2>&1; then
   # Serialize the whole tool input apart from its content-bearing fields. This hook runs on
   # every tool and each names its paths differently, so there is no fixed set of path fields
@@ -26,11 +27,13 @@ if command -v jq >/dev/null 2>&1; then
   haystack=$(printf '%s' "$payload" | jq -c '{
     cwd: (.cwd // ""),
     input: ((.tool_input // {}) | del(.content, .new_string, .old_string, .new_source))
-  }')
-else
-  # No jq: match against the raw payload rather than failing open.
-  haystack=$payload
+  }' 2>/dev/null)
 fi
+
+# Fall back to the raw payload whenever jq is missing, errors, or yields nothing. An empty
+# haystack matches nothing, so without this a malformed or unexpectedly shaped payload would
+# silently switch the guard off instead of erring towards a refusal.
+[ -n "$haystack" ] || haystack=$payload
 
 deny() {
   cat <<'JSON'

@@ -201,6 +201,17 @@ assert_allowed() {
   assert_allowed '{}'
 }
 
+@test "fails closed when the payload is not valid JSON" {
+  # jq exits non-zero and prints nothing, so an unguarded haystack would be empty and the
+  # call would sail through.
+  assert_denied "{\"cwd\":\"/x\",\"tool_input\":{\"file_path\":\"$SECRET\"}"
+}
+
+@test "fails closed when the payload is JSON but not an object" {
+  # Valid JSON, but `.cwd` on a string is a jq type error.
+  assert_denied "\"a note mentioning $SECRET\""
+}
+
 @test "fails closed when jq is unavailable" {
   # The hook falls back to matching the raw payload rather than letting the call through.
   local bin="$BATS_TEST_TMPDIR/bin"
