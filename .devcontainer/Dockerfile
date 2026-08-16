@@ -1,13 +1,14 @@
 # Base Ubuntu (no Ruby baked in); we add rbenv so any Ruby installs on demand. See .devcontainer/README.md.
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
-# ruby-build's recommended build environment, plus gnupg/curl for the apt repos and rustc for YJIT.
+# ruby-build's recommended build environment, plus gnupg/curl for the apt repos, rustc for YJIT,
+# and jq for the Claude Code hooks in .claude/hooks (they parse their payload with it).
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       autoconf bison build-essential patch rustc \
       libssl-dev libyaml-dev libreadline-dev zlib1g-dev libgmp-dev \
       libncurses-dev libffi-dev libgdbm-dev libdb-dev uuid-dev \
-      curl ca-certificates gnupg git \
+      curl ca-certificates gnupg git jq \
  && rm -rf /var/lib/apt/lists/*
 
 # Node.js (MCP inspector + Claude Code); NodeSource 20.x LTS since Ubuntu's package lags.
@@ -31,6 +32,14 @@ RUN install -d -m 0755 /etc/apt/keyrings \
 # Claude Code CLI
 RUN npm install -g @anthropic-ai/claude-code \
  && npm cache clean --force
+
+# bats-core — test runner for the shell hooks in .claude/hooks:
+#   bats .claude/hooks/*.bats
+# Pinned; bump the ARG to upgrade.
+ARG BATS_VERSION=1.13.0
+RUN npm install -g "bats@${BATS_VERSION}" \
+ && npm cache clean --force \
+ && bats --version
 
 # agent-apropos — injects doc/conventions/ rules into Claude Code at edit time via git-tracked
 # hooks in .claude/settings.json. Pinned; bump the ARG to upgrade. See .devcontainer/README.md.
