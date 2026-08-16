@@ -13,9 +13,14 @@ set -uo pipefail
 payload=$(cat)
 
 if command -v jq >/dev/null 2>&1; then
-  # Serialize the whole tool input: this hook runs on every tool and each one names its
-  # paths differently, so there is no fixed set of fields to inspect.
-  haystack=$(printf '%s' "$payload" | jq -c '.tool_input // {}')
+  # Serialize the whole tool input apart from its content-bearing fields. This hook runs on
+  # every tool and each names its paths differently, so there is no fixed set of path fields
+  # to scan; excluding the few content fields instead keeps unknown tools covered. Dropping
+  # them lets docs and tests that merely name the file be authored, and gives up nothing:
+  # writing the file itself is still caught by its path, and a body cannot carry the secrets
+  # unless something first read them, which this same hook refuses.
+  haystack=$(printf '%s' "$payload" \
+    | jq -c '(.tool_input // {}) | del(.content, .new_string, .old_string, .new_source)')
 else
   # No jq: match against the raw payload rather than failing open.
   haystack=$payload
