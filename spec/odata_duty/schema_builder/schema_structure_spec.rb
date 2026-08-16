@@ -29,74 +29,62 @@ module OdataDuty
       end
     end
 
-    describe 'attribute defaults and freezing' do
-      it 'freezes the namespace read back from the schema' do
-        expect(build(namespace: +'MutableNS').namespace).to be_frozen
+    def metadata_namespace(schema)
+      schema.metadata_xml[/<Schema Namespace="([^"]+)"/, 1]
+    end
+
+    def oas2_location(schema)
+      OAS2.build_json(schema, context: Context.new).slice('host', 'schemes', 'basePath')
+    end
+
+    describe 'attribute defaults, composition and caller-string isolation' do
+      # Freezing of the read-back attributes is an internal implementation detail; the
+      # consumer-visible contract is that a value handed at build time renders and that
+      # later mutating the caller's string cannot corrupt the rendered output.
+      it 'renders the given namespace into $metadata, isolated from later source mutation' do
+        source = +'MutableNS'
+        schema = build(namespace: source)
+        source << '-mutated'
+        expect(metadata_namespace(schema)).to eq('MutableNS')
       end
 
-      it 'freezes the host read back from the schema' do
-        expect(build(host: +'mutablehost').host).to be_frozen
-      end
-
-      it 'freezes the scheme read back from the schema' do
-        expect(build(scheme: +'http').scheme).to be_frozen
-      end
-
-      it 'freezes the base_path read back from the schema' do
-        expect(build(base_path: +'/mutable').base_path).to be_frozen
-      end
-
-      it 'freezes the base_url read back from the schema' do
-        expect(build(host: +'mutablehost').base_url).to be_frozen
+      it 'renders the given host/scheme/base_path, isolated from later source mutation' do
+        host = +'mutablehost'
+        scheme = +'http'
+        base_path = +'/mutable'
+        schema = build(host: host, scheme: scheme, base_path: base_path)
+        host << 'x'
+        scheme << 's'
+        base_path << 'x'
+        expect(oas2_location(schema))
+          .to eq('host' => 'mutablehost', 'schemes' => ['http'], 'basePath' => '/mutable')
       end
 
       it 'defaults the host to localhost when none is given' do
-        expect(build.host).to eq('localhost')
+        expect(oas2_location(build)['host']).to eq('localhost')
       end
 
       it 'defaults the scheme to https when none is given' do
-        expect(build.scheme).to eq('https')
+        expect(oas2_location(build)['schemes']).to eq(['https'])
       end
 
       it 'defaults the base_path to empty when none is given' do
-        expect(build.base_path).to eq('')
+        expect(oas2_location(build)['basePath']).to eq('')
       end
 
-      it 'composes base_url from scheme, host and base_path in order' do
+      it 'composes the location from scheme, host and base_path in order' do
         schema = build(scheme: 'http', host: 'example.test', base_path: '/api')
-        expect(schema.base_url).to eq('http://example.test/api')
+        expect(oas2_location(schema))
+          .to eq('host' => 'example.test', 'schemes' => ['http'], 'basePath' => '/api')
       end
 
-      it 'defaults base_url to https://localhost when only namespace is given' do
-        expect(build.base_url).to eq('https://localhost')
+      it 'defaults the location to https://localhost when only namespace is given' do
+        expect(oas2_location(build))
+          .to eq('host' => 'localhost', 'schemes' => ['https'], 'basePath' => '')
       end
     end
 
-    describe 'attribute string coercion and cloning' do
-      it 'does not freeze the caller-supplied namespace string' do
-        source = +'My.NS'
-        build(namespace: source)
-        expect(source).not_to be_frozen
-      end
-
-      it 'does not freeze the caller-supplied host string' do
-        source = +'myhost'
-        build(host: source)
-        expect(source).not_to be_frozen
-      end
-
-      it 'does not freeze the caller-supplied scheme string' do
-        source = +'http'
-        build(scheme: source)
-        expect(source).not_to be_frozen
-      end
-
-      it 'does not freeze the caller-supplied base_path string' do
-        source = +'/base'
-        build(base_path: source)
-        expect(source).not_to be_frozen
-      end
-
+    describe 'attribute string coercion' do
       it 'raises when the namespace is not string-coercible' do
         expect { build(namespace: :sym) }.to raise_error(NoMethodError)
       end

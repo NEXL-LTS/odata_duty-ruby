@@ -48,6 +48,10 @@ list current** — see `/build` for when to update it.
   adding an inline disable.
 - **Keep PR descriptions short and high level** — what changed and why, not a task-by-task
   walkthrough or a file list. Details belong in the commits.
+- **Tests use only the gem's public API** (`doc/conventions/specs.md`), enforced two-layered: the
+  RuboCop `OdataDuty/PublicApiOnly` cop for name/mock/bypass leaks (static), and the runtime guard
+  (`spec/support/public_api_guard.rb`) for an internal method on a real gem object (type-aware) —
+  see `spec/using_public_api_only.md`.
 
 ## Scoped conventions
 
