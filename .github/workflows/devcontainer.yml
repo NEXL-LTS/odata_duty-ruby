@@ -33,3 +33,16 @@ jobs:
           -w /workspace \
           odata_duty-devcontainer \
           -c "bundle install && claude --version"
+
+    # The Claude Code hooks in .claude/ are shell, so `bundle exec rake` never sees them.
+    # Running their bats suite in the image also proves the image still ships bats and jq,
+    # which the hooks depend on — without jq they fall back to a coarser match.
+    - name: Run the Claude Code hook tests in the image
+      run: |
+        docker run --rm \
+          --user root \
+          --entrypoint bash \
+          -v "${{ github.workspace }}:/workspace" \
+          -w /workspace \
+          odata_duty-devcontainer \
+          -c "bats .claude/hooks/*.bats"
