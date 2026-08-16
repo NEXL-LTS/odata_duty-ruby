@@ -135,6 +135,18 @@ end
 3. **Flexible Matching:**  
    Unlike `$filter`, `$search` allows for implementation-specific matching logic. You can implement exact matching, partial matching, full-text search, or other search strategies based on your needs.
 
+### Public API commitment
+
+`OdataDuty::SearchExpression` and `OdataDuty::SearchTerm` are part of the gem's public
+API — they appear on the `OdataDuty/PublicApiOnly` cop's allowlist (see
+`spec/using_public_api_only.md`), a formal commitment that the surface `od_search`
+receives is stable. Consumers implementing `od_search` may depend on:
+
+- `expression.terms` — the array of `SearchTerm` objects.
+- `expression.or?` — `true` when the terms are combined with OR (otherwise treat as AND).
+- `term.value` — the search text for a term.
+- `term.not?` — `true` when the term is negated.
+
 ## Search Syntax Examples
 
 The `$search` query option supports the following syntax:

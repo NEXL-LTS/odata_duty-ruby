@@ -3,7 +3,7 @@
 [Mutant](https://github.com/mbj/mutant) validates the quality of the test suite by mutating the
 source code (changing operators, removing statements, altering return values) and re-running the
 specs. A mutation that *survives* (specs still pass) means either the code is redundant or a test
-is missing. SimpleCov's 100% line/branch coverage (`doc/using_coverage.md`) says every line runs;
+is missing. SimpleCov's 100% line/branch coverage (`spec/using_coverage.md`) says every line runs;
 mutation coverage says every line is *verified*.
 
 ## Running

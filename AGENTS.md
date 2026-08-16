@@ -30,7 +30,7 @@ list current** — see `/build` for when to update it.
 
 ## Commands
 
-- `bundle exec rake` — full suite: RSpec **and** RuboCop. This is what CI runs (and it runs `rake` four times to surface flaky tests). Also measures and enforces 100% line + branch coverage via SimpleCov — see `doc/using_coverage.md`. Run this before considering work done.
+- `bundle exec rake` — full suite: RSpec **and** RuboCop. This is what CI runs (and it runs `rake` four times to surface flaky tests). Also measures and enforces 100% line + branch coverage via SimpleCov — see `spec/using_coverage.md`. Run this before considering work done.
 - **Pre-commit hook** (`.githooks/pre-commit`) runs `bundle exec rake` before every commit and blocks the commit if it's red. Bypass a deliberate, clearly-labeled work-in-progress commit with `git commit --no-verify` — this is the hook's own documented escape hatch, not a workaround. Expect this if a change necessarily passes through a red intermediate state (e.g. a task that enables a check before a later task fixes what it flags).
 - `bundle exec rspec spec/odata_duty/entity_set/collection_spec.rb` — single file.
 - `bundle exec rspec spec/odata_duty/entity_set/collection_spec.rb:42` — single example by line.
@@ -48,6 +48,10 @@ list current** — see `/build` for when to update it.
   adding an inline disable.
 - **Keep PR descriptions short and high level** — what changed and why, not a task-by-task
   walkthrough or a file list. Details belong in the commits.
+- **Tests use only the gem's public API** (`doc/conventions/specs.md`), enforced two-layered: the
+  RuboCop `OdataDuty/PublicApiOnly` cop for name/mock/bypass leaks (static), and the runtime guard
+  (`spec/support/public_api_guard.rb`) for an internal method on a real gem object (type-aware) —
+  see `spec/using_public_api_only.md`.
 
 ## Scoped conventions
 

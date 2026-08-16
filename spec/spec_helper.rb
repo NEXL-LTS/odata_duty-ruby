@@ -19,6 +19,12 @@ require 'nokogiri'
 require 'odata_duty'
 require 'camel_snake_struct'
 
+require_relative 'support/public_api_guard'
+# Global, single-install runtime guard: raises NonPublicApiError when a spec calls
+# a gem method that is not on the public-API allowlist. Active for both spec-file
+# loading and example execution for the whole run (no per-file/per-example opt-in).
+PublicApiGuard.install
+
 class String
   def to_date
     Date.parse(self)

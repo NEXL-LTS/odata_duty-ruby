@@ -1,0 +1,149 @@
+# The `OdataDuty/PublicApiOnly` cop
+
+`CLAUDE.md` requires that specs exercise the gem **only through its documented public API** —
+the DSL, `Schema.execute`/`.create`/`.update`/`.delete`, the rendered `$metadata`/`$oas2`/index,
+`OAS2.build_json`, and `to_mcp_server` with its JSON-RPC calls. A test that reaches past that
+surface into an internal class, method, or instance variable stops being usable documentation and
+starts coupling the suite to implementation details. `OdataDuty/PublicApiOnly`
+(`rubocop/cop/odata_duty/public_api_only.rb`) makes that rule enforceable rather than advisory: it
+runs against `spec/**/*_spec.rb` as part of `bundle exec rubocop` (and therefore `bundle exec
+rake`).
+
+## What it checks
+
+Four checks, each with its own message:
+
+1. **Internal constant.** A constant reference under the `OdataDuty::` namespace that is not on the
+   allowlist. `` `OdataDuty::Executor` is not part of the public API. Specs must exercise the gem
+   through its documented surface. ``
+2. **`__`-prefixed internal method.** Any method call whose name starts with `__` (e.g.
+   `__metadata`, `__send__`). `` `__metadata` is an internal method (`__` prefix). Specs must
+   exercise the gem through its documented surface. ``
+3. **Visibility bypass.** A call to `send`, `__send__`, `instance_variable_get`,
+   `instance_variable_set`, `instance_eval`, `const_get`, or `method`. `` `send` bypasses method
+   visibility. Specs must exercise the gem through its documented surface. `` (`public_send` is
+   deliberately allowed — it respects visibility, so it only reaches genuinely-public methods.)
+4. **Mocking gem behaviour.** A call to `expect_any_instance_of`, `allow_any_instance_of`, or
+   `stub_const`. `` `stub_const` mocks gem behaviour. Specs must assert on the gem's output
+   instead. ``
+
+## The allowlist is the public contract
+
+`AllowedConstants` and `AllowedConstantPatterns` in the `OdataDuty/PublicApiOnly` block of
+`.rubocop.yml` are the *written definition* of the gem's public constant surface. What's listed:
+
+- **Base classes a consumer subclasses:** `EntityType`, `ComplexType`, `EnumType`, `EntitySet`,
+  `SetResolver`, `Schema`.
+- **Entry points a consumer calls:** `SchemaBuilder`, `EdmxSchema`, `OAS2`.
+- **The objects handed to `od_search`:** `SearchExpression`, `SearchTerm` (see
+  `../doc/using_search.md`).
+- **The Rails generators:** `Generators::InstallGenerator`, `Generators::EntitySetGenerator`.
+- **All of `errors.rb`, by pattern:** `AllowedConstantPatterns` matches `OdataDuty::*Error` and
+  `OdataDuty::Invalid*`, so new error classes are public automatically — consumers rescue them.
+
+Two rules follow from how the cop reads the list:
+
+- **Nested constants are not inherited.** A constant counts as public only if its *full path* is
+  listed. `OdataDuty::EntitySet` being allowed does not make some `OdataDuty::EntitySet::Inner`
+  allowed; it would need its own entry.
+- **The `__` prefix marks a method internal**, regardless of the allowlist — the allowlist covers
+  constants, not methods.
+
+## Responding to an offence
+
+The fix is almost always to go through the documented surface, not to reach around the cop:
+
+- **Internal constant / `__`-prefixed method.** Drive the behaviour through the DSL and
+  `Schema.execute` (or the builder equivalent) and assert on the rendered output
+  (`$metadata`/`$oas2`/MCP JSON) instead of poking at the internal object. For a `__`-prefixed
+  *Ruby builtin* (e.g. `__dir__`), use the non-`__` equivalent — `File.dirname(__FILE__)`.
+- **Visibility bypass / mocking.** Instead of stubbing or bypassing to observe what a hook
+  receives, use a **capture fixture**: a real entity set that records its argument and exposes it
+  as public state, then assert on that. Worked examples in the suite:
+  - `CapturingSelectSet` in `odata_duty/entity_set/select_spec.rb` records the `select` array its
+    `od_select` hook is handed on a class accessor.
+  - The search-recording set in `odata_duty/entity_set/search_spec.rb` records the
+    `SearchExpression` its `od_search` hook receives (operator and terms) the same way.
+
+  These show the behaviour a consumer would actually observe, so they double as documentation —
+  which a mock cannot.
+
+## Widening the allowlist is a public-API change
+
+Adding an entry to `AllowedConstants`/`AllowedConstantPatterns` promotes a constant into the gem's
+public contract. Treat it exactly like any other public API change: it goes through review, and it
+implies a `doc/using_*.md` guide documenting the newly-public surface. If a spec seems to *need* a
+not-yet-public constant, the question to answer first is whether that constant should be public —
+not whether the allowlist should grow to accommodate one test.
+
+## The runtime guard (`spec/support/public_api_guard.rb`)
+
+The cop is a static check: it reads the spec's syntax without knowing any receiver's type. That
+leaves one gap it cannot close — an **internal *method* called on a real gem object that a spec
+obtained legitimately**. For example, having built a `SchemaBuilder::Schema` through the public
+`SchemaBuilder.build`, a spec could then call `schema.types` or `schema.entity_types` on it. Those
+names aren't `__`-prefixed, aren't a visibility bypass, and aren't a mock, so the cop sees nothing
+wrong — it has no way to know `schema` is a gem object or that `types` is internal to it.
+
+`PublicApiGuard` closes that gap at runtime, where the receiver's class is known exactly. It installs
+a single `TracePoint` (once, from `spec_helper.rb`) that fires on every method entry, resolves the
+method's **owner** (its defining class), and — when that owner is a gem class (`Module#name` starts
+with `OdataDuty`) — raises `OdataDuty::NonPublicApiError` unless the method is on that class's
+allowlist row.
+
+### Complement, not replacement — the strong/weak split
+
+Both layers stay on; each covers what the other structurally can't.
+
+- **The cop is the primary net, and the stronger one.** It catches mocks
+  (`expect_any_instance_of`/`allow_any_instance_of`/`stub_const`), visibility bypass
+  (`send`/`instance_variable_get`/`const_get` and friends), and internal constant references —
+  statically, at zero runtime cost, and in *code paths no test ever executes*. A leak on a branch
+  that never runs still fails `rubocop`.
+- **The guard is a type-aware second layer for the one case the cop can't reach:** an internal
+  method dispatched on a real gem object. It only knows about a call because that call actually
+  happens at runtime.
+
+Because it depends on dispatch, the guard does **not** catch things the cop already owns:
+`instance_variable_get` and `stub_const` involve no gem-method call, so no TracePoint entry fires;
+and a violation on a code path a run never exercises is invisible to it. Those remain the cop's job —
+which is why neither layer is removed.
+
+### Responding to a `NonPublicApiError`
+
+The default fix — and the strictly better one — is the same as for the cop: **assert on rendered
+output** (`metadata_xml` / `build_json` / `execute`) instead of reading internal state. An assertion
+on what a consumer can actually observe is durable across refactors; a read of `schema.types` pins a
+detail that consumers were never promised.
+
+The only alternative is to **promote the method to the allowlist** — but that is a *reviewed contract
+change*, not a reflex to silence the guard. Add the method name to the owning class's row in
+`spec/support/public_api_guard.rb` and document it in the relevant `doc/using_*.md`, as a deliberate
+per-method decision. This mirrors the rule for widening the cop's constant allowlist above: the
+question to answer first is whether the method should be public, not whether the row should grow to
+accommodate one test.
+
+### Where the allowlist lives
+
+`spec/support/public_api_guard.rb` holds a frozen map of **gem class => set of allowed public method
+names** (the `CLASS_DSL_ROWS`/`BUILDER_DSL_ROWS`/`HOOK_OBJECT_ROWS`/`RENDER_ROWS` rows plus every
+`StandardError` subclass), installed once from `spec_helper.rb`. Two properties keep it precise:
+
+- **It is keyed on the method's *owner* (defining class), not the receiver.** A consumer's own
+  subclass or fixture method is never guarded — only methods actually defined on a gem class are,
+  so overriding or adding methods in a spec schema is free.
+- **It only raises at a `_spec.rb` call site.** The guard walks `caller_locations` and stays silent
+  unless the immediate caller is a spec file, so the gem's own internal self-calls (a gem method
+  calling another gem method) never raise.
+
+### Runtime cost
+
+The guard installs a global `TracePoint(:call, :c_call)` that fires on *every* method entry in the
+whole suite, so it is not free: measured on this suite, `bundle exec rspec` reports "Finished in
+~1.2 seconds" with the guard off versus "Finished in ~3.3 seconds" with it on. The hot path is kept
+as cheap as possible — an O(1) owner fast-exit returns immediately for non-gem calls, and the
+identity-keyed `OWNER_CACHE` in `spec/support/public_api_guard.rb` memoises the owner verdict so the
+`singleton_class?`/`attached_object`/`Module#name` resolution runs only once per `defined_class`.
+The overhead is visible but acceptable for the coverage it buys; if it ever stops being so, the
+sanctioned fallbacks are to enable the TracePoint only `around(:each)` rather than globally, or to
+narrow it to gem source files.

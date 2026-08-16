@@ -19,8 +19,11 @@ explanatory `#` comments.
 - `OAS2.build_json`;
 - `to_mcp_server` plus its JSON-RPC calls (`initialize`, `tools/list`, `tools/call`).
 
-No stubbing (`stub_const`, mocks) of gem internals. If a behaviour can only be shown with test
-machinery, question the behaviour instead.
+No stubbing (`stub_const`, mocks) of gem internals. This is enforced by two layers, not merely
+advisory (see `spec/using_public_api_only.md`): the `OdataDuty/PublicApiOnly` RuboCop cop catches
+name/mock/bypass leaks statically, and the runtime guard (`spec/support/public_api_guard.rb`) catches
+an internal method called on a real gem object, which the cop can't see. If a behaviour can only be
+shown with test machinery, question the behaviour instead.
 
 **Why:** these specs double as the gem's documentation and as its compatibility contract. A spec
 that reaches past the public API pins an implementation detail, blocking refactors while proving

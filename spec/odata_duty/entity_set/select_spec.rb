@@ -147,33 +147,31 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         end.to raise_error(OdataDuty::InvalidQueryOptionError)
       end
 
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[id i]).and_call_original
-        json_string = schema.execute("SupportsCollectionSelect('1')",
+      it 'passes the selected names plus refs into od_select and renders them' do
+        json_string = schema.execute("CapturingSelect('1')",
                                      context: Context.new,
                                      query_options: { '$select' => 'id,i' })
+        expect(CapturingSelectSet.captured_select).to eq(%i[id i])
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect/$entity',
-            '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#CapturingSelect/$entity',
+            '@odata.id' => 'http://localhost:3000/api/CapturingSelect(\'1\')',
             'id' => '1', 'i' => 1
           }
         )
       end
 
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[c id]).and_call_original
-        json_string = schema.execute("SupportsCollectionSelect('1')",
+      it 'appends the id ref when selecting only a complex property and renders it' do
+        json_string = schema.execute("CapturingSelect('1')",
                                      context: Context.new,
                                      query_options: { '$select' => 'c' })
+        expect(CapturingSelectSet.captured_select).to eq(%i[c id])
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect/$entity',
-            '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#CapturingSelect/$entity',
+            '@odata.id' => 'http://localhost:3000/api/CapturingSelect(\'1\')',
             'c' => { 's' => '1' }
           }
         )
@@ -237,37 +235,35 @@ RSpec.describe OdataDuty::EntitySet, 'Can specific individual result' do
         end.to raise_error(OdataDuty::InvalidQueryOptionError)
       end
 
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[id i]).and_call_original
-        json_string = schema.execute('SupportsCollectionSelect',
+      it 'passes the selected names plus refs into od_select and renders the collection' do
+        json_string = schema.execute('CapturingSelect',
                                      context: Context.new,
                                      query_options: { '$select' => 'id,i' })
+        expect(CapturingSelectSet.captured_select).to eq(%i[id i])
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect',
-            'value' => [{ '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#CapturingSelect',
+            'value' => [{ '@odata.id' => 'http://localhost:3000/api/CapturingSelect(\'1\')',
                           'id' => '1', 'i' => 1 },
-                        { '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'2\')',
+                        { '@odata.id' => 'http://localhost:3000/api/CapturingSelect(\'2\')',
                           'id' => '2', 'i' => 2 }]
           }
         )
       end
 
-      it do
-        expect_any_instance_of(SupportsCollectionSelectSet)
-          .to receive(:od_select).with(%i[c id]).and_call_original
-        json_string = schema.execute('SupportsCollectionSelect',
+      it 'appends the id ref when selecting only a complex property across the collection' do
+        json_string = schema.execute('CapturingSelect',
                                      context: Context.new,
                                      query_options: { '$select' => 'c' })
+        expect(CapturingSelectSet.captured_select).to eq(%i[c id])
         response = Oj.load(json_string)
         expect(response).to eq(
           {
-            '@odata.context' => 'http://localhost:3000/api/$metadata#SupportsCollectionSelect',
-            'value' => [{ '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'1\')',
+            '@odata.context' => 'http://localhost:3000/api/$metadata#CapturingSelect',
+            'value' => [{ '@odata.id' => 'http://localhost:3000/api/CapturingSelect(\'1\')',
                           'c' => { 's' => '1' } },
-                        { '@odata.id' => 'http://localhost:3000/api/SupportsCollectionSelect(\'2\')',
+                        { '@odata.id' => 'http://localhost:3000/api/CapturingSelect(\'2\')',
                           'c' => { 's' => '2' } }]
           }
         )

@@ -91,7 +91,7 @@ RSpec.describe OdataDuty::OAS2, 'full document contract' do
 
   let(:json) { OdataDuty::OAS2.build_json(schema, context: Context.new) }
 
-  EXPECTED_FULL_DOC = Oj.load(File.read("#{__dir__}/full_document.json"))
+  EXPECTED_FULL_DOC = Oj.load(File.read("#{File.dirname(__FILE__)}/full_document.json"))
 
   it 'renders the entire Swagger 2.0 document exactly' do
     expect(json).to eq(EXPECTED_FULL_DOC)
