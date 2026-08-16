@@ -19,8 +19,14 @@ if command -v jq >/dev/null 2>&1; then
   # them lets docs and tests that merely name the file be authored, and gives up nothing:
   # writing the file itself is still caught by its path, and a body cannot carry the secrets
   # unless something first read them, which this same hook refuses.
-  haystack=$(printf '%s' "$payload" \
-    | jq -c '(.tool_input // {}) | del(.content, .new_string, .old_string, .new_source)')
+  #
+  # The working directory is scanned alongside the input because it persists between Bash
+  # calls: change into the directory in one call and read the bare filename in the next, and
+  # neither command on its own names both halves of the path.
+  haystack=$(printf '%s' "$payload" | jq -c '{
+    cwd: (.cwd // ""),
+    input: ((.tool_input // {}) | del(.content, .new_string, .old_string, .new_source))
+  }')
 else
   # No jq: match against the raw payload rather than failing open.
   haystack=$payload
@@ -38,7 +44,9 @@ matches() { printf '%s' "$haystack" | grep -qF "$1"; }
 # Direct reference: `cat .devcontainer/.env`, Read(/abs/path/.devcontainer/.env).
 matches '.devcontainer/.env' && deny
 
-# Split reference: `cd .devcontainer && cat .env`, Grep(pattern='.env', path='.devcontainer').
+# Split reference, where neither half names the file on its own: `cd .devcontainer && cat .env`,
+# Grep(pattern='.env', path='.devcontainer'), or `sed -n 1p .env` run from a cwd left inside the
+# directory by an earlier call.
 matches '.devcontainer' && matches '.env' && deny
 
 exit 0

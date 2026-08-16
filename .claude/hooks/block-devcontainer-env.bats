@@ -11,12 +11,14 @@
 setup() {
   HOOK="${BATS_TEST_DIRNAME}/block-devcontainer-env.sh"
   SECRET=".devcontainer/.env"
+  GUARDED_CWD="/workspaces/odata_duty/.devcontainer"
 }
 
-# Build a PreToolUse payload: payload <tool_name> <tool_input_json>
+# Build a PreToolUse payload: payload <tool_name> <tool_input_json> [cwd]
+# cwd defaults to a project root outside the guarded directory.
 payload() {
-  printf '{"session_id":"test","hook_event_name":"PreToolUse","tool_name":"%s","tool_input":%s}' \
-    "$1" "$2"
+  printf '{"session_id":"test","hook_event_name":"PreToolUse","cwd":"%s","tool_name":"%s","tool_input":%s}' \
+    "${3:-/workspaces/odata_duty}" "$1" "$2"
 }
 
 assert_denied() {
@@ -89,6 +91,33 @@ assert_allowed() {
   assert_denied "$(payload Grep '{"pattern":".env","path":".devcontainer"}')"
 }
 
+# --- denied: split across separate calls via the persisted cwd ----------------------------
+#
+# The Bash tool keeps its working directory between calls, so `cd .devcontainer` in one call
+# and `sed -n 1p .env` in the next puts only one half of the path in each command. The hook
+# scans the payload's cwd for exactly this.
+
+@test "denies sed on the bare filename from a cwd inside the directory" {
+  assert_denied "$(payload Bash '{"command":"sed -n 1p .env"}' "$GUARDED_CWD")"
+}
+
+@test "denies cat on the bare filename from a cwd inside the directory" {
+  assert_denied "$(payload Bash '{"command":"cat .env"}' "$GUARDED_CWD")"
+}
+
+@test "denies Read of the bare filename from a cwd inside the directory" {
+  assert_denied "$(payload Read '{"file_path":".env"}' "$GUARDED_CWD")"
+}
+
+@test "denies a shell variable holding the filename, from inside the directory" {
+  assert_denied "$(payload Bash '{"command":"f=.env; cat \"$f\""}' "$GUARDED_CWD")"
+}
+
+@test "denies from a nested cwd below the directory" {
+  assert_denied \
+    "$(payload Bash '{"command":"cat ../.env"}' "$GUARDED_CWD/sub")"
+}
+
 # --- allowed: the rest of the devcontainer directory --------------------------------------
 
 @test "allows the devcontainer config" {
@@ -113,6 +142,23 @@ assert_allowed() {
 
 @test "allows listing the directory" {
   assert_allowed "$(payload Bash '{"command":"ls -la .devcontainer"}')"
+}
+
+# --- allowed: still able to work inside the guarded directory ------------------------------
+#
+# Scanning the cwd must not turn the whole directory into a no-go zone; only the pairing of
+# that cwd with the filename is refused.
+
+@test "allows editing the Dockerfile from inside the directory" {
+  assert_allowed "$(payload Read '{"file_path":"Dockerfile"}' "$GUARDED_CWD")"
+}
+
+@test "allows a build command from inside the directory" {
+  assert_allowed "$(payload Bash '{"command":"docker build -t x ."}' "$GUARDED_CWD")"
+}
+
+@test "allows listing from inside the directory" {
+  assert_allowed "$(payload Bash '{"command":"ls -la"}' "$GUARDED_CWD")"
 }
 
 # --- allowed: near misses -----------------------------------------------------------------
