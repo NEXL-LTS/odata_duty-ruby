@@ -47,7 +47,7 @@ class TestPersonResolver < OdataDuty::SetResolver
 
   private
 
-  # rubocop:disable Metrics/PerceivedComplexity,Metrics/CyclomaticComplexity
+  # rubocop:disable-next Metrics/PerceivedComplexity,Metrics/CyclomaticComplexity
   def filter_records_by_terms(search_expression, accumulate: false)
     result_records = accumulate ? [] : @records
 
@@ -66,7 +66,6 @@ class TestPersonResolver < OdataDuty::SetResolver
 
     accumulate ? result_records.uniq { |r| r['id'] } : result_records
   end
-  # rubocop:enable Metrics/PerceivedComplexity,Metrics/CyclomaticComplexity
 
   def od_search_or(search_expression)
     @records = filter_records_by_terms(search_expression, accumulate: true)
@@ -77,7 +76,7 @@ class TestPersonResolver < OdataDuty::SetResolver
   end
 end
 
-# rubocop:disable Metrics/MethodLength,Metrics/CyclomaticComplexity,Layout/LineLength
+# rubocop:disable-next Metrics/MethodLength,Metrics/CyclomaticComplexity,Layout/LineLength
 class TestApiApp
   def initialize
     @schema = OdataDuty::SchemaBuilder.build(namespace: 'TestSpace', host: 'localhost:9292',
@@ -156,6 +155,5 @@ class TestApiApp
     end
   end
 end
-# rubocop:enable Metrics/MethodLength,Metrics/CyclomaticComplexity,Layout/LineLength
 
 run TestApiApp.new

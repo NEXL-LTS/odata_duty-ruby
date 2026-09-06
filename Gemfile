@@ -17,6 +17,8 @@ gem 'railties', '>= 6.0'
 gem 'rake', '>= 13.0'
 gem 'rerun', '>= 0.14'
 gem 'rspec', '>= 3.0'
-gem 'rubocop', '>= 1.7'
+# 1.90 is the floor: earlier versions reject the `disable-next` directives in
+# spec/config.ru as malformed and then report what those directives suppress.
+gem 'rubocop', '>= 1.90'
 gem 'simplecov', '~> 0.22', require: false
 # gem 'vernier', '~> 1.0'
