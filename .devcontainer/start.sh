@@ -25,6 +25,23 @@ checkout_slug="$(printf '%s' "$(basename "$PROJECT_ROOT")" | tr '[:upper:]' '[:l
 checkout_digest="$(printf '%s' "$PROJECT_ROOT" | cksum | cut -d ' ' -f 1)"
 COMPOSE_PROJECT="odr-${checkout_slug}-${checkout_digest}"
 SERVICE="app"
+
+# The MCP inspector is two servers — a UI and a proxy the browser talks to directly — and the
+# proxy rejects any request whose Origin does not match its own CLIENT_PORT. That only holds
+# when the host port and the container port are the same number, so unlike Rack these cannot be
+# left to Docker to assign. Derive them from the same digest that names the project: different
+# clones land on different pairs, and one clone lands on the same pair every time, which is what
+# lets the attach path report them without asking Docker. Kept under 32768 to stay clear of the
+# ephemeral range the kernel hands out to outgoing connections.
+INSPECTOR_CLIENT_PORT=$(( 20000 + (checkout_digest % 6000) * 2 ))
+INSPECTOR_SERVER_PORT=$(( INSPECTOR_CLIENT_PORT + 1 ))
+export INSPECTOR_CLIENT_PORT INSPECTOR_SERVER_PORT
+
+# A refused connection means nothing is listening. Only sees listeners reachable on loopback,
+# which is what a published Docker port is.
+port_free() {
+    ! (exec 3<> "/dev/tcp/127.0.0.1/$1") 2> /dev/null
+}
 COMPOSE=(docker compose -p "$COMPOSE_PROJECT" -f "$PROJECT_ROOT/.devcontainer/docker-compose.yml")
 
 # Run one of the lifecycle scripts inside the container, as the user and from the directory
@@ -153,6 +170,12 @@ fi
 if [ "$rebuild" = false ] && [ -n "$("${COMPOSE[@]}" ps -q "$SERVICE" 2>/dev/null || true)" ]; then
     echo -e "${GREEN}Attaching to the running dev container...${NC}"
 else
+    for inspector_port in "$INSPECTOR_CLIENT_PORT" "$INSPECTOR_SERVER_PORT"; do
+        if ! port_free "$inspector_port"; then
+            echo -e "${YELLOW}Warning: port ${inspector_port} is already in use. The inspector needs it published 1:1, so compose is about to refuse to start — free the port and try again.${NC}"
+        fi
+    done
+
     echo -e "${GREEN}Building and starting the dev container...${NC}"
     up_args=(up --detach --build)
     # `up` recreates only when the image or service config changed, so a rebuild
@@ -189,7 +212,9 @@ report_port() {
 
 echo -e "${GREEN}Ports published for this container:${NC}"
 report_port 9292 "Rack (spec/config.ru)"
-report_port 6274 "MCP inspector      "
+echo -e "${GREEN}  MCP inspector: http://localhost:${INSPECTOR_CLIENT_PORT} (proxy on ${INSPECTOR_SERVER_PORT})${NC}"
+echo -e "${GREEN}    It prints a URL carrying its auth token; append${NC}"
+echo -e "${GREEN}    &MCP_PROXY_FULL_ADDRESS=http://localhost:${INSPECTOR_SERVER_PORT}${NC}"
 
 # %q so the line stays copy-pasteable from a checkout path containing spaces.
 printf -v stop_command '%q ' "${COMPOSE[@]}"

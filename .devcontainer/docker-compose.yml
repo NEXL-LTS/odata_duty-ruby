@@ -20,8 +20,14 @@ services:
     # They reach the host at all only because the Procfile binds them to 0.0.0.0 — a loopback
     # bind inside the container is unreachable from outside it.
     ports:
+      # Rack has no opinion about its own port number, so it takes any free one.
       - "9292"
-      - "6274"
+      # The inspector does: its proxy validates the browser's Origin against CLIENT_PORT, and
+      # the token URL it prints uses that number, so both halves have to be published 1:1.
+      # Its proxy is a second server the browser talks to directly — publishing only the UI
+      # leaves it loading and then unable to reach anything.
+      - "${INSPECTOR_CLIENT_PORT:-6274}:${INSPECTOR_CLIENT_PORT:-6274}"
+      - "${INSPECTOR_SERVER_PORT:-6277}:${INSPECTOR_SERVER_PORT:-6277}"
     # Bare names: forwarded only when set in start.sh's environment, so an unset one stays
     # absent inside the container rather than becoming an empty string.
     environment:
@@ -29,6 +35,10 @@ services:
       - GITHUB_TOKEN
       # Points ssh at the agent socket forwarded in below.
       - SSH_AUTH_SOCK=/ssh-agent
+      # Tell the inspector the ports it is published on, so the Origin it validates against
+      # matches the one the browser actually arrives with. start.sh derives the pair.
+      - CLIENT_PORT=${INSPECTOR_CLIENT_PORT:-6274}
+      - SERVER_PORT=${INSPECTOR_SERVER_PORT:-6277}
     volumes:
       - ..:/workspace:cached
       # The env file is read on the host — by Docker for VS Code, by start.sh here — so nothing

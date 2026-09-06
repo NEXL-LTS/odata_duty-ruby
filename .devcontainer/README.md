@@ -96,34 +96,57 @@ No ports are forwarded eagerly. When something inside the container starts
 listening, VS Code auto-forwards it and picks a free host port if the
 in-container port is already taken on the host.
 
-| Port | Source                                |
-| ---- | ------------------------------------- |
-| 9292 | `bundle exec rackup spec/config.ru`   |
-| 6274 | `@modelcontextprotocol/inspector` UI  |
+| Port | Source                                          |
+| ---- | ----------------------------------------------- |
+| 9292 | `bundle exec rackup spec/config.ru`             |
+| 6274 | `@modelcontextprotocol/inspector` UI            |
+| 6277 | `@modelcontextprotocol/inspector` proxy         |
+
+(The inspector's two defaults; on the `start.sh` path it is told to use a derived pair
+instead — see below.)
 
 See `Procfile` at the repo root for the commands that bind these ports.
 
-`start.sh` has no auto-forwarding agent, so `docker-compose.yml` publishes those two ports
-itself — but without naming a host port, so Docker assigns a free one per container and
-several checkouts can run at once. `start.sh` prints the assignment when it hands you the
-shell:
+`start.sh` has no auto-forwarding agent, so `docker-compose.yml` publishes the ports itself.
+The two services need opposite treatment:
+
+- **Rack** takes any free host port — Docker picks one per container, so checkouts never
+  contend. It changes on every recreate; `docker compose -p <project> port app 9292` asks
+  again.
+- **The inspector** is published **1:1** on a pair derived from the checkout path — stable for
+  a given clone, different between clones. It has to be 1:1, because the inspector is two
+  servers (a UI, and a proxy the browser talks to *directly*) and the proxy rejects any request
+  whose `Origin` does not match its own `CLIENT_PORT`. Behind a remapped port the browser
+  arrives with the wrong origin and gets a `403`. Both halves are published: with only the UI
+  exposed it loads and then cannot reach anything.
+
+`start.sh` prints the lot when it hands you the shell:
 
 ```
 Ports published for this container:
   Rack (spec/config.ru): http://localhost:32769
-  MCP inspector      : http://localhost:32771
+  MCP inspector: http://localhost:26022 (proxy on 26023)
+    It prints a URL carrying its auth token; append
+    &MCP_PROXY_FULL_ADDRESS=http://localhost:26023
 ```
 
-They change whenever the container is recreated; `docker compose -p <project> port app 9292`
-asks again. Reaching them at all depends on the processes binding `0.0.0.0`, which is why the
-`Procfile` passes `rackup -o 0.0.0.0` and sets `HOST` for the inspector — a loopback bind
-inside the container is reachable by VS Code's forwarder but not through a published port.
+The inspector prints its own URL with a session token embedded. That URL works as-is because
+its port now matches the host's, but the UI still looks for a proxy on 6277 by default, so
+append `MCP_PROXY_FULL_ADDRESS` pointing at the derived one.
+
+All of this depends on the processes binding `0.0.0.0` rather than loopback: the `Procfile`
+passes `rackup -o 0.0.0.0`, and sets `HOST` for the inspector's proxy, which otherwise binds
+`127.0.0.1` (its UI already listens on all interfaces). VS Code needs neither — its forwarder
+connects from inside the container.
 
 ## Running several checkouts at once
 
-Supported, and the reason nothing above pins a host port. Each checkout gets its own compose
-project (`odr-<dirname>-<digest of the path>`), so containers, networks and images stay
-separate and a second clone never attaches to or recreates the first one's container.
+Supported, and the reason no host port above is a fixed constant. Each checkout gets its own
+compose project (`odr-<dirname>-<digest of the path>`), so containers, networks and images
+stay separate and a second clone never attaches to or recreates the first one's container.
+Rack lands on a free port per container, and the inspector's 1:1 pair is derived from the same
+path digest, so two clones get different pairs. If two ever did collide, compose refuses to
+start and `start.sh` says which port is taken.
 
 Two things are deliberately *shared* between instances, being per-user rather than
 per-checkout: the ssh-agent (one agent serving every container is the point) and your
