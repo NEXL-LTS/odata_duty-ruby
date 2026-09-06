@@ -13,6 +13,12 @@ services:
         USER_GID: ${USER_GID:-1000}
     # Only set user on Linux, not on Mac
     user: "${DOCKER_USER:-}"
+    # VS Code auto-forwards whatever starts listening; this path has no such agent, so the two
+    # documented services are published 1:1 instead. They only reach the host because the
+    # Procfile binds them to 0.0.0.0 — a loopback bind inside the container is unreachable.
+    ports:
+      - "9292:9292"
+      - "6274:6274"
     # Bare names: forwarded only when set in start.sh's environment, so an unset one stays
     # absent inside the container rather than becoming an empty string.
     environment:

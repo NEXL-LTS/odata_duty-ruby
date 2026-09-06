@@ -43,13 +43,20 @@ for arg in "$@"; do
     esac
 done
 
-USER_UID="$(id -u)"
-USER_GID="$(id -g)"
-
-if [ "$USER_UID" -eq 0 ] || [ "$USER_GID" -eq 0 ]; then
-    echo -e "${YELLOW}Warning: running as root detected; using fallback UID/GID 1000:1000 for image build to avoid remapping the root user/group inside the image.${NC}"
-    USER_UID=1000
-    USER_GID=1000
+# Only Linux passes host UIDs straight through a bind mount, so only there does the image's
+# vscode user need remapping to match. Docker Desktop translates ownership itself, and a Mac's
+# GID 20 (staff) collides with Ubuntu's dialout group, whose rename to vscode then fails
+# against the group the base image already ships — the build would not even complete.
+USER_UID=1000
+USER_GID=1000
+if [ "$(uname -s)" = "Linux" ]; then
+    USER_UID="$(id -u)"
+    USER_GID="$(id -g)"
+    if [ "$USER_UID" -eq 0 ] || [ "$USER_GID" -eq 0 ]; then
+        echo -e "${YELLOW}Warning: running as root detected; using fallback UID/GID 1000:1000 for image build to avoid remapping the root user/group inside the image.${NC}"
+        USER_UID=1000
+        USER_GID=1000
+    fi
 fi
 export USER_UID USER_GID
 
@@ -80,7 +87,9 @@ fi
 # VS Code hands the gitignored secrets file to Docker with --env-file; the compose file instead
 # forwards named variables from this shell, so load the file in here first. Docker's env-file
 # format is plain KEY=VALUE with no quoting or expansion, so read it as such rather than sourcing
-# it, and let a value already exported in this shell take precedence over the file's.
+# it, and let a value already exported in this shell take precedence over the file's — testing
+# that it is set rather than non-empty, so exporting an empty one deliberately clears the
+# file's value instead of silently falling back to it.
 secrets_file="$SCRIPT_DIR/.env"
 
 # The compose file masks this path with /dev/null so the file is not readable inside the
@@ -95,7 +104,7 @@ fi
 # `|| [ -n "$key" ]` so a final line with no trailing newline is still read.
 while IFS='=' read -r key value || [ -n "$key" ]; do
     case "$key" in '' | '#'*) continue ;; esac
-    [ -n "${!key:-}" ] || export "$key=$value"
+    [ -n "${!key+set}" ] || export "$key=$value"
 done < "$secrets_file"
 
 if [ -z "${GH_TOKEN:-}${GITHUB_TOKEN:-}" ]; then

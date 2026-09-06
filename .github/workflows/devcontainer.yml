@@ -17,17 +17,23 @@ jobs:
     - uses: actions/checkout@v4
 
     # Build context is .devcontainer/ so the Dockerfile's `COPY git-hooks-dispatcher.sh` resolves.
+    # Build the image's vscode user at the runner's UID/GID, the way start.sh does on Linux, so
+    # the steps below can run as that user against a bind mount the runner owns.
     - name: Build dev container image
-      run: docker build -t odata_duty-devcontainer .devcontainer
+      run: |
+        docker build -t odata_duty-devcontainer \
+          --build-arg USER_UID="$(id -u)" \
+          --build-arg USER_GID="$(id -g)" \
+          .devcontainer
 
     # Mount the checked-out repo and run the lifecycle scripts devcontainer.json and
     # .devcontainer/start.sh both run, which is what proves the image can provision a
-    # workspace (Ruby, gems, agent-apropos index). --user root sidesteps the host/container
-    # UID mismatch on the bind mount in CI.
+    # workspace (Ruby, gems, agent-apropos index). As the image's default vscode user, since
+    # both real entry paths provision as vscode — running this as root would let permissions
+    # that break a real container pass here.
     - name: Run the devcontainer lifecycle scripts in the image
       run: |
         docker run --rm \
-          --user root \
           --entrypoint bash \
           -v "${{ github.workspace }}:/workspace" \
           -w /workspace \
@@ -40,7 +46,6 @@ jobs:
     - name: Run the Claude Code hook tests in the image
       run: |
         docker run --rm \
-          --user root \
           --entrypoint bash \
           -v "${{ github.workspace }}:/workspace" \
           -w /workspace \

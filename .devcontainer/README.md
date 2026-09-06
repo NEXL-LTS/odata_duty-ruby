@@ -102,6 +102,14 @@ in-container port is already taken on the host.
 
 See `Procfile` at the repo root for the commands that bind these ports.
 
+`start.sh` has no auto-forwarding agent, so `docker-compose.yml` publishes those two
+ports 1:1 instead — `localhost:9292` and `localhost:6274` reach the container directly.
+That relies on the processes binding `0.0.0.0`, which is why the `Procfile` passes
+`rackup -o 0.0.0.0` and sets `HOST` for the inspector: a loopback bind inside the
+container is reachable by VS Code's forwarder but not through a published port. If
+either host port is already taken, the container will not start — free it, or edit the
+host side of the mapping.
+
 ## File ownership / UID mapping
 
 The container's `vscode` user is built with UID/GID `1000:1000` by default,
