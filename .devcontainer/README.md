@@ -24,26 +24,37 @@ starts `docker-compose.yml` (same `Dockerfile`, workspace mounted at `/workspace
 ```
 
 The container outlives the shell — rerun the script to get back in; the script prints the
-`docker compose ... down` line that stops it. `ANTHROPIC_API_KEY`, `GH_TOKEN` and
-`GITHUB_TOKEN` reach the container if they are exported in your shell or present in the
-env file below (your shell wins); nothing else is forwarded.
+`docker compose ... down` line that stops it. `GH_TOKEN` and `GITHUB_TOKEN` reach the
+container if they are exported in your shell or present in the env file below (your shell
+wins); nothing else is forwarded.
 
 ## Environment variables
 
 `.devcontainer/.env` is loaded into the container at start: VS Code passes it to Docker
 via `--env-file`, and `start.sh` reads it into its own environment for the compose file to
 forward. VS Code requires the file to exist (Docker errors if it's missing) though it may
-be empty; `start.sh` treats it as optional. It is gitignored.
+be empty; `start.sh` creates it empty (mode 0600) when it is missing. It is gitignored.
 
-| Variable            | Purpose                                              |
-| ------------------- | ---------------------------------------------------- |
-| `ANTHROPIC_API_KEY` | Authenticates the `claude` CLI inside the container. |
+| Variable       | Purpose                                                     |
+| -------------- | ----------------------------------------------------------- |
+| `GH_TOKEN`     | Authenticates `gh` and the GitHub API inside the container.  |
+| `GITHUB_TOKEN` | The same; set whichever one your tooling expects.            |
 
 Example:
 
 ```
-ANTHROPIC_API_KEY=sk-ant-...
+GH_TOKEN=ghp_...
 ```
+
+The `claude` CLI needs nothing here — it authenticates through the `~/.claude` and
+`~/.claude.json` mounts.
+
+The file itself is **not readable inside the container**: both paths mount `/dev/null` over
+it, so it reads as empty in there. Nothing inside needs it (both readers are host-side —
+Docker's `--env-file` and `start.sh`'s parse loop), and masking it keeps the file from being
+grepped, echoed into a transcript, or committed by accident from in there. This hides the
+*file*, not the *secrets* — what the file sets is still in the container's environment, so
+`printenv` inside still shows the tokens.
 
 ## Lifecycle scripts
 

@@ -78,20 +78,24 @@ fi
 # format is plain KEY=VALUE with no quoting or expansion, so read it as such rather than sourcing
 # it, and let a value already exported in this shell take precedence over the file's.
 secrets_file="$SCRIPT_DIR/.env"
-if [ -f "$secrets_file" ]; then
-    # `|| [ -n "$key" ]` so a final line with no trailing newline is still read.
-    while IFS='=' read -r key value || [ -n "$key" ]; do
-        case "$key" in '' | '#'*) continue ;; esac
-        [ -n "${!key:-}" ] || export "$key=$value"
-    done < "$secrets_file"
+
+# The compose file masks this path with /dev/null so the file is not readable inside the
+# container. Docker materialises a missing mount target as a root-owned empty file, which would
+# leave you needing sudo to put a token in it later, so create it first — 0600, since this is
+# where secrets go. VS Code's --env-file wants it to exist anyway.
+if [ ! -f "$secrets_file" ]; then
+    echo -e "${YELLOW}Creating ${secrets_file} — the compose file mounts over it${NC}"
+    (umask 077 && : > "$secrets_file")
 fi
+
+# `|| [ -n "$key" ]` so a final line with no trailing newline is still read.
+while IFS='=' read -r key value || [ -n "$key" ]; do
+    case "$key" in '' | '#'*) continue ;; esac
+    [ -n "${!key:-}" ] || export "$key=$value"
+done < "$secrets_file"
 
 if [ -z "${GH_TOKEN:-}${GITHUB_TOKEN:-}" ]; then
     echo -e "${YELLOW}Warning: neither GH_TOKEN nor GITHUB_TOKEN is set (in this shell or in ${secrets_file}). GitHub access inside the container will be unauthenticated.${NC}"
-fi
-
-if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-    echo -e "${YELLOW}Warning: ANTHROPIC_API_KEY is not set (in this shell or in ${secrets_file}). It will not be available inside the container.${NC}"
 fi
 
 if [ "$rebuild" = false ] && [ -n "$("${COMPOSE[@]}" ps -q "$SERVICE" 2>/dev/null || true)" ]; then

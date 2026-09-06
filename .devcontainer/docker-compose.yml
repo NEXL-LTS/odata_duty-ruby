@@ -16,11 +16,16 @@ services:
     # Bare names: forwarded only when set in start.sh's environment, so an unset one stays
     # absent inside the container rather than becoming an empty string.
     environment:
-      - ANTHROPIC_API_KEY
       - GH_TOKEN
       - GITHUB_TOKEN
     volumes:
       - ..:/workspace:cached
+      # The env file is read on the host — by Docker for VS Code, by start.sh here — so nothing
+      # inside ever needs it. Mask it with /dev/null (a mount nested under the workspace bind,
+      # which Docker applies last because its target is deeper) so it reads as empty in the
+      # container and cannot be grepped, echoed, or committed from in there by accident. This
+      # hides the file, not the secrets: what the file sets is still in the environment above.
+      - /dev/null:/workspace/.devcontainer/.env:ro
       - ${HOME}/.claude:/home/vscode/.claude
       - ${HOME}/.claude.json:/home/vscode/.claude.json
       - ${HOME}/.ssh:/home/vscode/.ssh:ro

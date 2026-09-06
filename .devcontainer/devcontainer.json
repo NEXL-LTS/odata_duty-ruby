@@ -8,6 +8,13 @@
     }
   },
   "runArgs": ["--env-file", ".devcontainer/.env"],
+  // Docker reads the env file above on the host, so nothing inside the container needs it.
+  // Mask it with /dev/null — same masking docker-compose.yml applies on the start.sh path — so
+  // it reads as empty in the container. This hides the file, not the secrets: what --env-file
+  // sets is still in the container's environment.
+  "mounts": [
+    "source=/dev/null,target=${containerWorkspaceFolder}/.devcontainer/.env,type=bind,readonly"
+  ],
   // Both scripts are also run by .devcontainer/start.sh, so the two paths provision alike.
   "postCreateCommand": ".devcontainer/postCreateCommand.sh",
   "postStartCommand": ".devcontainer/postStartCommand.sh",
