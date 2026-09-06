@@ -174,6 +174,23 @@ fi
 # it runs are no-ops when nothing has moved, so rerunning it on attach costs a second.
 run_lifecycle_script postStartCommand.sh
 
+# Host ports are assigned per container so checkouts do not fight over them, which means they
+# change on every recreate — ask compose where they landed rather than assuming.
+# An if, not a && chain: a false test as the function's last command would return non-zero and
+# take the whole script down under set -e, just as the port lookup failing would without the
+# || true.
+report_port() {
+    local mapping
+    mapping="$("${COMPOSE[@]}" port "$SERVICE" "$1" 2> /dev/null | head -1 || true)"
+    if [ -n "$mapping" ]; then
+        echo -e "${GREEN}  $2: http://localhost:${mapping##*:}${NC}"
+    fi
+}
+
+echo -e "${GREEN}Ports published for this container:${NC}"
+report_port 9292 "Rack (spec/config.ru)"
+report_port 6274 "MCP inspector      "
+
 # %q so the line stays copy-pasteable from a checkout path containing spaces.
 printf -v stop_command '%q ' "${COMPOSE[@]}"
 

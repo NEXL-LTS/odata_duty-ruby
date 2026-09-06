@@ -103,13 +103,34 @@ in-container port is already taken on the host.
 
 See `Procfile` at the repo root for the commands that bind these ports.
 
-`start.sh` has no auto-forwarding agent, so `docker-compose.yml` publishes those two
-ports 1:1 instead — `localhost:9292` and `localhost:6274` reach the container directly.
-That relies on the processes binding `0.0.0.0`, which is why the `Procfile` passes
-`rackup -o 0.0.0.0` and sets `HOST` for the inspector: a loopback bind inside the
-container is reachable by VS Code's forwarder but not through a published port. If
-either host port is already taken, the container will not start — free it, or edit the
-host side of the mapping.
+`start.sh` has no auto-forwarding agent, so `docker-compose.yml` publishes those two ports
+itself — but without naming a host port, so Docker assigns a free one per container and
+several checkouts can run at once. `start.sh` prints the assignment when it hands you the
+shell:
+
+```
+Ports published for this container:
+  Rack (spec/config.ru): http://localhost:32769
+  MCP inspector      : http://localhost:32771
+```
+
+They change whenever the container is recreated; `docker compose -p <project> port app 9292`
+asks again. Reaching them at all depends on the processes binding `0.0.0.0`, which is why the
+`Procfile` passes `rackup -o 0.0.0.0` and sets `HOST` for the inspector — a loopback bind
+inside the container is reachable by VS Code's forwarder but not through a published port.
+
+## Running several checkouts at once
+
+Supported, and the reason nothing above pins a host port. Each checkout gets its own compose
+project (`odr-<dirname>-<digest of the path>`), so containers, networks and images stay
+separate and a second clone never attaches to or recreates the first one's container.
+
+Two things are deliberately *shared* between instances, being per-user rather than
+per-checkout: the ssh-agent (one agent serving every container is the point) and your
+`~/.claude` / `~/.claude.json` mounts, which carry the credentials you want in all of them.
+Note the consequence — every container mounts its workspace at the same `/workspace`, so
+Claude Code state keyed by that path is shared across checkouts, and two instances writing
+`~/.claude.json` at once can have the last writer win.
 
 ## File ownership / UID mapping
 
