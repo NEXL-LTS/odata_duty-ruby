@@ -65,14 +65,15 @@ the container can export one. On macOS it uses Docker Desktop's
 `/run/host-services/ssh-auth.sock` proxy automatically; the VS Code path relies on Dev
 Containers' own agent forwarding, which does the same thing.
 
-So you need an agent holding a usable key on the host:
+Docker can only forward an agent that already exists, so `start.sh` makes sure of one before
+it starts anything. It uses the agent already in your environment when it can reach it;
+otherwise it starts one on a fixed per-user socket — `$XDG_RUNTIME_DIR/odr-ssh-agent-<uid>.sock`,
+falling back to `/tmp` — which later runs reuse rather than leaving a trail of agents behind.
+If that agent holds no keys it runs `ssh-add` for your default key, prompting for the
+passphrase if the key has one (Ctrl-C skips).
 
-```sh
-eval "$(ssh-agent -s)" && ssh-add    # then rerun start.sh
-```
-
-`start.sh` warns and carries on when it finds none — everything except git-over-SSH still
-works. GitHub's host keys are baked into the image at `/etc/ssh/ssh_known_hosts`, since a
+None of that is fatal. If no agent can be started, or you skip the key, it warns and carries
+on — everything except git-over-SSH still works. GitHub's host keys are baked into the image at `/etc/ssh/ssh_known_hosts`, since a
 container with no `~/.ssh` has no `known_hosts` of its own and would otherwise fail host
 verification on every push.
 

@@ -61,14 +61,53 @@ fi
 export USER_UID USER_GID
 
 # The compose file forwards this shell's ssh-agent socket instead of ${HOME}/.ssh, so git in
-# the container can authenticate as you without a private key ever crossing the boundary.
+# the container authenticates as you without a private key ever crossing the boundary. Docker
+# can only forward an agent that already exists, so make sure one is running and holding a key
+# before the compose commands below read SSH_AUTH_SOCK.
+
+# ssh-add exits 2 when it cannot reach an agent at all, and 1 for a reachable but empty one.
+agent_reachable() {
+    [ -S "${SSH_AUTH_SOCK:-}" ] || return 1
+    local status=0
+    ssh-add -l > /dev/null 2>&1 || status=$?
+    [ "$status" -ne 2 ]
+}
+
+if ! agent_reachable; then
+    # A fixed socket path, so repeated runs reuse one agent rather than leaking a fresh one
+    # every time. XDG_RUNTIME_DIR is per-user and cleared on logout, which is what a socket
+    # wants; /tmp is the fallback for systems without it. Keep the name short — a Unix socket
+    # path is capped near 108 characters and the agent refuses to bind past it.
+    export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR:-/tmp}/odr-ssh-agent-$(id -u).sock"
+    if ! agent_reachable; then
+        echo -e "${GREEN}Starting an ssh-agent at ${SSH_AUTH_SOCK}...${NC}"
+        rm -f "$SSH_AUTH_SOCK"
+        # Tolerate a failure to start: no agent is a reason to warn, not to withhold the
+        # container. The compose file falls back to /dev/null when SSH_AUTH_SOCK is unset.
+        ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null 2>&1 || true
+    fi
+fi
+
+if ! agent_reachable; then
+    echo -e "${YELLOW}Warning: could not start an ssh-agent. Everything but git-over-SSH still works.${NC}"
+    unset SSH_AUTH_SOCK
+elif ! ssh-add -l > /dev/null 2>&1; then
+    # An agent with no keys forwards nothing useful, so offer to load the default ones — but
+    # only with a terminal to prompt on, since an encrypted key asks for its passphrase here.
+    if [ -t 0 ]; then
+        echo -e "${YELLOW}The ssh-agent holds no keys; adding your default key (Ctrl-C to skip).${NC}"
+        ssh-add || echo -e "${YELLOW}No key added — git over SSH will not work in the container.${NC}"
+    else
+        echo -e "${YELLOW}Warning: the ssh-agent holds no keys and there is no terminal to prompt on.${NC}"
+        echo -e "${YELLOW}Run 'ssh-add' on the host; until then git over SSH will not work in the container.${NC}"
+    fi
+fi
+
 # Docker Desktop cannot bind-mount the host's own socket path, so it publishes a fixed one that
-# proxies to whatever agent the Mac is running.
+# proxies to whatever agent the Mac is running. Swap to it only now, with the real agent above
+# checked and loaded.
 if [ "$(uname -s)" = "Darwin" ]; then
     export SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
-elif [ ! -S "${SSH_AUTH_SOCK:-}" ]; then
-    echo -e "${YELLOW}Warning: no ssh-agent on this host (SSH_AUTH_SOCK is unset or not a socket).${NC}"
-    echo -e "${YELLOW}Everything but git-over-SSH still works. To fix: eval \"\$(ssh-agent -s)\" && ssh-add${NC}"
 fi
 
 # The compose file bind-mounts ${HOME}/.claude; ensure it exists as a directory.
