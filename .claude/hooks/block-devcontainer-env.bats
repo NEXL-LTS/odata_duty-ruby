@@ -132,8 +132,9 @@ assert_allowed() {
   assert_allowed "$(payload Read '{"file_path":".devcontainer/Dockerfile"}')"
 }
 
-@test "allows the entrypoint" {
-  assert_allowed "$(payload Read '{"file_path":".devcontainer/entrypoint.sh"}')"
+@test "allows the lifecycle scripts" {
+  assert_allowed "$(payload Read '{"file_path":".devcontainer/postCreateCommand.sh"}')"
+  assert_allowed "$(payload Read '{"file_path":".devcontainer/postStartCommand.sh"}')"
 }
 
 @test "allows the lock file" {

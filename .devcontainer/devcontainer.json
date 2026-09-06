@@ -8,6 +8,9 @@
     }
   },
   "runArgs": ["--env-file", ".devcontainer/.env"],
+  // Both scripts are also run by .devcontainer/start.sh, so the two paths provision alike.
+  "postCreateCommand": ".devcontainer/postCreateCommand.sh",
+  "postStartCommand": ".devcontainer/postStartCommand.sh",
   "otherPortsAttributes": {
     "onAutoForward": "silent"
   },

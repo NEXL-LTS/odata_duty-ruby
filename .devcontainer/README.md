@@ -12,11 +12,28 @@ VS Code / Cursor dev container for `odata_duty`. Built on a base Ubuntu image wi
 
 First build takes a few minutes; subsequent opens are cached.
 
+## Without VS Code
+
+`.devcontainer/start.sh` gives you the same container from a plain shell. It builds and
+starts `docker-compose.yml` (same `Dockerfile`, workspace mounted at `/workspace`), runs the
+[lifecycle scripts](#lifecycle-scripts), and drops you into a `bash` shell as `vscode`:
+
+```sh
+.devcontainer/start.sh              # build/attach, then shell in
+.devcontainer/start.sh --rebuild    # force a fresh container (needed to pick up env changes)
+```
+
+The container outlives the shell — rerun the script to get back in; the script prints the
+`docker compose ... down` line that stops it. `ANTHROPIC_API_KEY`, `GH_TOKEN` and
+`GITHUB_TOKEN` reach the container if they are exported in your shell or present in the
+env file below (your shell wins); nothing else is forwarded.
+
 ## Environment variables
 
-`.devcontainer/.env` is loaded into the container at start via Docker's
-`--env-file`. The file is required (Docker errors if it's missing) but may be
-empty. It is gitignored.
+`.devcontainer/.env` is loaded into the container at start: VS Code passes it to Docker
+via `--env-file`, and `start.sh` reads it into its own environment for the compose file to
+forward. VS Code requires the file to exist (Docker errors if it's missing) though it may
+be empty; `start.sh` treats it as optional. It is gitignored.
 
 | Variable            | Purpose                                              |
 | ------------------- | ---------------------------------------------------- |
@@ -27,6 +44,19 @@ Example:
 ```
 ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+## Lifecycle scripts
+
+Provisioning lives in two scripts rather than inline in `devcontainer.json`, so the VS Code
+path and `start.sh` provision identically (and CI can run them against the built image):
+
+| Script                 | When                | What                                        |
+| ---------------------- | ------------------- | ------------------------------------------- |
+| `postCreateCommand.sh` | on container create | ensures the pinned Ruby, runs `bin/setup`   |
+| `postStartCommand.sh`  | on every start      | installs a moved `.ruby-version`, rebuilds the agent-apropos index |
+
+`devcontainer.json` wires them to `postCreateCommand`/`postStartCommand`; `start.sh` runs the
+same two inside the container as `vscode`. Both are idempotent and safe to run by hand.
 
 ## Ports
 
@@ -63,8 +93,8 @@ handles UID translation for bind mounts on those platforms.
 
 The image installs Ruby via [rbenv](https://github.com/rbenv/rbenv) + `ruby-build`
 rather than baking in a single fixed Ruby. The version pinned in `.ruby-version` is
-pre-built into the image, and on container start the entrypoint runs
-`rbenv install --skip-existing` so whatever `.ruby-version` pins is always present.
+pre-built into the image, and `postStartCommand.sh` installs the pinned version on container
+start if it isn't there yet, so whatever `.ruby-version` pins is always present.
 
 To reproduce a **version-specific** issue (e.g. a CI matrix failure), install and
 switch to another Ruby — no rebuild needed:
@@ -91,9 +121,9 @@ frontmatter, and the hooks in `.claude/settings.json` inject the ones whose `pat
 convention doc in full marks it as already in context so no later write re-injects it. Universal
 rules stay in `AGENTS.md` (`CLAUDE.md` is a symlink to it).
 
-The entrypoint runs `agent-apropos generate` on container start, which rebuilds the trigger index
-(`.cache/agent-apropos/`, gitignored) and the skill wrappers under `.claude/skills/`. After editing
-a convention doc, re-run it yourself:
+`postStartCommand.sh` runs `agent-apropos generate` on container start, which rebuilds the
+trigger index (`.cache/agent-apropos/`, gitignored) and the skill wrappers under
+`.claude/skills/`. After editing a convention doc, re-run it yourself:
 
 ```sh
 agent-apropos generate   # rebuild the index + skill wrappers
@@ -133,4 +163,5 @@ git config core.hooksPath .githooks
 - `@anthropic-ai/claude-code` (run `claude` in the integrated terminal)
 - `agent-apropos` (pinned; delivers `doc/conventions/` rules to Claude Code — see above)
 - GitHub CLI (`gh`)
+- `tmux` (for shells and dev servers that survive a disconnect)
 - VS Code extensions: Ruby LSP, RuboCop, YAML, GitLens

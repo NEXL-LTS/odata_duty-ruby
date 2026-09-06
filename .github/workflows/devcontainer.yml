@@ -16,15 +16,15 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # Build context is .devcontainer/ so the Dockerfile's `COPY entrypoint.sh` resolves.
+    # Build context is .devcontainer/ so the Dockerfile's `COPY git-hooks-dispatcher.sh` resolves.
     - name: Build dev container image
       run: docker build -t odata_duty-devcontainer .devcontainer
 
-    # Mount the checked-out repo and run the commands inside the built image.
-    # Override the entrypoint (which scans /workspaces and runs bin/setup) so we
-    # invoke bundle install and claude --version explicitly. --user root sidesteps
-    # the host/container UID mismatch on the bind mount in CI.
-    - name: Run bundle install and claude --version in the image
+    # Mount the checked-out repo and run the lifecycle scripts devcontainer.json and
+    # .devcontainer/start.sh both run, which is what proves the image can provision a
+    # workspace (Ruby, gems, agent-apropos index). --user root sidesteps the host/container
+    # UID mismatch on the bind mount in CI.
+    - name: Run the devcontainer lifecycle scripts in the image
       run: |
         docker run --rm \
           --user root \
@@ -32,7 +32,7 @@ jobs:
           -v "${{ github.workspace }}:/workspace" \
           -w /workspace \
           odata_duty-devcontainer \
-          -c "bundle install && claude --version"
+          -c ".devcontainer/postCreateCommand.sh && .devcontainer/postStartCommand.sh && claude --version"
 
     # The Claude Code hooks in .claude/ are shell, so `bundle exec rake` never sees them.
     # Running their bats suite in the image also proves the image still ships bats and jq,

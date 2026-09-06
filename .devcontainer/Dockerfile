@@ -2,13 +2,14 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
 # ruby-build's recommended build environment, plus gnupg/curl for the apt repos, rustc for YJIT,
-# and jq for the Claude Code hooks in .claude/hooks (they parse their payload with it).
+# jq for the Claude Code hooks in .claude/hooks (they parse their payload with it), and tmux for
+# detachable shells (the dev server and MCP inspector outlive a disconnect).
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       autoconf bison build-essential patch rustc \
       libssl-dev libyaml-dev libreadline-dev zlib1g-dev libgmp-dev \
       libncurses-dev libffi-dev libgdbm-dev libdb-dev uuid-dev \
-      curl ca-certificates gnupg git jq \
+      curl ca-certificates gnupg git jq tmux \
  && rm -rf /var/lib/apt/lists/*
 
 # Node.js (MCP inspector + Claude Code); NodeSource 20.x LTS since Ubuntu's package lags.
@@ -111,11 +112,7 @@ RUN git clone --depth 1 https://github.com/rbenv/rbenv.git "$RBENV_ROOT" \
  && rbenv global "$RUBY_VERSION" \
  && gem install bundler \
  && rbenv rehash
-USER root
 
-# Entrypoint: ensure the workspace's pinned Ruby is installed, then run bin/setup
-COPY entrypoint.sh /usr/local/bin/devcontainer-entrypoint
-RUN chmod +x /usr/local/bin/devcontainer-entrypoint
-ENTRYPOINT ["/usr/local/bin/devcontainer-entrypoint"]
-
+# No ENTRYPOINT: workspace setup lives in postCreateCommand.sh / postStartCommand.sh, which
+# devcontainer.json and start.sh both run. An entrypoint doing the same work would race them.
 USER vscode
