@@ -56,6 +56,26 @@ grepped, echoed into a transcript, or committed by accident from in there. This 
 *file*, not the *secrets* — what the file sets is still in the container's environment, so
 `printenv` inside still shows the tokens.
 
+## SSH and git authentication
+
+The container never sees `~/.ssh`. `start.sh` forwards your host ssh-agent's **socket**
+instead, mounted at `/ssh-agent` with `SSH_AUTH_SOCK` pointed at it, so git inside can
+authenticate as you while no private key ever crosses the boundary — and nothing in
+the container can export one. On macOS it uses Docker Desktop's
+`/run/host-services/ssh-auth.sock` proxy automatically; the VS Code path relies on Dev
+Containers' own agent forwarding, which does the same thing.
+
+So you need an agent holding a usable key on the host:
+
+```sh
+eval "$(ssh-agent -s)" && ssh-add    # then rerun start.sh
+```
+
+`start.sh` warns and carries on when it finds none — everything except git-over-SSH still
+works. GitHub's host keys are baked into the image at `/etc/ssh/ssh_known_hosts`, since a
+container with no `~/.ssh` has no `known_hosts` of its own and would otherwise fail host
+verification on every push.
+
 ## Lifecycle scripts
 
 Provisioning lives in two scripts rather than inline in `devcontainer.json`, so the VS Code

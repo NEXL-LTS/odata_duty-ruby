@@ -2,15 +2,21 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
 # ruby-build's recommended build environment, plus gnupg/curl for the apt repos, rustc for YJIT,
-# jq for the Claude Code hooks in .claude/hooks (they parse their payload with it), and tmux for
-# detachable shells (the dev server and MCP inspector outlive a disconnect).
+# jq for the Claude Code hooks in .claude/hooks (they parse their payload with it), tmux for
+# detachable shells (the dev server and MCP inspector outlive a disconnect), and openssh-client
+# for git over SSH, which authenticates through the agent socket the container is handed.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       autoconf bison build-essential patch rustc \
       libssl-dev libyaml-dev libreadline-dev zlib1g-dev libgmp-dev \
       libncurses-dev libffi-dev libgdbm-dev libdb-dev uuid-dev \
-      curl ca-certificates gnupg git jq tmux \
+      curl ca-certificates gnupg git jq tmux openssh-client \
  && rm -rf /var/lib/apt/lists/*
+
+# GitHub's host keys, system-wide. The container is handed an agent socket rather than a home
+# directory of keys, so it has no known_hosts of its own and every git-over-SSH call would fail
+# host verification without this. Baked at build time so it costs nothing per container start.
+RUN ssh-keyscan -t rsa,ecdsa,ed25519 github.com > /etc/ssh/ssh_known_hosts
 
 # Node.js (MCP inspector + Claude Code); NodeSource 20.x LTS since Ubuntu's package lags.
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o /tmp/nodesource_setup.sh \

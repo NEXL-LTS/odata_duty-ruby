@@ -18,6 +18,8 @@ services:
     environment:
       - GH_TOKEN
       - GITHUB_TOKEN
+      # Points ssh at the agent socket forwarded in below.
+      - SSH_AUTH_SOCK=/ssh-agent
     volumes:
       - ..:/workspace:cached
       # The env file is read on the host — by Docker for VS Code, by start.sh here — so nothing
@@ -28,5 +30,9 @@ services:
       - /dev/null:/workspace/.devcontainer/.env:ro
       - ${HOME}/.claude:/home/vscode/.claude
       - ${HOME}/.claude.json:/home/vscode/.claude.json
-      - ${HOME}/.ssh:/home/vscode/.ssh:ro
+      # The host's ssh-agent socket, not its key files: git in the container authenticates as
+      # you, but no private key ever crosses the boundary and nothing in here can export one.
+      # start.sh resolves the path (Docker Desktop proxies its own) and warns when there is no
+      # agent; the /dev/null fallback keeps the container startable in that case.
+      - ${SSH_AUTH_SOCK:-/dev/null}:/ssh-agent
     command: sleep infinity

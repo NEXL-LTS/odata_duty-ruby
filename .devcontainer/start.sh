@@ -53,11 +53,15 @@ if [ "$USER_UID" -eq 0 ] || [ "$USER_GID" -eq 0 ]; then
 fi
 export USER_UID USER_GID
 
-# The compose file bind-mounts ${HOME}/.ssh read-only; Docker would materialise
-# it as a root-owned directory if it did not already exist.
-if [ ! -d "${HOME}/.ssh" ]; then
-    echo -e "${YELLOW}Creating ${HOME}/.ssh — the compose file mounts it into the container${NC}"
-    mkdir -m 700 -p "${HOME}/.ssh"
+# The compose file forwards this shell's ssh-agent socket instead of ${HOME}/.ssh, so git in
+# the container can authenticate as you without a private key ever crossing the boundary.
+# Docker Desktop cannot bind-mount the host's own socket path, so it publishes a fixed one that
+# proxies to whatever agent the Mac is running.
+if [ "$(uname -s)" = "Darwin" ]; then
+    export SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
+elif [ ! -S "${SSH_AUTH_SOCK:-}" ]; then
+    echo -e "${YELLOW}Warning: no ssh-agent on this host (SSH_AUTH_SOCK is unset or not a socket).${NC}"
+    echo -e "${YELLOW}Everything but git-over-SSH still works. To fix: eval \"\$(ssh-agent -s)\" && ssh-add${NC}"
 fi
 
 # The compose file bind-mounts ${HOME}/.claude; ensure it exists as a directory.
