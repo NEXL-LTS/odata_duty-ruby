@@ -16,7 +16,14 @@ RUN apt-get update \
 # GitHub's host keys, system-wide. The container is handed an agent socket rather than a home
 # directory of keys, so it has no known_hosts of its own and every git-over-SSH call would fail
 # host verification without this. Baked at build time so it costs nothing per container start.
-RUN ssh-keyscan -t rsa,ecdsa,ed25519 github.com > /etc/ssh/ssh_known_hosts
+#
+# Taken from GitHub's metadata API over TLS rather than ssh-keyscan: keyscan trusts whatever
+# answers on port 22 while the image builds, so anyone in the way of that build could seed
+# their own key and be trusted by every later git operation. Empty output fails the build
+# rather than shipping an image that verifies nothing.
+RUN curl -fsSL https://api.github.com/meta \
+  | jq -r '.ssh_keys[] | "github.com \(.)"' > /etc/ssh/ssh_known_hosts \
+ && test -s /etc/ssh/ssh_known_hosts
 
 # Node.js (MCP inspector + Claude Code); NodeSource 20.x LTS since Ubuntu's package lags.
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o /tmp/nodesource_setup.sh \
@@ -61,13 +68,11 @@ RUN curl -fsSL "https://raw.githubusercontent.com/NEXL-LTS/agent-apropos/${AGENT
 ARG USER_UID=1000
 ARG USER_GID=1000
 RUN set -eux; \
-    # 1. Handle the group for USER_GID
-    if getent group "${USER_GID}" > /dev/null; then \
-        existing_group="$(getent group "${USER_GID}" | cut -d: -f1)"; \
-        if [ "${existing_group}" != "vscode" ]; then \
-            groupmod -n vscode "${existing_group}"; \
-        fi; \
-    else \
+    # 1. Handle the group for USER_GID. A group already holding that GID is reused as it is:
+    #    renaming it to vscode fails whenever the image already ships a vscode group, which is
+    #    how a host GID of 20 (dialout) or 100 (users) aborted the build. Nothing below needs
+    #    the group to be named vscode, only for the user to belong to it.
+    if ! getent group "${USER_GID}" > /dev/null; then \
         if getent group vscode > /dev/null; then \
             groupmod -g "${USER_GID}" vscode; \
         else \

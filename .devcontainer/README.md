@@ -47,7 +47,8 @@ GH_TOKEN=ghp_...
 ```
 
 The `claude` CLI needs nothing here — it authenticates through the `~/.claude` and
-`~/.claude.json` mounts.
+`~/.claude.json` mounts, which both paths provide (`docker-compose.yml` for `start.sh`,
+`devcontainer.json` for VS Code).
 
 The file itself is **not readable inside the container**: both paths mount `/dev/null` over
 it, so it reads as empty in there. Nothing inside needs it (both readers are host-side —
@@ -75,20 +76,24 @@ passphrase if the key has one (Ctrl-C skips).
 None of that is fatal. If no agent can be started, or you skip the key, it warns and carries
 on — everything except git-over-SSH still works. GitHub's host keys are baked into the image at `/etc/ssh/ssh_known_hosts`, since a
 container with no `~/.ssh` has no `known_hosts` of its own and would otherwise fail host
-verification on every push.
+verification on every push. They are fetched from GitHub's metadata API over HTTPS at build
+time rather than by `ssh-keyscan`, which would trust whatever answered on port 22 while the
+image was building.
 
 ## Lifecycle scripts
 
 Provisioning lives in two scripts rather than inline in `devcontainer.json`, so the VS Code
 path and `start.sh` provision identically (and CI can run them against the built image):
 
-| Script                 | When                | What                                        |
-| ---------------------- | ------------------- | ------------------------------------------- |
-| `postCreateCommand.sh` | on container create | ensures the pinned Ruby, runs `bin/setup`   |
+| Script                   | When                | What                                      |
+| ------------------------ | ------------------- | ----------------------------------------- |
+| `initializeCommand.sh`   | on the host, first  | creates the mount sources Docker would otherwise invent as root |
+| `postCreateCommand.sh`   | on container create | ensures the pinned Ruby, runs `bin/setup` |
 | `postStartCommand.sh`  | on every start      | installs a moved `.ruby-version`, rebuilds the agent-apropos index |
 
-`devcontainer.json` wires them to `postCreateCommand`/`postStartCommand`; `start.sh` runs the
-same two inside the container as `vscode`. Both are idempotent and safe to run by hand.
+`devcontainer.json` wires all three to the matching lifecycle hooks; `start.sh` does the host
+half itself and runs the other two inside the container as `vscode`. All are idempotent and
+safe to run by hand.
 
 ## Ports
 
@@ -119,6 +124,10 @@ The two services need opposite treatment:
   whose `Origin` does not match its own `CLIENT_PORT`. Behind a remapped port the browser
   arrives with the wrong origin and gets a `403`. Both halves are published: with only the UI
   exposed it loads and then cannot reach anything.
+
+Every one of them is published on `127.0.0.1` only. These are unauthenticated dev services —
+and the inspector's proxy drives an MCP server — so the Docker default of listening on all
+interfaces would hand them to anything else on the network.
 
 `start.sh` prints the lot when it hands you the shell:
 

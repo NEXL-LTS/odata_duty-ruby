@@ -133,6 +133,7 @@ assert_allowed() {
 }
 
 @test "allows the lifecycle scripts" {
+  assert_allowed "$(payload Read '{"file_path":".devcontainer/initializeCommand.sh"}')"
   assert_allowed "$(payload Read '{"file_path":".devcontainer/postCreateCommand.sh"}')"
   assert_allowed "$(payload Read '{"file_path":".devcontainer/postStartCommand.sh"}')"
 }
