@@ -43,22 +43,25 @@ same parsing and dispatch serves both DSLs, so the equivalent hooks work on an
 
 Implement `od_top(top)` and `od_skip(skip)` on your `OdataDuty::EntitySet` (or `SetResolver`)
 subclass. Each receives the query-option value as a `String` already confirmed to be a
-non-negative base-10 integer (e.g. `'10'`, `'0'`)—convert it yourself with `.to_i` and apply it to
-`@records`:
+non-negative base-10 integer (e.g. `'10'`, `'0'`)—convert it yourself with `.to_i`:
 
 ```ruby
 def od_top(top)
-  @records = @records.first(top.to_i)
+  @top = top
 end
 
 def od_skip(skip)
-  @records = @records[skip.to_i..] || []
+  @skip = skip
 end
 ```
 
-Both hooks may be present at once; when a request supplies both `$skip` and `$top`, OdataDuty calls
-`od_skip` and `od_top` independently (each only if the corresponding query option was supplied).
-How the two combine (e.g. skip-then-top) is up to your implementation.
+Both hooks may be present at once, and OdataDuty dispatches whichever ones the request supplied in
+the order `$top`/`$skip` appear on the query string—**not** a fixed order. If you apply each hook
+directly to `@records` as it runs (e.g. `@records = @records.first(top.to_i)` right inside
+`od_top`), the result depends on which query option the client happened to write first, which is
+never what you want. Instead, just store the raw values as shown above, then combine them yourself,
+in a fixed order, inside `collection` (see the full examples below)—OData's own evaluation order
+applies `$skip` before `$top`.
 
 ### `od_skiptoken`
 
@@ -117,11 +120,11 @@ class PeopleSet < OdataDuty::EntitySet
   end
 
   def od_top(top)
-    @records = @records.first(top.to_i)
+    @top = top
   end
 
   def od_skip(skip)
-    @records = @records[skip.to_i..] || []
+    @skip = skip
   end
 
   def od_skiptoken(skiptoken)
@@ -129,6 +132,8 @@ class PeopleSet < OdataDuty::EntitySet
   end
 
   def collection
+    @records = @records[@skip.to_i..] || [] if @skip
+    @records = @records.first(@top.to_i) if @top
     offset = @skiptoken.to_i
     od_next_link_skiptoken(offset + MAX_PAGE_SIZE) if @records.count > offset + MAX_PAGE_SIZE
     @records[offset, MAX_PAGE_SIZE] || []
@@ -213,9 +218,10 @@ Given a `LargeCollection` set of 102 records and a 50-record page size (as above
    ```
    GET /LargeCollection?$filter=id ne '1'&$top=100
    ```
-   `od_top('100')` and the filter both narrow `@records` before `collection` runs; the returned
-   page is still capped at the 50-record page size, and the generated `@odata.nextLink` preserves
-   the original `$filter` and `$top` alongside the new `$skiptoken`:
+   The filter narrows `@records` before `collection` runs; `od_top('100')` just records the value,
+   and `collection` applies it—narrowing to 100 records—before slicing out the 50-record page. The
+   generated `@odata.nextLink` preserves the original `$filter` and `$top` alongside the new
+   `$skiptoken`:
    ```
    http://localhost:3000/api/LargeCollection?$filter=id+ne+'1'&$top=100&$skiptoken=50
    ```
