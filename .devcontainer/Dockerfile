@@ -2,14 +2,28 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
 # ruby-build's recommended build environment, plus gnupg/curl for the apt repos, rustc for YJIT,
-# and jq for the Claude Code hooks in .claude/hooks (they parse their payload with it).
+# jq for the Claude Code hooks in .claude/hooks (they parse their payload with it), tmux for
+# detachable shells (the dev server and MCP inspector outlive a disconnect), and openssh-client
+# for git over SSH, which authenticates through the agent socket the container is handed.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       autoconf bison build-essential patch rustc \
       libssl-dev libyaml-dev libreadline-dev zlib1g-dev libgmp-dev \
       libncurses-dev libffi-dev libgdbm-dev libdb-dev uuid-dev \
-      curl ca-certificates gnupg git jq \
+      curl ca-certificates gnupg git jq tmux openssh-client \
  && rm -rf /var/lib/apt/lists/*
+
+# GitHub's host keys, system-wide. The container is handed an agent socket rather than a home
+# directory of keys, so it has no known_hosts of its own and every git-over-SSH call would fail
+# host verification without this. Baked at build time so it costs nothing per container start.
+#
+# Taken from GitHub's metadata API over TLS rather than ssh-keyscan: keyscan trusts whatever
+# answers on port 22 while the image builds, so anyone in the way of that build could seed
+# their own key and be trusted by every later git operation. Empty output fails the build
+# rather than shipping an image that verifies nothing.
+RUN curl -fsSL https://api.github.com/meta \
+  | jq -r '.ssh_keys[] | "github.com \(.)"' > /etc/ssh/ssh_known_hosts \
+ && test -s /etc/ssh/ssh_known_hosts
 
 # Node.js (MCP inspector + Claude Code); NodeSource 20.x LTS since Ubuntu's package lags.
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o /tmp/nodesource_setup.sh \
@@ -54,13 +68,11 @@ RUN curl -fsSL "https://raw.githubusercontent.com/NEXL-LTS/agent-apropos/${AGENT
 ARG USER_UID=1000
 ARG USER_GID=1000
 RUN set -eux; \
-    # 1. Handle the group for USER_GID
-    if getent group "${USER_GID}" > /dev/null; then \
-        existing_group="$(getent group "${USER_GID}" | cut -d: -f1)"; \
-        if [ "${existing_group}" != "vscode" ]; then \
-            groupmod -n vscode "${existing_group}"; \
-        fi; \
-    else \
+    # 1. Handle the group for USER_GID. A group already holding that GID is reused as it is:
+    #    renaming it to vscode fails whenever the image already ships a vscode group, which is
+    #    how a host GID of 20 (dialout) or 100 (users) aborted the build. Nothing below needs
+    #    the group to be named vscode, only for the user to belong to it.
+    if ! getent group "${USER_GID}" > /dev/null; then \
         if getent group vscode > /dev/null; then \
             groupmod -g "${USER_GID}" vscode; \
         else \
@@ -111,11 +123,7 @@ RUN git clone --depth 1 https://github.com/rbenv/rbenv.git "$RBENV_ROOT" \
  && rbenv global "$RUBY_VERSION" \
  && gem install bundler \
  && rbenv rehash
-USER root
 
-# Entrypoint: ensure the workspace's pinned Ruby is installed, then run bin/setup
-COPY entrypoint.sh /usr/local/bin/devcontainer-entrypoint
-RUN chmod +x /usr/local/bin/devcontainer-entrypoint
-ENTRYPOINT ["/usr/local/bin/devcontainer-entrypoint"]
-
+# No ENTRYPOINT: workspace setup lives in postCreateCommand.sh / postStartCommand.sh, which
+# devcontainer.json and start.sh both run. An entrypoint doing the same work would race them.
 USER vscode

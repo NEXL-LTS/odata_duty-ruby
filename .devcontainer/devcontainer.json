@@ -8,6 +8,25 @@
     }
   },
   "runArgs": ["--env-file", ".devcontainer/.env"],
+  // Docker reads the env file above on the host, so nothing inside the container needs it.
+  // Mask it with /dev/null — same masking docker-compose.yml applies on the start.sh path — so
+  // it reads as empty in the container. This hides the file, not the secrets: what --env-file
+  // sets is still in the container's environment.
+  //
+  // The two .claude mounts are what authenticates the claude CLI in here — the same pair
+  // docker-compose.yml gives the start.sh path, so neither path needs an API key in the env
+  // file. initializeCommand creates all three sources on the host first, since Docker would
+  // otherwise invent a missing one as a root-owned directory.
+  "mounts": [
+    "source=/dev/null,target=${containerWorkspaceFolder}/.devcontainer/.env,type=bind,readonly",
+    "source=${localEnv:HOME}/.claude,target=/home/vscode/.claude,type=bind",
+    "source=${localEnv:HOME}/.claude.json,target=/home/vscode/.claude.json,type=bind"
+  ],
+  // Runs on the host before the container exists; start.sh does the same work for its path.
+  "initializeCommand": ".devcontainer/initializeCommand.sh",
+  // Both scripts are also run by .devcontainer/start.sh, so the two paths provision alike.
+  "postCreateCommand": ".devcontainer/postCreateCommand.sh",
+  "postStartCommand": ".devcontainer/postStartCommand.sh",
   "otherPortsAttributes": {
     "onAutoForward": "silent"
   },

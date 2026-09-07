@@ -1,0 +1,61 @@
+# Drives the same image as devcontainer.json, for the plain-shell path (.devcontainer/start.sh).
+# Container env comes from start.sh's environment (which loads the gitignored env file the
+# README documents, the same one VS Code passes via --env-file), so run this through start.sh
+# rather than `docker compose` directly.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    # Only set user on Linux, not on Mac
+    user: "${DOCKER_USER:-}"
+    # VS Code auto-forwards whatever starts listening; this path has no such agent, so the two
+    # documented services are published instead. No host port is named on purpose: several
+    # checkouts are expected to run at once, and a fixed host port would let the first one
+    # started deny the rest. Docker picks a free port per container and start.sh prints it.
+    # They reach the host at all only because the Procfile binds them to 0.0.0.0 — a loopback
+    # bind inside the container is unreachable from outside it.
+    ports:
+      # Rack has no opinion about its own port number, so it takes any free one. Bound to
+      # loopback: this is an unauthenticated dev app, and the default would offer it to
+      # everything else on the network.
+      - "127.0.0.1::9292"
+      # The inspector does: its proxy validates the browser's Origin against CLIENT_PORT, and
+      # the token URL it prints uses that number, so both halves have to be published 1:1.
+      # Its proxy is a second server the browser talks to directly — publishing only the UI
+      # leaves it loading and then unable to reach anything.
+      # Loopback here too — the inspector drives an MCP server and its proxy holds a session
+      # token; neither belongs on the LAN. The 1:1 numbering is what the origin check needs.
+      - "127.0.0.1:${INSPECTOR_CLIENT_PORT:-6274}:${INSPECTOR_CLIENT_PORT:-6274}"
+      - "127.0.0.1:${INSPECTOR_SERVER_PORT:-6277}:${INSPECTOR_SERVER_PORT:-6277}"
+    # Bare names: forwarded only when set in start.sh's environment, so an unset one stays
+    # absent inside the container rather than becoming an empty string.
+    environment:
+      - GH_TOKEN
+      - GITHUB_TOKEN
+      # Points ssh at the agent socket forwarded in below.
+      - SSH_AUTH_SOCK=/ssh-agent
+      # Tell the inspector the ports it is published on, so the Origin it validates against
+      # matches the one the browser actually arrives with. start.sh derives the pair.
+      - CLIENT_PORT=${INSPECTOR_CLIENT_PORT:-6274}
+      - SERVER_PORT=${INSPECTOR_SERVER_PORT:-6277}
+    volumes:
+      - ..:/workspace:cached
+      # The env file is read on the host — by Docker for VS Code, by start.sh here — so nothing
+      # inside ever needs it. Mask it with /dev/null (a mount nested under the workspace bind,
+      # which Docker applies last because its target is deeper) so it reads as empty in the
+      # container and cannot be grepped, echoed, or committed from in there by accident. This
+      # hides the file, not the secrets: what the file sets is still in the environment above.
+      - /dev/null:/workspace/.devcontainer/.env:ro
+      - ${HOME}/.claude:/home/vscode/.claude
+      - ${HOME}/.claude.json:/home/vscode/.claude.json
+      # The host's ssh-agent socket, not its key files: git in the container authenticates as
+      # you, but no private key ever crosses the boundary and nothing in here can export one.
+      # start.sh resolves the path (Docker Desktop proxies its own) and warns when there is no
+      # agent; the /dev/null fallback keeps the container startable in that case.
+      - ${SSH_AUTH_SOCK:-/dev/null}:/ssh-agent
+    command: sleep infinity
