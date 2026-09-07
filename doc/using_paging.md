@@ -223,7 +223,7 @@ Given a `LargeCollection` set of 102 records and a 50-record page size (as above
    generated `@odata.nextLink` preserves the original `$filter` and `$top` alongside the new
    `$skiptoken`:
    ```
-   http://localhost:3000/api/LargeCollection?$filter=id+ne+'1'&$top=100&$skiptoken=50
+   "@odata.nextLink": "http://localhost:3000/api/LargeCollection?%24filter=id+ne+%271%27&%24top=100&%24skiptoken=50"
    ```
 
 ## Common Error Cases
