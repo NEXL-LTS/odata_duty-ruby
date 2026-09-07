@@ -48,7 +48,7 @@ non-negative base-10 integer (e.g. `'10'`, `'0'`)—convert it yourself with `.t
 
 ```ruby
 def od_top(top)
-  @records = @records[0..(top.to_i - 1)]
+  @records = @records.first(top.to_i)
 end
 
 def od_skip(skip)
@@ -70,9 +70,12 @@ how to interpret:
 ```ruby
 def od_skiptoken(skiptoken)
   @skiptoken = skiptoken
-  @records = @records[skiptoken.to_i..]
 end
 ```
+
+Store the token rather than slicing `@records` here—your `collection` method (below) is what turns
+it into an offset. If `od_skiptoken` itself narrows `@records`, and `collection` *also* indexes into
+`@records` using the same token, the offset is applied twice and the page comes out wrong.
 
 ### `od_next_link_skiptoken` and `@odata.nextLink`
 
@@ -83,13 +86,10 @@ next page:
 
 ```ruby
 def collection
+  offset = @skiptoken.to_i
   max_results = 50
-  if @records.count > max_results
-    od_next_link_skiptoken(@skiptoken.to_i + max_results)
-    @records[@skiptoken.to_i, max_results]
-  else
-    @records
-  end
+  od_next_link_skiptoken(offset + max_results) if @records.count > offset + max_results
+  @records[offset, max_results] || []
 end
 ```
 
@@ -117,7 +117,7 @@ class PeopleSet < OdataDuty::EntitySet
   end
 
   def od_top(top)
-    @records = @records[0..(top.to_i - 1)]
+    @records = @records.first(top.to_i)
   end
 
   def od_skip(skip)
@@ -126,16 +126,12 @@ class PeopleSet < OdataDuty::EntitySet
 
   def od_skiptoken(skiptoken)
     @skiptoken = skiptoken
-    @records = @records[skiptoken.to_i..]
   end
 
   def collection
-    if @records.count > MAX_PAGE_SIZE
-      od_next_link_skiptoken(@skiptoken.to_i + MAX_PAGE_SIZE)
-      @records[@skiptoken.to_i, MAX_PAGE_SIZE]
-    else
-      @records
-    end
+    offset = @skiptoken.to_i
+    od_next_link_skiptoken(offset + MAX_PAGE_SIZE) if @records.count > offset + MAX_PAGE_SIZE
+    @records[offset, MAX_PAGE_SIZE] || []
   end
 
   def individual(id) = @records.find { |r| r.id == id }
@@ -165,18 +161,14 @@ class PeopleResolver < OdataDuty::SetResolver
 
   def od_skiptoken(skiptoken)
     @skiptoken = skiptoken
-    @records = @records[skiptoken.to_i..]
   end
 
   def collection
-    @records = @records[@skip.to_i..] if @skip
-    @records = @records[0..(@top.to_i - 1)] if @top
-    if @records.count > MAX_PAGE_SIZE
-      od_next_link_skiptoken(@skiptoken.to_i + MAX_PAGE_SIZE)
-      @records[@skiptoken.to_i, MAX_PAGE_SIZE]
-    else
-      @records
-    end
+    @records = @records[@skip.to_i..] || [] if @skip
+    @records = @records.first(@top.to_i) if @top
+    offset = @skiptoken.to_i
+    od_next_link_skiptoken(offset + MAX_PAGE_SIZE) if @records.count > offset + MAX_PAGE_SIZE
+    @records[offset, MAX_PAGE_SIZE] || []
   end
 end
 ```
@@ -199,9 +191,15 @@ Given a `LargeCollection` set of 102 records and a 50-record page size (as above
    ```
    GET /LargeCollection?$skiptoken=50
    ```
-   `od_skiptoken('50')` slices `@records` from offset 50 onward (52 records remain).
-   `collection` returns the next 50 and calls `od_next_link_skiptoken(100)`, so the response
-   includes `@odata.nextLink` with `$skiptoken=100`.
+   `od_skiptoken('50')` records the offset (`@records` is still the full 102). `collection` returns
+   records 51–100 and calls `od_next_link_skiptoken(100)`. Because this request's own query options
+   already contain `$skiptoken=50`, and OdataDuty adds the new value alongside it rather than
+   replacing it, the resulting `@odata.nextLink` carries both:
+   ```
+   "@odata.nextLink": "http://localhost:3000/api/LargeCollection?%24skiptoken=50&%24skiptoken=100"
+   ```
+   Following this link works as expected regardless—standard query-string parsing takes the last
+   occurrence of a repeated parameter, which is `100`.
 
 3. **Last page.**
    ```
