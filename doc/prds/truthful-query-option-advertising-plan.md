@@ -17,7 +17,7 @@ is builder-DSL only and says so.
 
 ---
 
-## - [ ] Task 1 — Capability-gate the MCP `list_`/`count_` query-option arguments, and add `odata_skiptoken`
+## - [x] Task 1 — Capability-gate the MCP `list_`/`count_` query-option arguments, and add `odata_skiptoken`
 
 **Task text:** Make the `list_<Set>` and `count_<Set>` MCP tool input schemas advertise only the
 query options the entity set can actually serve, and add the new `odata_skiptoken` argument.

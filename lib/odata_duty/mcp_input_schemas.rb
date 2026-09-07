@@ -13,27 +13,40 @@ module OdataDuty
       '$select' => 'odata_select',
       '$search' => 'odata_search',
       '$top' => 'odata_top',
-      '$skip' => 'odata_skip'
+      '$skip' => 'odata_skip',
+      '$skiptoken' => 'odata_skiptoken'
     }.freeze
 
-    def count_input_schema(supports_search:)
-      properties = { alias_for('$filter') => { 'type' => 'string' } }
-      properties[alias_for('$search')] = { 'type' => 'string' } if supports_search
-      { 'properties' => properties, 'required' => [] }
+    UNGATED = nil
+
+    LIST_QUERY_OPTIONS = [
+      ['$filter', :supports_filter?, 'string', 'OData $filter expression'],
+      ['$select', UNGATED, 'string', 'Comma-separated properties to return'],
+      ['$search', :supports_search?, 'string', 'Search expression (AND, OR, NOT)'],
+      ['$top', :supports_top?, 'integer', 'Max records to return'],
+      ['$skip', :supports_skip?, 'integer', 'Records to skip'],
+      ['$skiptoken', :supports_skiptoken?, 'string']
+    ].freeze
+
+    COUNT_QUERY_OPTIONS = [
+      ['$filter', :supports_filter?, 'string'],
+      ['$search', :supports_search?, 'string']
+    ].freeze
+
+    def count_input_schema(endpoint)
+      { 'properties' => supported_query_options(COUNT_QUERY_OPTIONS, endpoint), 'required' => [] }
     end
 
-    def list_input_schema(supports_search:)
-      properties = {
-        alias_for('$filter') => query_option('string', 'OData $filter expression'),
-        alias_for('$select') => query_option('string', 'Comma-separated properties to return')
-      }
-      if supports_search
-        properties[alias_for('$search')] = query_option('string',
-                                                        'Search expression (AND, OR, NOT)')
+    def list_input_schema(endpoint)
+      { 'properties' => supported_query_options(LIST_QUERY_OPTIONS, endpoint), 'required' => [] }
+    end
+
+    def supported_query_options(definitions, endpoint)
+      definitions.each_with_object({}) do |(key, predicate, type, description), properties|
+        next if predicate && !endpoint.public_send(predicate)
+
+        properties[alias_for(key)] = query_option(type, description)
       end
-      properties[alias_for('$top')] = query_option('integer', 'Max records to return')
-      properties[alias_for('$skip')] = query_option('integer', 'Records to skip')
-      { 'properties' => properties, 'required' => [] }
     end
 
     # Raises when an entity property is literally named like a reserved `odata_*` alias and
@@ -82,8 +95,8 @@ module OdataDuty
       QUERY_OPTION_ALIASES.fetch(query_option_key)
     end
 
-    def query_option(type, description)
-      { 'type' => type, 'description' => description }
+    def query_option(type, description = nil)
+      { 'type' => type, 'description' => description }.compact
     end
   end
 end

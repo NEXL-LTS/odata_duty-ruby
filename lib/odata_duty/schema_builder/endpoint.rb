@@ -56,6 +56,22 @@ module OdataDuty
         entity_set.supports_search?
       end
 
+      def supports_filter?
+        entity_set.supports_filter?
+      end
+
+      def supports_top?
+        entity_set.supports_top?
+      end
+
+      def supports_skip?
+        entity_set.supports_skip?
+      end
+
+      def supports_skiptoken?
+        entity_set.supports_skiptoken?
+      end
+
       def supports_collection?
         entity_set.supports_collection?
       end

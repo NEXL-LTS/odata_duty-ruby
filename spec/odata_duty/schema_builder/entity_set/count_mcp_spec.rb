@@ -60,6 +60,24 @@ class CountMcpPlainResolver < OdataDuty::SetResolver
   end
 end
 
+class CountMcpFilterableResolver < OdataDuty::SetResolver
+  def od_after_init
+    @records = CountMcpBuilderRecord.all
+  end
+
+  def collection
+    @records
+  end
+
+  def count
+    @records.size
+  end
+
+  def od_filter_eq(property_name, value)
+    @records = @records.select { |r| r.public_send(property_name) == value }
+  end
+end
+
 class CountMcpWriteOnlyResolver < OdataDuty::SetResolver
   def create(params)
     CountMcpBuilderRecord.new('new', params.name)
@@ -81,6 +99,8 @@ module OdataDuty
                          resolver: 'CountMcpNoCountResolver')
         s.add_entity_set(name: 'Plains', entity_type: entity,
                          resolver: 'CountMcpPlainResolver')
+        s.add_entity_set(name: 'Filterables', entity_type: entity,
+                         resolver: 'CountMcpFilterableResolver')
         s.add_entity_set(name: 'WriteOnly', entity_type: entity,
                          resolver: 'CountMcpWriteOnlyResolver')
       end
@@ -119,11 +139,15 @@ module OdataDuty
         )
       end
 
-      it 'omits odata_search from the input schema when the resolver does not define ' \
-         'od_search' do
+      it 'advertises no query options for a count tool on a resolver with no query-option hooks' do
         count_tool = tool('count_Plains')
 
-        expect(count_tool['inputSchema']['properties']).not_to have_key('odata_search')
+        expect(count_tool['inputSchema']['properties']).to eq({})
+      end
+
+      it 'advertises odata_filter without odata_search when the resolver only filters' do
+        count_tool = tool('count_Filterables')
+
         expect(count_tool['inputSchema']['properties']).to eq(
           'odata_filter' => { 'type' => 'string' }
         )

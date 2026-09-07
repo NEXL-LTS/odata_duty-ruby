@@ -47,7 +47,7 @@ module OdataDuty
     end
 
     def register_list_tool(server, schema, endpoint)
-      input_schema = McpInputSchemas.list_input_schema(supports_search: endpoint.supports_search?)
+      input_schema = McpInputSchemas.list_input_schema(endpoint)
       description = tool_description(OperationVerbs.list(endpoint.name), endpoint)
       tool_args = { name: "list_#{endpoint.name}", description: description,
                     input_schema: input_schema }
@@ -55,7 +55,7 @@ module OdataDuty
     end
 
     def register_count_tool(server, schema, endpoint)
-      input_schema = McpInputSchemas.count_input_schema(supports_search: endpoint.supports_search?)
+      input_schema = McpInputSchemas.count_input_schema(endpoint)
       description = tool_description(OperationVerbs.count(endpoint.name), endpoint)
       tool_args = { name: "count_#{endpoint.name}", description: description,
                     input_schema: input_schema }
