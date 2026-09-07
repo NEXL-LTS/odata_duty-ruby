@@ -13,6 +13,50 @@ description becomes `info.description`; entity/complex/enum type descriptions be
 (`GET` collection and individual, `POST`, `PATCH`, `DELETE`). A set with no description keeps
 today's output exactly — no `summary` or `description` key on its operations.
 
+## Collection query parameters
+
+The `GET` operation on a collection path advertises a query-option parameter only when the set's
+resolver can actually serve it, so the document never offers an option the service would reject
+with `NoImplementationError`:
+
+| Parameter | Emitted when the resolver defines |
+| --- | --- |
+| `$filter` | any public `od_filter_*` hook — see [`doc/using_filter.md`](using_filter.md) |
+| `$search` | `od_search` |
+| `$select` | *always* — the projection happens regardless, so it needs no hook |
+| `$top` | `od_top` |
+| `$skip` | `od_skip` |
+| `$count` | `count` |
+| `$skiptoken` | `od_skiptoken` |
+
+`$filter` is gated on *any* `od_filter_*` hook, including `od_filter_or` on its own: its presence
+means the set filters, not that every property and operator combination is implemented. The value
+stays a freeform string.
+
+`$select` is an array with `collectionFormat: "csv"` whose `items.enum` names the entity type's
+properties, and `$top`/`$skip` carry `minimum: 0`:
+
+```jsonc
+{ "name": "$select", "in": "query", "type": "array",
+  "items": { "type": "string", "enum": ["id", "user_name", "emails"] },
+  "collectionFormat": "csv",
+  "description": "Comma-separated list of properties to return" },
+{ "name": "$top", "in": "query", "type": "integer", "minimum": 0,
+  "description": "Number of results to return" },
+{ "name": "$skip", "in": "query", "type": "integer", "minimum": 0,
+  "description": "Number of results to skip" }
+```
+
+A set implementing only `collection` therefore renders a single parameter — `$select` — on its
+collection `GET`.
+
+None of this changes request handling: omitting a parameter from `$oas2` does not stop the service
+from honoring, or rejecting, that query option when a client sends it anyway. `$metadata` is
+untouched by the gating too — the `Capabilities.FilterRestrictions` annotation still keys off
+`od_filter_or` alone, and a set with no filter hooks emits no `Filterable: false`. The MCP tool
+schemas apply the same gating in the `odata_*` spelling described in
+[`doc/using_mcp.md`](using_mcp.md); unlike `$oas2`, those cover both DSLs.
+
 ## Consuming `$oas2` from Power Automate
 
 Power Automate (and Power Apps) can turn the document into a [custom connector](https://learn.microsoft.com/en-us/connectors/custom-connectors/define-openapi-definition). It accepts OpenAPI **2.0 only** (not 3.0), which is exactly what OdataDuty emits, and the document must be **under 1 MB**. The rendered size grows with your schema (entity types, properties, enums), so a very large schema could approach that limit — check the byte size if you have hundreds of entities.

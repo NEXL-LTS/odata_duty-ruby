@@ -10,6 +10,7 @@ This guide explains how to implement `od_select` in your custom `OdataDuty::Enti
 - **Purpose:** Return only the selected properties from your entities, reducing payload size and improving performance.
 - **Mechanism:** When a `$select` query option is provided, OdataDuty parses it into an array of properties and passes that array to your `od_select` method.
 - **Metadata:** Essential metadata (like `@odata.id`) is always included, regardless of the selection.
+- **Always available:** `$select` needs no hook—`od_select` is only an optimization callback—so it is the one query option that is always advertised, on both the `$oas2` collection `GET` and the MCP `list_<Set>`/`get_<Set>` tools. In MCP it is spelled `odata_select` and takes an **array** of property names whose `enum` lists the selectable properties (see [`doc/using_mcp.md`](using_mcp.md)); the array is joined back to the comma-separated `$select` spelling before your `od_select` runs.
 
 ## Implementing `od_select`
 
@@ -69,7 +70,7 @@ end
 While implementing `$select`, note the following error scenarios that your service should handle:
 
 - **Unknown Property:**  
-  If a property specified in `$select` does not exist on the entity, an `UnknownPropertyError` will be raised (`"The property '<name>' does not exist"`).
+  If a property specified in `$select` does not exist on the entity, an `UnknownPropertyError` will be raised (`"The property '<name>' does not exist"`). This is reachable over REST only: the MCP `odata_select` enum makes an unknown name an `"Invalid arguments: …"` tool-error result instead, rejected before the request runs.
 
 - **Nested Selection on Complex Types:**  
   Directly selecting nested properties (e.g., `c/s`) is not supported. This will result in an `InvalidQueryOptionError` (`"The property '<name>' is not valid"`).

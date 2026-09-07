@@ -364,7 +364,7 @@ honoring or rejecting it.
 
 ---
 
-## - [ ] Task 5 — Documentation
+## - [x] Task 5 — Documentation
 
 **Task text:** Update the guides named in the PRD's Documentation impact section, in the existing
 style of each guide. No production-code change; `bundle exec rake` must stay green.

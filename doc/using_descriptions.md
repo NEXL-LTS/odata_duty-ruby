@@ -111,7 +111,7 @@ end
 
 | Declared on | `$metadata` (EDMX) | `$oas2` | MCP |
 | --- | --- | --- | --- |
-| Schema | `Org.OData.Core.V1.Description` annotation on `<Schema>` | `info.description` | `instructions` in the `initialize` result |
+| Schema | `Org.OData.Core.V1.Description` annotation on `<Schema>` | `info.description` | the opening section of `instructions` in the `initialize` result |
 | Entity type | `Org.OData.Core.V1.Description` on `<EntityType>` | `definitions.<Type>.description` | — |
 | Complex type | `Org.OData.Core.V1.Description` on `<ComplexType>` | `definitions.<Type>.description` | — |
 | Enum type | `Org.OData.Core.V1.Description` on `<EnumType>` | `definitions.<Type>.description` | — |
@@ -262,13 +262,16 @@ with `. ` — the verb stays first so an agent can still tell `list_` from `coun
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {
-      "odata_filter": { "type": "string", "description": "OData $filter expression" },
-      "odata_select": { "type": "string", "description": "Comma-separated properties to return" }
+      "odata_select": { "type": "array", "description": "Properties to return; omit for all.", "items": { "type": "string", "enum": ["id", "user_name", "name", "gender", "address"] } }
     },
     "required": []
   }
 }
 ```
+
+The `People` set above defines no filter, search, or paging hooks, so `odata_select` is the only
+query-option key it advertises; which of the `odata_*` keys appear depends on the hooks the set
+defines — see [`doc/using_mcp.md`](using_mcp.md).
 
 This suffix appears on every tool for the set: `list_/get_/count_/create_/update_/delete_<Set>`.
 Property descriptions reach the write and key tools' `inputSchema.properties`:
@@ -290,11 +293,16 @@ Property descriptions reach the write and key tools' `inputSchema.properties`:
 ```
 
 The reserved `odata_*` query-option keys (see [`doc/using_mcp.md`](using_mcp.md)) keep their
-existing framework descriptions; a property description never overwrites one — the
+generated framework descriptions; a property description never overwrites one — the
 `InvalidMcpIdentifierError` collision check for a property that collides with a reserved key is
 unaffected by whether either side has a `description:`.
 
-A schema-level description becomes the server `instructions` in the `initialize` result:
+A schema-level description opens the server `instructions` in the `initialize` result. It is not
+the whole value: `instructions` is composed as the schema description (when there is one), a blank
+line, then a generated description of the OData dialect the tools speak — the `odata_*` aliasing
+intro, the `$filter`/`$search`/paging lines the schema's sets actually support, the list of
+unsupported query options, and a closing note that each tool advertises only its own set's options.
+[`doc/using_mcp.md`](using_mcp.md) documents that generated section and its ordering in full.
 
 ```jsonc
 // initialize result
@@ -302,11 +310,15 @@ A schema-level description becomes the server `instructions` in the `initialize`
   "protocolVersion": "2025-06-18",
   "capabilities": { "tools": {} },
   "serverInfo": { "name": "Sample Service", "version": "1.0" },
-  "instructions": "Directory of people attending the annual conference"
+  "instructions": "Directory of people attending the annual conference\n\nThis service exposes a subset of OData v4. Query options are passed to tools as `odata_*` arguments (e.g. `odata_filter` is OData `$filter`).\n\n$orderby, $expand, $apply, $compute and $count=true are not supported.\n\nEach tool advertises only the query options its entity set supports."
 }
 ```
 
-Without a schema description, `instructions` is absent — exactly today's output.
+The `instructions` key is **always** present: a schema with no `description:` returns the generated
+dialect text alone, with no leading blank line. (Before this behaviour existed, `instructions` was
+exactly `schema.description` and the key was omitted when the schema had none.) Nothing else about
+omitting `description:` changes — the schema description is the only part of `instructions` you
+author.
 
 ## Common errors / edge cases
 
