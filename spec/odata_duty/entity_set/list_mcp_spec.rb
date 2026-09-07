@@ -172,14 +172,19 @@ RSpec.describe OdataDuty::EntitySet, 'MCP list tool' do
       expect(list_tool['inputSchema']['type']).to eq('object')
       expect(list_tool['inputSchema']['required']).to eq([])
       expect(list_tool['inputSchema']['properties']).to eq(
-        'odata_filter' => { 'type' => 'string', 'description' => 'OData $filter expression' },
-        'odata_select' => { 'type' => 'string',
-                            'description' => 'Comma-separated properties to return' },
+        'odata_filter' => { 'type' => 'string',
+                            'description' => ExpectedMcpDescriptions::FILTER },
+        'odata_select' => { 'type' => 'array',
+                            'description' => ExpectedMcpDescriptions::SELECT,
+                            'items' => { 'type' => 'string', 'enum' => %w[id name] } },
         'odata_search' => { 'type' => 'string',
-                            'description' => 'Search expression (AND, OR, NOT)' },
-        'odata_top' => { 'type' => 'integer', 'description' => 'Max records to return' },
-        'odata_skip' => { 'type' => 'integer', 'description' => 'Records to skip' },
-        'odata_skiptoken' => { 'type' => 'string' }
+                            'description' => ExpectedMcpDescriptions::SEARCH },
+        'odata_top' => { 'type' => 'integer', 'minimum' => 0,
+                         'description' => ExpectedMcpDescriptions::TOP },
+        'odata_skip' => { 'type' => 'integer', 'minimum' => 0,
+                          'description' => ExpectedMcpDescriptions::SKIP },
+        'odata_skiptoken' => { 'type' => 'string',
+                               'description' => ExpectedMcpDescriptions::SKIPTOKEN }
       )
     end
 
@@ -252,11 +257,36 @@ RSpec.describe OdataDuty::EntitySet, 'MCP list tool' do
       expect(body['value'].map { |r| r['name'] }).to eq(%w[Second Third])
     end
 
-    it 'surfaces an odata_select on an undefined property as a tool error' do
-      request_payload['params']['arguments'] = { 'odata_select' => 'nonexistent' }
+    it 'joins an odata_select array into the comma-separated $select query option' do
+      request_payload['params']['arguments'] = { 'odata_select' => %w[id name] }
+      result = call(request_payload)['result']
+      body = Oj.load(result['content'][0]['text'])
+
+      expect(result['isError']).to be(false)
+      expect(body['value'].first).to include('id' => '1', 'name' => 'First')
+    end
+
+    it 'projects only the named property for a single-element odata_select' do
+      request_payload['params']['arguments'] = { 'odata_select' => ['name'] }
+      body = Oj.load(call(request_payload)['result']['content'][0]['text'])
+
+      expect(body['value'].first).not_to have_key('id')
+    end
+
+    it 'rejects an odata_select naming a property outside the advertised enum' do
+      request_payload['params']['arguments'] = { 'odata_select' => ['nonexistent'] }
       result = call(request_payload)['result']
 
       expect(result['isError']).to be(true)
+      expect(result['content'][0]['text']).to start_with('Invalid arguments:')
+    end
+
+    it 'rejects an odata_select given as a comma-separated string rather than an array' do
+      request_payload['params']['arguments'] = { 'odata_select' => 'id,name' }
+      result = call(request_payload)['result']
+
+      expect(result['isError']).to be(true)
+      expect(result['content'][0]['text']).to start_with('Invalid arguments:')
     end
 
     it 'surfaces a malformed odata_filter as a tool error' do
@@ -266,18 +296,36 @@ RSpec.describe OdataDuty::EntitySet, 'MCP list tool' do
       expect(result['isError']).to be(true)
     end
 
-    it 'surfaces a negative odata_top (an Integer, as MCP forwards it) as a tool error' do
+    it 'rejects a negative odata_top before the handler runs' do
       request_payload['params']['arguments'] = { 'odata_top' => -1 }
       result = call(request_payload)['result']
 
       expect(result['isError']).to be(true)
+      expect(result['content'][0]['text']).to start_with('Invalid arguments:')
     end
 
-    it 'surfaces a negative odata_skip (an Integer, as MCP forwards it) as a tool error' do
+    it 'rejects a negative odata_skip before the handler runs' do
       request_payload['params']['arguments'] = { 'odata_skip' => -1 }
       result = call(request_payload)['result']
 
       expect(result['isError']).to be(true)
+      expect(result['content'][0]['text']).to start_with('Invalid arguments:')
+    end
+
+    it 'accepts an odata_top of zero, the lowest value the schema advertises' do
+      request_payload['params']['arguments'] = { 'odata_top' => 0 }
+      result = call(request_payload)['result']
+
+      expect(result['isError']).to be(false)
+      expect(Oj.load(result['content'][0]['text'])['value']).to eq([])
+    end
+
+    it 'accepts an odata_skip of zero, the lowest value the schema advertises' do
+      request_payload['params']['arguments'] = { 'odata_skip' => 0 }
+      result = call(request_payload)['result']
+
+      expect(result['isError']).to be(false)
+      expect(Oj.load(result['content'][0]['text'])['value'].size).to eq(3)
     end
   end
 end

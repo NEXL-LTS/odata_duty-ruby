@@ -134,8 +134,10 @@ module OdataDuty
         expect(count_tool['inputSchema']['type']).to eq('object')
         expect(count_tool['inputSchema']['required']).to eq([])
         expect(count_tool['inputSchema']['properties']).to eq(
-          'odata_filter' => { 'type' => 'string' },
-          'odata_search' => { 'type' => 'string' }
+          'odata_filter' => { 'type' => 'string',
+                              'description' => ExpectedMcpDescriptions::FILTER },
+          'odata_search' => { 'type' => 'string',
+                              'description' => ExpectedMcpDescriptions::SEARCH }
         )
       end
 
@@ -149,8 +151,13 @@ module OdataDuty
         count_tool = tool('count_Filterables')
 
         expect(count_tool['inputSchema']['properties']).to eq(
-          'odata_filter' => { 'type' => 'string' }
+          'odata_filter' => { 'type' => 'string',
+                              'description' => ExpectedMcpDescriptions::FILTER }
         )
+      end
+
+      it 'never advertises odata_select on a count tool' do
+        expect(tool('count_People')['inputSchema']['properties']).not_to have_key('odata_select')
       end
 
       it 'does not expose a count tool for a set that only implements create' do

@@ -25,6 +25,24 @@ require_relative 'support/public_api_guard'
 # loading and example execution for the whole run (no per-file/per-example opt-in).
 PublicApiGuard.install
 
+# The exact `odata_*` query-option argument descriptions the MCP tool input schemas are
+# expected to generate. Held here so the list/count/get tool specs on both DSLs assert the
+# same literal text rather than four hand-copied copies of it.
+module ExpectedMcpDescriptions
+  FILTER = 'OData $filter expression; see the service instructions for the grammar. ' \
+           'Filtering is supported for this entity set, but not every property or operator ' \
+           'combination is necessarily implemented — an unsupported combination returns an ' \
+           'error rather than an empty result. Property names are listed under odata_select. ' \
+           "Example: user_name eq 'Alice'".freeze
+  SEARCH = 'Free-text $search expression; terms combined with AND, OR, NOT. ' \
+           'Parenthesised groups are not supported.'.freeze
+  SELECT = 'Properties to return; omit for all.'.freeze
+  TOP = 'Maximum number of records to return.'.freeze
+  SKIP = 'Number of records to skip before returning results.'.freeze
+  SKIPTOKEN = 'Continuation token for the next page. Take it from the $skiptoken query ' \
+              "parameter of a prior response's @odata.nextLink.".freeze
+end
+
 class String
   def to_date
     Date.parse(self)

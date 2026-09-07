@@ -1,3 +1,5 @@
+require 'odata_duty/mcp_query_options'
+
 module OdataDuty
   module McpInputSchemas
     extend self
@@ -19,18 +21,20 @@ module OdataDuty
 
     UNGATED = nil
 
+    # `[query-option key, capability predicate]` in advertised order; `UNGATED` is always
+    # advertised. The argument shape for each key lives in McpQueryOptions.
     LIST_QUERY_OPTIONS = [
-      ['$filter', :supports_filter?, 'string', 'OData $filter expression'],
-      ['$select', UNGATED, 'string', 'Comma-separated properties to return'],
-      ['$search', :supports_search?, 'string', 'Search expression (AND, OR, NOT)'],
-      ['$top', :supports_top?, 'integer', 'Max records to return'],
-      ['$skip', :supports_skip?, 'integer', 'Records to skip'],
-      ['$skiptoken', :supports_skiptoken?, 'string']
+      ['$filter', :supports_filter?],
+      ['$select', UNGATED],
+      ['$search', :supports_search?],
+      ['$top', :supports_top?],
+      ['$skip', :supports_skip?],
+      ['$skiptoken', :supports_skiptoken?]
     ].freeze
 
     COUNT_QUERY_OPTIONS = [
-      ['$filter', :supports_filter?, 'string'],
-      ['$search', :supports_search?, 'string']
+      ['$filter', :supports_filter?],
+      ['$search', :supports_search?]
     ].freeze
 
     def count_input_schema(endpoint)
@@ -41,11 +45,12 @@ module OdataDuty
       { 'properties' => supported_query_options(LIST_QUERY_OPTIONS, endpoint), 'required' => [] }
     end
 
-    def supported_query_options(definitions, endpoint)
-      definitions.each_with_object({}) do |(key, predicate, type, description), properties|
+    def supported_query_options(gates, endpoint)
+      definitions = McpQueryOptions.definitions(endpoint.entity_type)
+      gates.each_with_object({}) do |(key, predicate), properties|
         next if predicate && !endpoint.public_send(predicate)
 
-        properties[alias_for(key)] = query_option(type, description)
+        properties[alias_for(key)] = definitions.fetch(key)
       end
     end
 
@@ -81,7 +86,7 @@ module OdataDuty
     def get_input_schema(entity_type, tool_name:)
       key = entity_type.property_refs.first
       properties = { key.name => key.to_oas2 }
-      select_value = query_option('string', 'Comma-separated properties to return')
+      select_value = McpQueryOptions.select_option(entity_type)
       add_alias!(properties, entity_type, '$select', select_value, tool_name: tool_name)
       { 'properties' => properties, 'required' => [key.name] }
     end
@@ -93,10 +98,6 @@ module OdataDuty
 
     def alias_for(query_option_key)
       QUERY_OPTION_ALIASES.fetch(query_option_key)
-    end
-
-    def query_option(type, description = nil)
-      { 'type' => type, 'description' => description }.compact
     end
   end
 end

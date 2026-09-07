@@ -115,7 +115,7 @@ PRD. REST execution is unchanged: hiding an argument from a tool schema must not
 
 ---
 
-## - [ ] Task 2 — MCP read-tool argument shapes and generated descriptions
+## - [x] Task 2 — MCP read-tool argument shapes and generated descriptions
 
 **Task text:** Give the gated `list_`/`count_`/`get_` arguments their final shapes and generated
 descriptions, on **both** DSLs.
