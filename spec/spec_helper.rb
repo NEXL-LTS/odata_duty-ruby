@@ -43,6 +43,31 @@ module ExpectedMcpDescriptions
               "parameter of a prior response's @odata.nextLink.".freeze
 end
 
+# The exact server `instructions` text `to_mcp_server` is expected to generate for the query-option
+# dialect, held here so both DSLs' instructions specs assert the same literal rather than two
+# hand-copied copies of it.
+module ExpectedMcpInstructions
+  INTRO = 'This service exposes a subset of OData v4. Query options are passed to tools as ' \
+          '`odata_*` arguments (e.g. `odata_filter` is OData `$filter`).'.freeze
+  FILTER_LINE = '$filter: predicates of the form `<property> <op> <value>`. Operators: eq, ne, ' \
+                'gt, ge, lt, le. Combine with all `and` or all `or` — mixing `and` with `or` ' \
+                'is not supported, nor is parenthesised grouping. Functions (contains, ' \
+                'startswith, tolower, …), arithmetic and `not` are not supported. String ' \
+                'literals use single quotes; Edm.Date and Edm.DateTimeOffset values are ISO ' \
+                '8601 (2024-01-31, 2024-01-31T00:00:00+00:00).'.freeze
+  SEARCH_LINE = '$search: terms combined with AND, OR, NOT. Parenthesised groups are not ' \
+                'supported.'.freeze
+  PAGING_LINE = 'Paging: pass odata_skiptoken with the $skiptoken value from a prior ' \
+                "response's @odata.nextLink.".freeze
+  UNSUPPORTED_LINE = '$orderby, $expand, $apply, $compute and $count=true are not ' \
+                     'supported.'.freeze
+  CLOSING = 'Each tool advertises only the query options its entity set supports.'.freeze
+
+  ALL_OPTIONS = "#{INTRO}\n\n#{FILTER_LINE}\n#{SEARCH_LINE}\n#{PAGING_LINE}\n" \
+                "#{UNSUPPORTED_LINE}\n\n#{CLOSING}".freeze
+  NO_OPTIONS = "#{INTRO}\n\n#{UNSUPPORTED_LINE}\n\n#{CLOSING}".freeze
+end
+
 class String
   def to_date
     Date.parse(self)

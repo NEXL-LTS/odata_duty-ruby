@@ -1,6 +1,7 @@
 require 'mcp'
 require 'odata_duty/mcp_input_schemas'
 require 'odata_duty/mcp_identifier_validator'
+require 'odata_duty/mcp_instructions'
 require 'odata_duty/mcp_tool_arguments'
 require 'odata_duty/operation_verbs'
 
@@ -12,10 +13,7 @@ module OdataDuty
       server = MCP::Server.new(
         name: schema.title,
         version: schema.version,
-        # Relies on the `mcp` gem's `initialize` response builder `.compact`-ing away a nil
-        # `instructions:`, so a schema without a description omits the key rather than sending
-        # `"instructions": null` — worth re-checking on `mcp` gem upgrades.
-        instructions: schema.description,
+        instructions: McpInstructions.build(schema),
         capabilities: { tools: {} }
       )
       schema.endpoints.each { |endpoint| register_endpoint_tools(server, schema, endpoint) }

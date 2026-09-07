@@ -243,7 +243,7 @@ definitions into a sibling module rather than adding an inline RuboCop disable.
 
 ---
 
-## - [ ] Task 3 — Generated MCP server `instructions` describing the dialect
+## - [x] Task 3 — Generated MCP server `instructions` describing the dialect
 
 **Task text:** Replace the raw `instructions: schema.description` passed to `MCP::Server` with a
 generated document: the schema `description:` first (when present), then a generated dialect
