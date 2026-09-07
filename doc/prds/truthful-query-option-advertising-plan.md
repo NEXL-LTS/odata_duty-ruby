@@ -315,7 +315,7 @@ file (e.g. `lib/odata_duty/mcp_instructions.rb`) rather than adding an inline di
 
 ---
 
-## - [ ] Task 4 — `$oas2` collection parameters: gate `$filter`, bound `$top`/`$skip`, enum `$select`
+## - [x] Task 4 — `$oas2` collection parameters: gate `$filter`, bound `$top`/`$skip`, enum `$select`
 
 **Task text:** In the `$oas2` collection `GET` parameter list:
 

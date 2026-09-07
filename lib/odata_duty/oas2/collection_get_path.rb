@@ -1,52 +1,8 @@
+require 'odata_duty/oas2/collection_get_parameters'
+
 module OdataDuty
   class OAS2
     CollectionGetPath = Struct.new(:entity_set, :context) do
-      COLLECTION_PARAMETERS = [
-        {
-          'name' => '$filter',
-          'in' => 'query',
-          'type' => 'string',
-          'description' => 'Filter the results, supporting `and` and flat `or` combinations'
-        },
-        {
-          'name' => '$search',
-          'in' => 'query',
-          'type' => 'string',
-          'description' => 'Search using structured expressions with AND, OR, NOT operators'
-        },
-        {
-          'name' => '$select',
-          'in' => 'query',
-          'type' => 'array',
-          'items' => { 'type' => 'string' },
-          'collectionFormat' => 'csv',
-          'description' => 'Comma-separated list of properties to return'
-        },
-        {
-          'name' => '$top',
-          'in' => 'query',
-          'type' => 'integer',
-          'description' => 'Number of results to return'
-        },
-        {
-          'name' => '$skip',
-          'in' => 'query',
-          'type' => 'integer',
-          'description' => 'Number of results to skip'
-        },
-        {
-          'name' => '$count',
-          'in' => 'query',
-          'type' => 'boolean',
-          'description' => 'Include count of the results'
-        },
-        {
-          'name' => '$skiptoken',
-          'in' => 'query',
-          'type' => 'string',
-          'description' => 'Token for next page of results'
-        }
-      ].freeze
       COLLECTION_RESPONSE_DEFAULTS = {
         '@odata.nextLink' => {
           'type' => 'string',
@@ -60,25 +16,12 @@ module OdataDuty
         }
       }.freeze
 
-      PARAMETER_REQUIREMENTS = {
-        '$top' => :od_top,
-        '$count' => :count,
-        '$skip' => :od_skip,
-        '$skiptoken' => :od_skiptoken,
-        '$search' => :od_search
-      }.freeze
-
       def to_oas2
-        instance = entity_set.resolver_class.new(context: context, init_args: entity_set.init_args)
-        parameters = COLLECTION_PARAMETERS.select do |param|
-          !PARAMETER_REQUIREMENTS.key?(param['name']) ||
-            instance.respond_to?(PARAMETER_REQUIREMENTS[param['name']])
-        end
         {
           'operationId' => "GetCollectionOf#{entity_set.name}"
         }.merge(summary_and_description).merge(
           'produces' => ['application/json'],
-          'parameters' => parameters,
+          'parameters' => CollectionGetParameters.build(entity_set, context),
           'responses' => { '200' => oas2_success_response, 'default' => DEFAULT_ERROR_RESPONSE }
         )
       end
