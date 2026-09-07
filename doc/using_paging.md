@@ -1,0 +1,300 @@
+# Using `$top`, `$skip`, and server-driven paging with OdataDuty
+
+OData offers two complementary ways to page through a collection:
+
+- **Client-driven paging** with `$top` (return at most N entities) and `$skip` (skip the first N
+  entities), which the client sets explicitly on each request.
+- **Server-driven paging** with `$skiptoken`, an opaque continuation value the *server* hands back
+  to the client via `@odata.nextLink` in the response, and the client echoes back unchanged on the
+  next request to continue where it left off.
+
+OdataDuty parses these query options and dispatches to hook methods on your entity set or
+resolver—`od_top`, `od_skip`, and `od_skiptoken`—so you decide how to apply them to your data.
+For server-driven paging, your `collection` method calls `od_next_link_skiptoken` to tell the
+framework what `$skiptoken` value to embed in `@odata.nextLink` for the next page.
+
+This guide explains how to implement those hooks in your custom `OdataDuty::EntitySet` class. The
+same parsing and dispatch serves both DSLs, so the equivalent hooks work on an
+`OdataDuty::SetResolver` subclass when you use the builder DSL.
+
+## Overview
+
+- **Purpose:** Let clients request a bounded slice of a collection (`$top`/`$skip`), and let the
+  server advertise how to fetch the next slice of a large result set (`$skiptoken` /
+  `@odata.nextLink`).
+- **Mechanism:** When `$top`, `$skip`, or `$skiptoken` is supplied, OdataDuty calls the
+  corresponding hook—`od_top(top)`, `od_skip(skip)`, `od_skiptoken(skiptoken)`—with the raw string
+  value from the query string. Your hook narrows `@records` (or equivalent internal state)
+  accordingly.
+- **Validation:** `$top` and `$skip` values are validated as non-negative base-10 integers
+  *before* your hook is even checked for. An invalid value raises `OdataDuty::InvalidQueryOptionError`
+  immediately—your `od_top`/`od_skip` hook never sees a malformed value. `$skiptoken` is treated as
+  an opaque token and is not validated as a number.
+- **Not implemented:** If the entity set doesn't implement the hook for a query option the client
+  supplied, OdataDuty raises `NoImplementationError`.
+- **Server-driven paging:** Your `collection` method decides, each time it runs, whether there is
+  more data beyond what it's returning. If so, it calls `od_next_link_skiptoken(value)` with the
+  token for the *next* page. OdataDuty then adds `@odata.nextLink` to the response, which is the
+  same request URL with `$skiptoken` set to that value—ready for the client to follow.
+
+## Implementing the hooks
+
+### `od_top` / `od_skip`
+
+Implement `od_top(top)` and `od_skip(skip)` on your `OdataDuty::EntitySet` (or `SetResolver`)
+subclass. Each receives the query-option value as a `String` already confirmed to be a
+non-negative base-10 integer (e.g. `'10'`, `'0'`)—convert it yourself with `.to_i` and apply it to
+`@records`:
+
+```ruby
+def od_top(top)
+  @records = @records[0..(top.to_i - 1)]
+end
+
+def od_skip(skip)
+  @records = @records[skip.to_i..] || []
+end
+```
+
+Both hooks may be present at once; when a request supplies both `$skip` and `$top`, OdataDuty calls
+`od_skip` and `od_top` independently (each only if the corresponding query option was supplied).
+How the two combine (e.g. skip-then-top) is up to your implementation.
+
+### `od_skiptoken`
+
+Implement `od_skiptoken(skiptoken)` to resume a previous server-driven page. `skiptoken` is
+whatever opaque string value your own `od_next_link_skiptoken` call previously handed the
+framework (see below)—commonly an offset, but it can be any string your `collection` method knows
+how to interpret:
+
+```ruby
+def od_skiptoken(skiptoken)
+  @skiptoken = skiptoken
+  @records = @records[skiptoken.to_i..]
+end
+```
+
+### `od_next_link_skiptoken` and `@odata.nextLink`
+
+`od_next_link_skiptoken(value)` is not a hook you implement—it's a method the framework provides
+that *you call*, from inside your own `collection` method, whenever there is more data beyond the
+page you're about to return. Call it with the `$skiptoken` value that should be used to fetch the
+next page:
+
+```ruby
+def collection
+  max_results = 50
+  if @records.count > max_results
+    od_next_link_skiptoken(@skiptoken.to_i + max_results)
+    @records[@skiptoken.to_i, max_results]
+  else
+    @records
+  end
+end
+```
+
+After `collection` returns, OdataDuty checks whether `od_next_link_skiptoken` was called during
+this request. If so, it adds an `@odata.nextLink` field to the response: the current request's URL
+and query options, with `$skiptoken` set to the value you passed. If your `collection` method never
+calls it (because there's no more data), no `@odata.nextLink` is added and the client knows it has
+reached the last page.
+
+Because `@odata.nextLink` is derived from the *current* request's query options plus your new
+`$skiptoken`, any other query options on the original request (such as `$filter` or `$top`) are
+preserved on the link, so the client can follow it as-is to continue the same filtered/limited
+query.
+
+### Example Implementation (class DSL)
+
+```ruby
+class PeopleSet < OdataDuty::EntitySet
+  entity_type PersonEntity
+
+  MAX_PAGE_SIZE = 50
+
+  def od_after_init
+    @records = Person.active
+  end
+
+  def od_top(top)
+    @records = @records[0..(top.to_i - 1)]
+  end
+
+  def od_skip(skip)
+    @records = @records[skip.to_i..] || []
+  end
+
+  def od_skiptoken(skiptoken)
+    @skiptoken = skiptoken
+    @records = @records[skiptoken.to_i..]
+  end
+
+  def collection
+    if @records.count > MAX_PAGE_SIZE
+      od_next_link_skiptoken(@skiptoken.to_i + MAX_PAGE_SIZE)
+      @records[@skiptoken.to_i, MAX_PAGE_SIZE]
+    else
+      @records
+    end
+  end
+
+  def individual(id) = @records.find { |r| r.id == id }
+end
+```
+
+### Example Implementation (builder DSL resolver)
+
+With the builder DSL, the same hooks live on an `OdataDuty::SetResolver` subclass referenced by
+name:
+
+```ruby
+class PeopleResolver < OdataDuty::SetResolver
+  MAX_PAGE_SIZE = 50
+
+  def od_after_init
+    @records = Person.active.to_a
+  end
+
+  def od_top(top)
+    @top = top
+  end
+
+  def od_skip(skip)
+    @skip = skip
+  end
+
+  def od_skiptoken(skiptoken)
+    @skiptoken = skiptoken
+    @records = @records[skiptoken.to_i..]
+  end
+
+  def collection
+    @records = @records[@skip.to_i..] if @skip
+    @records = @records[0..(@top.to_i - 1)] if @top
+    if @records.count > MAX_PAGE_SIZE
+      od_next_link_skiptoken(@skiptoken.to_i + MAX_PAGE_SIZE)
+      @records[@skiptoken.to_i, MAX_PAGE_SIZE]
+    else
+      @records
+    end
+  end
+end
+```
+
+### How It Works
+
+Given a `LargeCollection` set of 102 records and a 50-record page size (as above):
+
+1. **First page.**
+   ```
+   GET /LargeCollection
+   ```
+   `collection` returns the first 50 records. Because more remain, it calls
+   `od_next_link_skiptoken(50)`, so the response includes:
+   ```
+   "@odata.nextLink": "http://localhost:3000/api/LargeCollection?%24skiptoken=50"
+   ```
+
+2. **Following the link.**
+   ```
+   GET /LargeCollection?$skiptoken=50
+   ```
+   `od_skiptoken('50')` slices `@records` from offset 50 onward (52 records remain).
+   `collection` returns the next 50 and calls `od_next_link_skiptoken(100)`, so the response
+   includes `@odata.nextLink` with `$skiptoken=100`.
+
+3. **Last page.**
+   ```
+   GET /LargeCollection?$skiptoken=100
+   ```
+   Only 2 records remain, which is not more than the page size, so `collection` returns them
+   without calling `od_next_link_skiptoken`. The response has **no** `@odata.nextLink`, signalling
+   the client has reached the end.
+
+4. **Client-driven `$top` alongside server-driven paging.**
+   ```
+   GET /LargeCollection?$filter=id ne '1'&$top=100
+   ```
+   `od_top('100')` and the filter both narrow `@records` before `collection` runs; the returned
+   page is still capped at the 50-record page size, and the generated `@odata.nextLink` preserves
+   the original `$filter` and `$top` alongside the new `$skiptoken`:
+   ```
+   http://localhost:3000/api/LargeCollection?$filter=id+ne+'1'&$top=100&$skiptoken=50
+   ```
+
+## Common Error Cases
+
+While implementing paging, note the following error scenarios:
+
+- **Negative `$top`/`$skip`:**
+  `$top=-1` or `$skip=-1` raises `InvalidQueryOptionError`
+  (`"'$top' must be a non-negative integer, got '-1'"`, or `'$skip'` respectively).
+
+- **Non-numeric `$top`/`$skip`:**
+  `$top=abc` raises `InvalidQueryOptionError` (`"'$top' must be a non-negative integer, got 'abc'"`).
+
+- **Non-integer (decimal) `$top`/`$skip`:**
+  `$top=1.5` raises `InvalidQueryOptionError` (`"'$top' must be a non-negative integer, got '1.5'"`).
+
+- **Empty `$top`/`$skip`:**
+  `$top=` (empty string) raises `InvalidQueryOptionError`
+  (`"'$top' must be a non-negative integer, got ''"`).
+
+- **`$top=0` / `$skip=0` are valid:**
+  Zero is a valid non-negative integer. `$top=0` calls `od_top('0')`—typically yielding an empty
+  `value` array, depending on your implementation. `$skip=0` calls `od_skip('0')`, typically
+  yielding the full collection.
+
+- **Leading zeros are decimal, not octal:**
+  `$top=010` is valid and parsed as base-10 `10` (not octal `8`); your hook receives the original
+  string `'010'` unchanged, exactly as any other valid value.
+
+- **Validation runs before the "not implemented" check:**
+  An invalid `$top`/`$skip` raises `InvalidQueryOptionError` even on an entity set that does not
+  implement `od_top`/`od_skip` at all—the value is checked before OdataDuty checks whether your set
+  supports the option.
+
+- **`$top`/`$skip`/`$skiptoken` not implemented:**
+  If the client supplies `$top`, `$skip`, or `$skiptoken` (with a *valid* value, for `$top`/`$skip`)
+  and your entity set does not implement the corresponding hook, OdataDuty raises
+  `NoImplementationError` (`"$top not implemented for #{class}"`, `"$skip not implemented for
+  #{class}"`, or `"$skiptoken not implemented for #{class}"`).
+
+- **`$skiptoken` is not validated as numeric:**
+  Unlike `$top`/`$skip`, `$skiptoken` is an opaque token as far as OdataDuty is concerned—any string
+  is passed through to `od_skiptoken` unchanged. It's up to your implementation to interpret (and
+  reject, if necessary) its contents.
+
+## Combining with Other Query Options
+
+`$top`, `$skip`, and `$skiptoken` can be combined with other OData query options:
+
+```
+GET /People?$filter=status eq 'active'&$top=10
+GET /People?$select=name,email&$skip=20&$top=10
+```
+
+## Summary
+
+- **Custom Entity Set:**
+  Subclass `OdataDuty::EntitySet` (or `OdataDuty::SetResolver` for the builder DSL) and implement
+  the required methods (`od_after_init`, `collection`, `individual`), along with `od_top`,
+  `od_skip`, and/or `od_skiptoken` as needed.
+
+- **Client-driven paging:**
+  Implement `od_top(top)`/`od_skip(skip)` to narrow your records by a validated, non-negative
+  base-10 integer string.
+
+- **Server-driven paging:**
+  Implement `od_skiptoken(skiptoken)` to resume from an opaque continuation value, and call
+  `od_next_link_skiptoken(value)` from within `collection` whenever more data remains, so OdataDuty
+  can add `@odata.nextLink` to the response.
+
+- **Validation:**
+  `$top`/`$skip` must be non-negative base-10 integers or OdataDuty raises
+  `InvalidQueryOptionError` before your hooks run. `$skiptoken` is an opaque string and is not
+  validated.
+
+- **Not implemented:**
+  Supplying `$top`, `$skip`, or `$skiptoken` against a set that doesn't implement the matching hook
+  raises `NoImplementationError`.

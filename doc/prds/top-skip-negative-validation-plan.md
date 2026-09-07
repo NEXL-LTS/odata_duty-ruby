@@ -69,7 +69,7 @@ parallel "raises the exact message for $top when od_top is absent" tests for eac
 
 ## Task 2: Add `doc/using_paging.md` guide and update the `AGENTS.md`/`CLAUDE.md` Paging index entry
 
-- [ ] Status
+- [x] Status
 
 **Task text:** Add a new guide `doc/using_paging.md`, in the same style as `doc/using_filter.md` and
 `doc/using_select.md` (Overview / Implementing the hooks / example implementations for both DSLs /
