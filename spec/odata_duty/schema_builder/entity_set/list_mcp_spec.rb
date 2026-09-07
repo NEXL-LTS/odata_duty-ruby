@@ -156,6 +156,20 @@ module OdataDuty
 
         expect(result['isError']).to be(true)
       end
+
+      it 'surfaces a negative odata_top (an Integer, as MCP forwards it) as a tool error' do
+        request_payload['params']['arguments'] = { 'odata_top' => -1 }
+        result = call(request_payload)['result']
+
+        expect(result['isError']).to be(true)
+      end
+
+      it 'surfaces a negative odata_skip (an Integer, as MCP forwards it) as a tool error' do
+        request_payload['params']['arguments'] = { 'odata_skip' => -1 }
+        result = call(request_payload)['result']
+
+        expect(result['isError']).to be(true)
+      end
     end
   end
 end

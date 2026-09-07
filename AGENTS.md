@@ -19,7 +19,7 @@ list current** — see `/build` for when to update it.
 - **`$filter`** — `od_filter_eq/ne/gt/lt` — `doc/using_filter.md`.
 - **`$select`** — `doc/using_select.md`.
 - **`$search`** — AND/OR/NOT grammar via `od_search`; also adds `$search` to the MCP `list_/count_<Set>` tools — `doc/using_search.md`.
-- **Paging** — `$top`/`$skip` and server-driven `@odata.nextLink` via `od_next_link_skiptoken`.
+- **Paging** — `$top`/`$skip` and server-driven `@odata.nextLink` via `od_next_link_skiptoken`; `$top`/`$skip` reject negative or malformed values — `doc/using_paging.md`.
 - **Computed properties** — `doc/using_computed.md`.
 - **Property mutability** — `mutability: :immutable`/`:non_insertable`/`:computed` per property (create/update settability + `Core` annotations & `Capabilities.InsertRestrictions`; `$oas2` per-operation `<Entity>Create`/`<Entity>Update` request bodies) — `doc/using_mutability.md`.
 - **Descriptions** — `description:` on schema, entity/complex/enum type, enum member, property (incl. `property_ref`), and entity set; renders into `$metadata` (`Core.Description`), `$oas2` (`info`/definitions/properties/operation `summary`+`description`), and MCP (tool descriptions, input-schema property descriptions, server `instructions`) — `doc/using_descriptions.md`.
