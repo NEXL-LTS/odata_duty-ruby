@@ -207,6 +207,7 @@ module OdataDuty
     end
 
     def apply_top(set_builder, top)
+      validate_non_negative_integer('$top', top)
       if !set_builder.respond_to?(:od_top) && top
         raise NoImplementationError, "$top not implemented for #{set_builder.class}"
       end
@@ -215,11 +216,27 @@ module OdataDuty
     end
 
     def apply_skip(set_builder, skip)
+      validate_non_negative_integer('$skip', skip)
       if !set_builder.respond_to?(:od_skip) && skip
         raise NoImplementationError, "$skip not implemented for #{set_builder.class}"
       end
 
       set_builder.od_skip(skip) if skip
+    end
+
+    def validate_non_negative_integer(name, value)
+      return unless value
+      return if non_negative_integer?(value)
+
+      raise InvalidQueryOptionError, "'#{name}' must be a non-negative integer, got '#{value}'"
+    end
+
+    def non_negative_integer?(value)
+      return value >= 0 if value.is_a?(Integer)
+
+      Integer(value, 10) >= 0
+    rescue ArgumentError
+      false
     end
 
     def apply_skiptoken(set_builder, skiptoken)

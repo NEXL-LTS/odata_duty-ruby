@@ -4,7 +4,7 @@ PRD: [doc/prds/top-skip-negative-validation.md](top-skip-negative-validation.md)
 
 ## Task 1: Validate `$top`/`$skip` in `Executor` before dispatch
 
-- [ ] Status
+- [x] Status
 
 **Task text:** In `lib/odata_duty/executor.rb`, add validation of the raw `$top` and `$skip`
 query-option string values, applied before the existing `respond_to?(:od_top)`/`respond_to?(:od_skip)`

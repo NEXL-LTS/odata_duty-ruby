@@ -188,4 +188,74 @@ RSpec.describe OdataDuty::EntitySet, 'executor query option handling' do
     end.to raise_error(OdataDuty::NoImplementationError,
                        '$top not implemented for ExecCovBareSet')
   end
+
+  it 'raises InvalidQueryOptionError for a negative $top' do
+    expect do
+      collection('$top' => '-1')
+    end.to raise_error(OdataDuty::InvalidQueryOptionError,
+                       "'$top' must be a non-negative integer, got '-1'")
+  end
+
+  it 'raises InvalidQueryOptionError for a negative $skip' do
+    expect do
+      collection('$skip' => '-1')
+    end.to raise_error(OdataDuty::InvalidQueryOptionError,
+                       "'$skip' must be a non-negative integer, got '-1'")
+  end
+
+  it 'raises InvalidQueryOptionError for a non-numeric $top' do
+    expect do
+      collection('$top' => 'abc')
+    end.to raise_error(OdataDuty::InvalidQueryOptionError,
+                       "'$top' must be a non-negative integer, got 'abc'")
+  end
+
+  it 'raises InvalidQueryOptionError for a decimal $top' do
+    expect do
+      collection('$top' => '1.5')
+    end.to raise_error(OdataDuty::InvalidQueryOptionError,
+                       "'$top' must be a non-negative integer, got '1.5'")
+  end
+
+  it 'raises InvalidQueryOptionError for an empty-string $top' do
+    expect do
+      collection('$top' => '')
+    end.to raise_error(OdataDuty::InvalidQueryOptionError,
+                       "'$top' must be a non-negative integer, got ''")
+  end
+
+  it 'treats a leading-zero $top as decimal, not octal' do
+    expect(collection('$top' => '010')['value'].size).to eq(5)
+  end
+
+  it 'accepts a leading-zero $top with an invalid-octal digit, proving base-10 parsing' do
+    expect(collection('$top' => '018')['value'].size).to eq(5)
+  end
+
+  it 'raises InvalidQueryOptionError before checking for od_top support' do
+    expect do
+      bare_collection('$top' => '-1')
+    end.to raise_error(OdataDuty::InvalidQueryOptionError,
+                       "'$top' must be a non-negative integer, got '-1'")
+  end
+
+  it 'raises InvalidQueryOptionError before checking for od_skip support' do
+    expect do
+      bare_collection('$skip' => '-1')
+    end.to raise_error(OdataDuty::InvalidQueryOptionError,
+                       "'$skip' must be a non-negative integer, got '-1'")
+  end
+
+  it 'accepts a $top of 0 as valid, yielding an empty value array' do
+    expect(collection('$top' => '0')['value']).to eq([])
+  end
+
+  it 'accepts a $skip of 0 as valid, yielding the full value array' do
+    expect(collection('$skip' => '0')['value'].size).to eq(5)
+  end
+
+  it 'applies $top and $skip together in one request' do
+    expect(collection('$skip' => '1', '$top' => '2')['value'].map { |r| r['id'] })
+      .to eq(%w[2 3])
+  end
 end
