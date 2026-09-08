@@ -33,19 +33,9 @@ with `NoImplementationError`:
 means the set filters, not that every property and operator combination is implemented. The value
 stays a freeform string.
 
-`$select` is an array with `collectionFormat: "csv"` whose `items.enum` names the entity type's
-properties, and `$top`/`$skip` carry `minimum: 0`:
-
-```jsonc
-{ "name": "$select", "in": "query", "type": "array",
-  "items": { "type": "string", "enum": ["id", "user_name", "emails"] },
-  "collectionFormat": "csv",
-  "description": "Comma-separated list of properties to return" },
-{ "name": "$top", "in": "query", "type": "integer", "minimum": 0,
-  "description": "Number of results to return" },
-{ "name": "$skip", "in": "query", "type": "integer", "minimum": 0,
-  "description": "Number of results to skip" }
-```
+Some parameters carry constraints beyond their type, so a generated client can reject bad input
+before it reaches your service: `$select` is a csv array whose `enum` names the entity type's
+properties, and `$top`/`$skip` are bounded at zero.
 
 A set implementing only `collection` therefore renders a single parameter — `$select` — on its
 collection `GET`.
@@ -54,8 +44,15 @@ None of this changes request handling: omitting a parameter from `$oas2` does no
 from honoring, or rejecting, that query option when a client sends it anyway. `$metadata` is
 untouched by the gating too — the `Capabilities.FilterRestrictions` annotation still keys off
 `od_filter_or` alone, and a set with no filter hooks emits no `Filterable: false`. The MCP tool
-schemas apply the same gating in the `odata_*` spelling described in
+schemas apply the same gating to the six options that have an `odata_*` spelling — all but
+`$count`, which surfaces as a separate `count_<Set>` tool — described in
 [`doc/using_mcp.md`](using_mcp.md); unlike `$oas2`, those cover both DSLs.
+
+Note that working out these gates constructs every collection resolver, running its
+`od_after_init` with the set's `init_args`, purely to see which hooks it answers to. Both the
+generated controller and the examples here call `build_json(schema)` with no `context:`, so a
+resolver whose `od_after_init` reads the request context will fail when `/$oas2` is rendered —
+pass `context:` as the data endpoints do if yours needs it.
 
 ## Consuming `$oas2` from Power Automate
 
