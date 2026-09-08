@@ -6,6 +6,41 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.32.0] - 2026-09-08
+
+### Added
+- `odata_skiptoken` argument on the MCP `list_<Set>` tool for entity sets that define
+  `od_next_link_skiptoken`, so an agent can follow a `@odata.nextLink` over MCP instead of
+  hitting a dead end (#76).
+- The MCP server `instructions` now describe the supported OData dialect — the `$filter`
+  grammar, `$search`, skiptoken paging, and what is explicitly unsupported — with each line
+  present only when some entity set can serve it (#76).
+- Generated descriptions on every `odata_*` read-tool argument, and `items.enum` of the entity
+  type's property names on `$select`/`odata_select` so an unknown property is rejected before
+  it reaches the service (#76).
+- `doc/using_paging.md`, covering `$top`, `$skip`, `$skiptoken`, and `od_next_link_skiptoken`
+  (#75).
+
+### Changed
+- **Breaking (MCP tool shape):** read tools (`list_`/`count_`/`get_<Set>`) now advertise
+  `odata_filter`, `odata_search`, `odata_top`, `odata_skip`, and `odata_skiptoken` only when
+  the entity set defines the matching hook, rather than offering every option and failing with
+  `NoImplementationError` when it is used. Filterability is inferred from any public
+  `od_filter_*` method. `odata_select` remains ungated (#76).
+- **Breaking (MCP tool shape):** `odata_select` is now an array of property names instead of a
+  comma-separated string (#76).
+- **Breaking (MCP server shape):** `instructions` was previously exactly the schema
+  `description:` and omitted when that was nil; it is now always present and carries the
+  generated dialect description (#76).
+- `$oas2` collection parameters: `$filter` is capability-gated on the same rule, and
+  `$top`/`$skip` carry `minimum: 0` (#76).
+- `$top`/`$skip` are validated as non-negative base-10 integers before dispatching to
+  `od_top`/`od_skip`, raising `InvalidQueryOptionError` for negative, non-numeric, or otherwise
+  malformed values instead of passing them through to consumer hooks (#75).
+
+`$metadata` and REST execution are unchanged — hiding a query-option parameter does not change
+what the service honors or rejects.
+
 ## [0.31.0] - 2026-08-16
 
 ### Added
@@ -84,7 +119,8 @@ All notable changes to this project are documented here. The format is based on
 See the [git tags](https://github.com/NEXL-LTS/odata_duty-ruby/tags) for the history of
 releases prior to 0.21.0.
 
-[Unreleased]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.31.0...HEAD
+[Unreleased]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.32.0...HEAD
+[0.32.0]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.31.0...v0.32.0
 [0.31.0]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.30.1...v0.31.0
 [0.30.1]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.30.0...v0.30.1
 [0.30.0]: https://github.com/NEXL-LTS/odata_duty-ruby/compare/v0.21.4...v0.30.0
