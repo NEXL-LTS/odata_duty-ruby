@@ -16,16 +16,16 @@ list current** — see `/build` for when to update it.
 
 - **Read** — `collection`, `individual(id)`, `/$count`.
 - **Write** — `create` (POST), `update` (PATCH, partial-merge), `delete` (DELETE); each inferred from method presence and reflected in `$oas2`, `$metadata` capability annotations, and MCP tools — `doc/using_create_update_and_delete.md`.
-- **`$filter`** — `od_filter_eq/ne/gt/lt` — `doc/using_filter.md`.
-- **`$select`** — `doc/using_select.md`.
+- **`$filter`** — `od_filter_eq/ne/gt/lt`/`od_filter_or`; any public `od_filter_*` hook makes the set filterable, gating the MCP `odata_filter` argument and the `$oas2` `$filter` parameter — `doc/using_filter.md`.
+- **`$select`** — always available (no hook required); array-shaped `odata_select` in MCP and an `items.enum` of property names in `$oas2` — `doc/using_select.md`.
 - **`$search`** — AND/OR/NOT grammar via `od_search`; also adds `$search` to the MCP `list_/count_<Set>` tools — `doc/using_search.md`.
-- **Paging** — `$top`/`$skip` and server-driven `@odata.nextLink` via `od_next_link_skiptoken`; `$top`/`$skip` reject negative or malformed values — `doc/using_paging.md`.
+- **Paging** — `$top`/`$skip` and server-driven `@odata.nextLink` via `od_next_link_skiptoken`; `$top`/`$skip` reject negative or malformed values; `od_top`/`od_skip`/`od_skiptoken` each gate the matching MCP `odata_*` argument, so an agent can follow a `@odata.nextLink` via `odata_skiptoken` — `doc/using_paging.md`.
 - **Computed properties** — `doc/using_computed.md`.
 - **Property mutability** — `mutability: :immutable`/`:non_insertable`/`:computed` per property (create/update settability + `Core` annotations & `Capabilities.InsertRestrictions`; `$oas2` per-operation `<Entity>Create`/`<Entity>Update` request bodies) — `doc/using_mutability.md`.
 - **Descriptions** — `description:` on schema, entity/complex/enum type, enum member, property (incl. `property_ref`), and entity set; renders into `$metadata` (`Core.Description`), `$oas2` (`info`/definitions/properties/operation `summary`+`description`), and MCP (tool descriptions, input-schema property descriptions, server `instructions`) — `doc/using_descriptions.md`.
 - **Init args** — pass per-request data into `od_after_init` — `doc/using_init_args.md`.
 - **Request context** — the `context` object in resolver hooks (delegation, `od_full_url`, `query_options`, `base_url`, `current`), plus `od_context`/`object` in class-DSL property methods — `doc/using_context.md`.
-- **MCP server** — tools-only over JSON-RPC; reads inferred as `list_/get_/count_<Set>` tools, writes as `create_/update_/delete_<Set>`, no resources — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
+- **MCP server** — tools-only over JSON-RPC; reads inferred as `list_/get_/count_<Set>` tools, writes as `create_/update_/delete_<Set>`, no resources; read tools advertise only the `odata_*` query options their set's hooks can serve, and `instructions` carries a generated description of the supported dialect — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
 - **Rails generators** — `install` and `entity_set` — `doc/entity_set_generator.md`.
 
 ## Commands

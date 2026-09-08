@@ -45,7 +45,8 @@ RSpec.describe OdataDuty::EntitySet, 'MCP initialize' do
         expect(response['result']).to eq(
           'protocolVersion' => '2025-06-18',
           'capabilities' => { 'tools' => {} },
-          'serverInfo' => { 'name' => 'This is a sample OData service.', 'version' => '1.2.3' }
+          'serverInfo' => { 'name' => 'This is a sample OData service.', 'version' => '1.2.3' },
+          'instructions' => ExpectedMcpInstructions::NO_OPTIONS
         )
       end
     end

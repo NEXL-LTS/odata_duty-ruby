@@ -33,6 +33,10 @@ class FullDocCrudResolver < OdataDuty::SetResolver
     expression
   end
 
+  def od_filter_eq(property_name, value)
+    @records = @records.select { |record| record.public_send(property_name) == value }
+  end
+
   def od_top(top)
     top
   end

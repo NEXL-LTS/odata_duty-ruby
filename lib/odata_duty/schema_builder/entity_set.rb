@@ -1,4 +1,5 @@
 require 'delegate'
+require_relative '../capability_hooks'
 require_relative 'container'
 
 module OdataDuty
@@ -23,11 +24,27 @@ module OdataDuty
 
       def supports_search?
         # Check if the resolver class supports search by looking for the od_search method
-        resolver_class.method_defined?(:od_search)
+        resolver_class.public_method_defined?(:od_search)
       end
 
       def supports_filter_or?
         resolver_class.method_defined?(:od_filter_or)
+      end
+
+      def supports_filter?
+        CapabilityHooks.filterable?(resolver_class)
+      end
+
+      def supports_top?
+        resolver_class.public_method_defined?(:od_top)
+      end
+
+      def supports_skip?
+        resolver_class.public_method_defined?(:od_skip)
+      end
+
+      def supports_skiptoken?
+        resolver_class.public_method_defined?(:od_skiptoken)
       end
 
       def supports_collection?

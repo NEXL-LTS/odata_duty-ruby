@@ -13,6 +13,7 @@ This guide explains how to implement those hooks in your custom `OdataDuty::Enti
 - **Mechanism:** When a `$filter` query option is provided, OdataDuty parses it into predicates, coerces each value to the property's declared type, and dispatches to your hooks. For `Edm.Date` and `Edm.DateTimeOffset` properties the coerced value is an ISO 8601 `String` (e.g. `'2021-01-01'`, `'2021-01-01T00:00:00+00:00'`), not a Ruby `Date`/`DateTime`.
 - **AND vs OR:** Predicates joined by `and` (or a single predicate) are applied **sequentially**, each narrowing the result set. Predicates joined by `or` are passed **together** as a union to a single `od_filter_or` hook.
 - **Scope limit:** An expression must be either **all `and`** or **all `or`**. Mixing them, and parenthesized grouping, are not supported.
+- **Capability inference:** a set counts as filterable as soon as it defines **any public** instance method whose name starts with `od_filter_` — a generic hook, a property-specific hook, or `od_filter_or` on its own. That single yes/no answer is what the MCP tools and the `$oas2` document advertise; see *Advertised capability* below.
 
 ## Implementing the filter hooks
 
@@ -223,6 +224,17 @@ When a set implements `od_filter_or`, OdataDuty emits a `Capabilities.FilterRest
 </EntitySet>
 ```
 
-A set **without** `od_filter_or` does not get this annotation. In either case, `$oas2` keeps `$filter` as a freeform string parameter—there is no schema change in the OAS2/Swagger document.
+A set **without** `od_filter_or` does not get this annotation. `$metadata` keys off `od_filter_or` specifically, and only ever *adds* the annotation—a set with no filter hooks at all still emits no `Filterable: false`.
 
 The `od_filter_or` default ships in the generator's ActiveRecord concern, so entity sets produced by the `entity_set` generator serve OR filtering with no extra code.
+
+## Advertised capability
+
+Filterability is inferred, never declared: an entity set (class DSL) or resolver (builder DSL) is filterable when it defines any **public** instance method named `od_filter_*`. Private hooks don't count, and neither `OdataDuty::EntitySet` nor `OdataDuty::SetResolver` contributes a matching method, so nothing is counted that you didn't write as a public hook. `od_filter_or` alone is enough—such a set genuinely serves `a eq 1 or b eq 2`, even though a single predicate would fail.
+
+That one flag drives two generated contracts:
+
+- **MCP** — `list_<Set>` and `count_<Set>` advertise an `odata_filter` argument only for a filterable set (see [`doc/using_mcp.md`](using_mcp.md)). Its generated description states the honest position: filtering works for this set, but not every property or operator combination is necessarily implemented, and an unsupported one returns an error rather than an empty result.
+- **`$oas2`** — the collection `GET` emits its `$filter` parameter only for a filterable set (see [`doc/using_oas2.md`](using_oas2.md)). The value stays a freeform string; only the parameter's presence is conditional.
+
+The flag is deliberately per-*set*, not per-property: neither surface enumerates which properties accept which operators. An agent or client discovers those limits from the `NoImplementationError` responses listed under *Common Error Cases*, which remain reachable on a filterable set. On a non-filterable set they become unreachable through MCP—the argument no longer exists to be passed—but remain reachable over REST, where `$filter` is still parsed and dispatched exactly as before.

@@ -1,24 +1,19 @@
 require 'mcp'
 require 'odata_duty/mcp_input_schemas'
 require 'odata_duty/mcp_identifier_validator'
+require 'odata_duty/mcp_instructions'
+require 'odata_duty/mcp_tool_arguments'
 require 'odata_duty/operation_verbs'
 
 module OdataDuty
   module McpServerBuilder
     extend self
 
-    # Inverse of McpInputSchemas::QUERY_OPTION_ALIASES: translates a tool call's `odata_*`
-    # arguments back to their `$`-prefixed OData spelling before they reach Executor.
-    QUERY_OPTION_SPELLINGS = McpInputSchemas::QUERY_OPTION_ALIASES.invert.freeze
-
     def build(schema)
       server = MCP::Server.new(
         name: schema.title,
         version: schema.version,
-        # Relies on the `mcp` gem's `initialize` response builder `.compact`-ing away a nil
-        # `instructions:`, so a schema without a description omits the key rather than sending
-        # `"instructions": null` — worth re-checking on `mcp` gem upgrades.
-        instructions: schema.description,
+        instructions: McpInstructions.build(schema),
         capabilities: { tools: {} }
       )
       schema.endpoints.each { |endpoint| register_endpoint_tools(server, schema, endpoint) }
@@ -47,7 +42,7 @@ module OdataDuty
     end
 
     def register_list_tool(server, schema, endpoint)
-      input_schema = McpInputSchemas.list_input_schema(supports_search: endpoint.supports_search?)
+      input_schema = McpInputSchemas.list_input_schema(endpoint)
       description = tool_description(OperationVerbs.list(endpoint.name), endpoint)
       tool_args = { name: "list_#{endpoint.name}", description: description,
                     input_schema: input_schema }
@@ -55,7 +50,7 @@ module OdataDuty
     end
 
     def register_count_tool(server, schema, endpoint)
-      input_schema = McpInputSchemas.count_input_schema(supports_search: endpoint.supports_search?)
+      input_schema = McpInputSchemas.count_input_schema(endpoint)
       description = tool_description(OperationVerbs.count(endpoint.name), endpoint)
       tool_args = { name: "count_#{endpoint.name}", description: description,
                     input_schema: input_schema }
@@ -108,21 +103,14 @@ module OdataDuty
     # (`[]` vs `fetch`/`dig`); the key is always present, so no public-API test distinguishes them.
     def define_tool(server, schema, action, url_for:, **tool_args)
       McpIdentifierValidator.validate_tool_name!(tool_args[:name])
+      properties = tool_args[:input_schema].fetch('properties')
+      spellings = McpToolArguments.spellings_for(properties.keys)
       server.define_tool(**tool_args) do |server_context:, **args|
+        query_options = McpToolArguments.query_options_for(action, args, spellings)
         McpServerBuilder.run_tool(action, url: url_for.call(args), schema: schema,
                                           context: server_context[:context],
-                                          query_options: McpServerBuilder.query_options_for(action,
-                                                                                            args))
+                                          query_options: query_options)
       end
-    end
-
-    # The `odata_*` aliases only stand in for OData query options on read (`:execute`) tools —
-    # `:create`/`:update`/`:delete` tools' arguments are property values, so a property literally
-    # named e.g. `odata_select` must reach Executor unchanged, not get aliased to `$select`.
-    def query_options_for(action, args)
-      return args.transform_keys(&:to_s) unless action == :execute
-
-      args.to_h { |key, value| [QUERY_OPTION_SPELLINGS.fetch(key.to_s, key.to_s), value] }
     end
 
     # On the .mutant.yml ignore list: `e.message` has only an equivalent mutant (`e`), since an

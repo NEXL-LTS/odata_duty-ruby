@@ -18,17 +18,15 @@
         ],
         "parameters":[
           {
-            "name":"$filter",
-            "in":"query",
-            "type":"string",
-            "description":"Filter the results, supporting `and` and flat `or` combinations"
-          },
-          {
             "name":"$select",
             "in":"query",
             "type":"array",
             "items":{
-              "type":"string"
+              "type":"string",
+              "enum":[
+                "code",
+                "title"
+              ]
             },
             "collectionFormat":"csv",
             "description":"Comma-separated list of properties to return"
@@ -92,7 +90,15 @@
             "in":"query",
             "type":"array",
             "items":{
-              "type":"string"
+              "type":"string",
+              "enum":[
+                "id",
+                "name",
+                "nickname",
+                "status",
+                "badge",
+                "created_at"
+              ]
             },
             "collectionFormat":"csv",
             "description":"Comma-separated list of properties to return"
@@ -101,12 +107,14 @@
             "name":"$top",
             "in":"query",
             "type":"integer",
+            "minimum":0,
             "description":"Number of results to return"
           },
           {
             "name":"$skip",
             "in":"query",
             "type":"integer",
+            "minimum":0,
             "description":"Number of results to skip"
           },
           {

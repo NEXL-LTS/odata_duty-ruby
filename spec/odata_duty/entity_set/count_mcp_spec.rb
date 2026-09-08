@@ -77,6 +77,28 @@ class CountMcpPlainSet < OdataDuty::EntitySet
   end
 end
 
+class CountMcpFilterableSet < OdataDuty::EntitySet
+  entity_type CountMcpWidgetEntity
+  name 'Filterables'
+  url 'Filterables'
+
+  def od_after_init
+    @records = CountMcpWidget.all
+  end
+
+  def collection
+    @records
+  end
+
+  def count
+    @records.size
+  end
+
+  def od_filter_eq(property_name, value)
+    @records = @records.select { |r| r.public_send(property_name) == value }
+  end
+end
+
 class CountMcpWriteOnlySet < OdataDuty::EntitySet
   entity_type CountMcpWidgetEntity
   name 'WriteOnly'
@@ -89,7 +111,8 @@ end
 
 class CountMcpSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
-  entity_sets [CountMcpSearchableSet, CountMcpNoCountSet, CountMcpPlainSet, CountMcpWriteOnlySet]
+  entity_sets [CountMcpSearchableSet, CountMcpNoCountSet, CountMcpPlainSet,
+               CountMcpFilterableSet, CountMcpWriteOnlySet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'MCP count tool' do
@@ -121,18 +144,30 @@ RSpec.describe OdataDuty::EntitySet, 'MCP count tool' do
       expect(count_tool['inputSchema']['type']).to eq('object')
       expect(count_tool['inputSchema']['required']).to eq([])
       expect(count_tool['inputSchema']['properties']).to eq(
-        'odata_filter' => { 'type' => 'string' },
-        'odata_search' => { 'type' => 'string' }
+        'odata_filter' => { 'type' => 'string',
+                            'description' => ExpectedMcpDescriptions::FILTER },
+        'odata_search' => { 'type' => 'string',
+                            'description' => ExpectedMcpDescriptions::SEARCH }
       )
     end
 
-    it 'omits odata_search from the input schema when the set does not define od_search' do
+    it 'advertises no query options for a count tool on a set with no query-option hooks' do
       count_tool = tool('count_Plains')
 
-      expect(count_tool['inputSchema']['properties']).not_to have_key('odata_search')
+      expect(count_tool['inputSchema']['properties']).to eq({})
+    end
+
+    it 'advertises odata_filter without odata_search when the set only defines a filter hook' do
+      count_tool = tool('count_Filterables')
+
       expect(count_tool['inputSchema']['properties']).to eq(
-        'odata_filter' => { 'type' => 'string' }
+        'odata_filter' => { 'type' => 'string',
+                            'description' => ExpectedMcpDescriptions::FILTER }
       )
+    end
+
+    it 'never advertises odata_select on a count tool' do
+      expect(tool('count_People')['inputSchema']['properties']).not_to have_key('odata_select')
     end
 
     it 'does not expose a count tool for a set that only implements create' do
@@ -173,6 +208,14 @@ RSpec.describe OdataDuty::EntitySet, 'MCP count tool' do
 
       expect(result['isError']).to be(false)
       expect(result['content'][0]['text']).to eq('1')
+    end
+
+    it 'ignores an odata_select the count tool never advertised' do
+      request_payload['params']['arguments'] = { 'odata_select' => 'name' }
+      response = call(request_payload)
+
+      expect(response).not_to have_key('error')
+      expect(response['result']['content'][0]['text']).to eq('3')
     end
 
     it 'surfaces a malformed odata_search as a tool error' do

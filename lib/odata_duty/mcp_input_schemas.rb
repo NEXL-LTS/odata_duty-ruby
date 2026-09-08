@@ -1,3 +1,5 @@
+require 'odata_duty/mcp_query_options'
+
 module OdataDuty
   module McpInputSchemas
     extend self
@@ -13,27 +15,43 @@ module OdataDuty
       '$select' => 'odata_select',
       '$search' => 'odata_search',
       '$top' => 'odata_top',
-      '$skip' => 'odata_skip'
+      '$skip' => 'odata_skip',
+      '$skiptoken' => 'odata_skiptoken'
     }.freeze
 
-    def count_input_schema(supports_search:)
-      properties = { alias_for('$filter') => { 'type' => 'string' } }
-      properties[alias_for('$search')] = { 'type' => 'string' } if supports_search
-      { 'properties' => properties, 'required' => [] }
+    UNGATED = nil
+
+    # `[query-option key, capability predicate]` in advertised order; `UNGATED` is always
+    # advertised. The argument shape for each key lives in McpQueryOptions.
+    LIST_QUERY_OPTIONS = [
+      ['$filter', :supports_filter?],
+      ['$select', UNGATED],
+      ['$search', :supports_search?],
+      ['$top', :supports_top?],
+      ['$skip', :supports_skip?],
+      ['$skiptoken', :supports_skiptoken?]
+    ].freeze
+
+    COUNT_QUERY_OPTIONS = [
+      ['$filter', :supports_filter?],
+      ['$search', :supports_search?]
+    ].freeze
+
+    def count_input_schema(endpoint)
+      { 'properties' => supported_query_options(COUNT_QUERY_OPTIONS, endpoint), 'required' => [] }
     end
 
-    def list_input_schema(supports_search:)
-      properties = {
-        alias_for('$filter') => query_option('string', 'OData $filter expression'),
-        alias_for('$select') => query_option('string', 'Comma-separated properties to return')
-      }
-      if supports_search
-        properties[alias_for('$search')] = query_option('string',
-                                                        'Search expression (AND, OR, NOT)')
+    def list_input_schema(endpoint)
+      { 'properties' => supported_query_options(LIST_QUERY_OPTIONS, endpoint), 'required' => [] }
+    end
+
+    def supported_query_options(gates, endpoint)
+      definitions = McpQueryOptions.definitions(endpoint.entity_type)
+      gates.each_with_object({}) do |(key, predicate), properties|
+        next if predicate && !endpoint.public_send(predicate)
+
+        properties[alias_for(key)] = definitions.fetch(key)
       end
-      properties[alias_for('$top')] = query_option('integer', 'Max records to return')
-      properties[alias_for('$skip')] = query_option('integer', 'Records to skip')
-      { 'properties' => properties, 'required' => [] }
     end
 
     # Raises when an entity property is literally named like a reserved `odata_*` alias and
@@ -68,7 +86,7 @@ module OdataDuty
     def get_input_schema(entity_type, tool_name:)
       key = entity_type.property_refs.first
       properties = { key.name => key.to_oas2 }
-      select_value = query_option('string', 'Comma-separated properties to return')
+      select_value = McpQueryOptions.select_option(entity_type)
       add_alias!(properties, entity_type, '$select', select_value, tool_name: tool_name)
       { 'properties' => properties, 'required' => [key.name] }
     end
@@ -80,10 +98,6 @@ module OdataDuty
 
     def alias_for(query_option_key)
       QUERY_OPTION_ALIASES.fetch(query_option_key)
-    end
-
-    def query_option(type, description)
-      { 'type' => type, 'description' => description }
     end
   end
 end

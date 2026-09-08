@@ -3,20 +3,20 @@
 OdataDuty turns the schema you already defined for OData into a [Model Context
 Protocol](mcp_crash_course.md) (MCP) server, so AI agents can list, read, search, and write your
 entities through the same data methods that power your REST endpoints. You define the schema once;
-the MCP tools are derived from it automatically. The server is **tools-only** — reads are exposed
-as model-invokable tools, not MCP resources.
+the tools are derived from it automatically.
 
-The MCP layer is built on the official [`mcp` Ruby SDK](https://ruby.sdk.modelcontextprotocol.io/),
-which handles the JSON-RPC plumbing — lifecycle, protocol-version negotiation, capability
-exchange, and spec-compliant error objects.
+Everything protocol-level — JSON-RPC plumbing, lifecycle, version negotiation, capability exchange,
+argument validation, error objects — is handled by the official [`mcp` Ruby
+SDK](https://ruby.sdk.modelcontextprotocol.io/). This guide covers the part that is OdataDuty's:
+what your schema turns into, and which of your hooks decide it.
 
 ## Overview
 
-- **Purpose:** expose an existing OData schema to MCP clients (e.g. the
-  [MCP Inspector](https://github.com/modelcontextprotocol/inspector)) without writing any extra
-  protocol code.
-- **Entry point:** `schema.to_mcp_server` returns a bare `MCP::Server`. It works for **both** the
+- **Entry point:** `schema.to_mcp_server` returns a bare `MCP::Server`. Works for **both** the
   class-based DSL (`OdataDuty::Schema`) and the builder DSL (`OdataDuty::SchemaBuilder`).
+- **Nothing to declare:** tool names, input schemas, and descriptions are all inferred from the
+  data methods and `od_*` hooks you already write. There is no MCP-specific DSL.
+- **Tools-only:** reads are exposed as model-invokable tools, not MCP resources.
 - **Transport:** mount the server over Streamable HTTP using the SDK's
   `MCP::Server::Transports::StreamableHTTPTransport`.
 - **Per-request context:** the OData context (used to instantiate entity sets / resolvers and build
@@ -114,106 +114,151 @@ npx @modelcontextprotocol/inspector@0.15.0 -e PORT=9292 bundle exec rackup spec/
 
 ## What the schema produces
 
-`to_mcp_server` derives the MCP tool surface from your schema — you do not register tools by hand.
-The server is tools-only; it advertises no MCP resources.
+`to_mcp_server` derives the whole tool surface from your schema — you do not register tools by
+hand. A tool is registered only when the set implements the data method behind it, so an agent sees
+exactly the operations your sets can perform.
 
 ### Tools
 
-Reads are exposed as tools (inferred from the read data methods), so an agent can complete a full
-loop through tools alone: `list_<Set>` to find records, then `get_/update_/delete_<Set>` by a
-discovered key.
+Reads are exposed as tools, so an agent can complete a full loop through tools alone: `list_<Set>`
+to find records, then `get_/update_/delete_<Set>` by a discovered key.
 
-- **`list_<Set>`** — registered for every set that implements `collection`. Its input schema is
-  all-optional (`required: []`): `odata_filter`, `odata_select`, `odata_top` (integer),
-  `odata_skip` (integer), and — only when the set defines [`od_search`](using_search.md) —
-  `odata_search`. Calling it runs the same execution as `GET /<Set>` and returns the collection
-  JSON.
-- **`get_<Set>`** — registered for every set that implements `individual`. Its input schema is the
-  entity key property (`required`) plus an optional `odata_select`. Calling it returns the
-  individual JSON (same shape as `GET /<Set>('1')`). A not-found or uncoercible key is returned as
-  a tool-error result (`isError: true`).
-- **`count_<Set>`** — registered for every set that implements `count`. Its input schema is
-  all-optional (`required: []`): `odata_filter`, and — only when the set defines `od_search` —
-  `odata_search`. Both narrow the count (as they do for the OData `/$count` endpoint); it returns
-  the count as text (e.g. `"42"`).
-- **`create_<Set>`** — registered for every writable set (one that implements
-  [`create`](using_create_update_and_delete.md)). Its input schema is built from the entity type's
-  properties; non-nullable properties become `required`.
-- **`update_<Set>` / `delete_<Set>`** — registered for sets that implement `update` / `delete` — see
-  [`using_create_update_and_delete.md`](using_create_update_and_delete.md).
+| Tool | Registered when the set implements | Takes | Returns |
+| --- | --- | --- | --- |
+| `list_<Set>` | `collection` | the query options the set can serve, all optional | the collection, as `GET /<Set>` would |
+| `get_<Set>` | `individual` | the entity key (required) + `odata_select` | the individual record |
+| `count_<Set>` | `collection` **and** `count` | `odata_filter`/`odata_search` when supported | the count, as text |
+| `create_<Set>` | [`create`](using_create_update_and_delete.md) | the entity type's writable properties; non-nullable ones required | the created record |
+| `update_<Set>` | [`update`](using_create_update_and_delete.md) | the entity key + the properties you may change | the updated record |
+| `delete_<Set>` | [`delete`](using_create_update_and_delete.md) | the entity key | a confirmation payload |
 
-The five `odata_*` keys above (`odata_filter`/`odata_select`/`odata_search`/`odata_top`/
-`odata_skip`) exist because `$`-prefixed OData query option names are not valid Anthropic
-tool-schema property keys. Each is translated back to its `$`-prefixed OData spelling before
-reaching `Executor`, so calling `list_People` with `{"odata_filter": "name eq 'Alice'"}` runs the
-exact same round trip as `GET /People?$filter=name eq 'Alice'`. Every other argument (record keys,
-create/update property values) passes through unchanged.
-
-`tools/list` returns these with their derived names, descriptions, and input schemas. A successful
-`tools/call` returns the result inside a text content block (`result.content[0].text`) — the
-collection/individual JSON for `list_`/`get_`, the numeric count as text for `count_`.
+Every tool runs the same execution path as the equivalent REST request, so a tool call and a `GET`
+answer identically. The payload arrives as a JSON string in a single text content block
+(`result.content[0].text`) rather than as structured content. Errors raised while resolving a
+call — a missing key, an unsupported filter, a malformed `$search` — come back in that same slot
+as a tool error (`isError: true`) carrying the message, not as transport failures.
 
 If an entity set declares a `description:`, it is appended to **every** tool's generated
-description for that set, joined with `". "` (e.g. `"List People records. Attendees checked in at
-the front desk"`), and each property's `description:` reaches `inputSchema.properties.<name>` on
-every tool that exposes that property. A schema-level `description:` becomes the server
-`instructions` value returned in the `initialize` result (absent when the schema has none). See
+description for that set (e.g. `"List People records. Attendees checked in at the front desk"`),
+and each property's `description:` reaches that property in the tool's input schema. See
 [`doc/using_descriptions.md`](using_descriptions.md) for the full picture across `$metadata`,
 `$oas2`, and MCP.
 
+### Query options on the read tools
+
+The read tools accept OData query options under `odata_*` names, because `$`-prefixed names are not
+valid tool-schema property keys. Each is translated back to its OData spelling before execution, so
+calling `list_People` with `{"odata_filter": "name eq 'Alice'"}` runs the exact same round trip as
+`GET /People?$filter=name eq 'Alice'`.
+
+**Each option is advertised only when your set defines the public hook that serves it**, so an
+agent is never offered an option that could only answer with `NoImplementationError`. A hook
+declared `private` or `protected` doesn't count — execution cannot reach it either:
+
+| Argument | OData | Advertised when the set/resolver defines |
+| --- | --- | --- |
+| `odata_filter` | `$filter` | any public `od_filter_*` hook — [`using_filter.md`](using_filter.md) |
+| `odata_select` | `$select` | *always*, on `list_`/`get_` — `$select` needs no hook, [`od_select`](using_select.md) is only an optimisation callback. `count_` never takes it |
+| `odata_search` | `$search` | `od_search` — [`using_search.md`](using_search.md) |
+| `odata_top` | `$top` | `od_top` — [`using_paging.md`](using_paging.md) |
+| `odata_skip` | `$skip` | `od_skip` — [`using_paging.md`](using_paging.md) |
+| `odata_skiptoken` | `$skiptoken` | `od_skiptoken` — [`using_paging.md`](using_paging.md) |
+
+So a `People` set implementing `od_filter_eq`, `od_search`, `od_top`, `od_skip` and `od_skiptoken`
+offers all six, while a `Products` set implementing only `collection` offers `odata_select` alone.
+`create_`/`update_`/`delete_` tools carry no `odata_*` keys at all.
+
+Three details shape how well an agent uses them:
+
+- **`odata_select` is an array of property names**, not OData's comma-separated string, so the
+  schema can name exactly which properties are selectable and the SDK rejects anything else. The
+  array is joined back to `$select`'s comma-separated spelling before execution.
+- **`odata_top`/`odata_skip` are bounded at zero**, so a negative page size is rejected before it
+  reaches your hooks.
+- **`odata_filter` means "this set filters", not "every property and operator works."** It is gated
+  on *any* public `od_filter_*` hook, including [`od_filter_or`](using_filter.md) on its own. Its
+  generated description says so, and an unsupported property/operator combination still comes back
+  as a `NoImplementationError` tool error — that remains how an agent discovers per-property
+  limits.
+
+Round trips, with `odata_select` joined back to the OData spelling:
+
+```
+list_People  {"odata_select": ["id", "user_name"], "odata_top": 2}
+  -> GET /People?$select=id,user_name&$top=2
+list_People  {"odata_skiptoken": "5"}
+  -> GET /People?$skiptoken=5
+count_People {"odata_filter": "user_name eq 'Alice'"}
+  -> GET /People/$count?$filter=user_name eq 'Alice'   -> "1"
+```
+
+REST execution is unchanged by any of this: leaving an argument off a tool schema does not stop
+`schema.execute` from honoring — or rejecting — the corresponding query option.
+
+### Server `instructions`
+
+Clients negotiating protocol version `2025-03-26` or later receive an `instructions` string
+describing the service (the SDK drops the key on `2024-11-05`). It is your schema's own
+`description:` (when it has one), then a generated description of the OData dialect the tools
+actually speak, composed in this order:
+
+1. A fixed intro naming the `odata_*` aliasing.
+2. The `$filter` grammar — the supported operators, that `and` and `or` cannot be mixed, that
+   parenthesised grouping and functions like `contains()` are unsupported, and how literals are
+   spelled.
+3. The `$search` grammar.
+4. How to page with `odata_skiptoken`.
+5. An unconditional line naming `$orderby`, `$expand`, `$apply`, `$compute` and `$count=true` as
+   unsupported.
+6. A closing line noting that each tool advertises only the options its own set supports.
+
+Lines 2, 3 and 4 appear only when some set in the schema actually exposes that option on a read
+tool — meaning it implements `collection` *and* the public hook behind the option. A schema whose
+only filterable set is write-only gets no `$filter` grammar, because no tool would accept one.
+
+This is what stops a model from confidently emitting `contains(name,'ali') and (a or b)` — OData
+that is perfectly valid in general, but not in this dialect. You write none of it: the text is
+generated from the same hook inference that gates the tool arguments. The exact wording is pinned
+by the `schema_mcp_instructions_spec.rb` specs in both spec trees.
+
+A schema with no `description:` returns the dialect text alone. This is a change from previous
+releases, where `instructions` was exactly `schema.description` and was omitted when there was
+none. See [`doc/using_descriptions.md`](using_descriptions.md) for how `description:` composes
+with it.
+
 ### No MCP resources (tools-only)
 
-The server is tools-only: it does **not** register MCP resources or resource templates, and its
-`initialize` capabilities advertise only `{"tools":{}}`. Reads that were previously served as
-resources (individual-by-id, paginated collection, `/$count`) are now served by the `list_<Set>`,
-`get_<Set>`, and `count_<Set>` tools above. Because the `resources` capability is no longer
-advertised, the SDK rejects `resources/list`, `resources/templates/list`, and `resources/read` with
-a JSON-RPC error.
-
-## Protocol-version negotiation
-
-`initialize` negotiates the protocol version through the SDK rather than pinning a fixed revision.
-If the client requests a supported version, the server echoes it back; if it requests an
-unsupported one, the server responds with its latest supported version.
-
-Request:
-
-```json
-{"jsonrpc":"2.0","id":1,"method":"initialize",
- "params":{"protocolVersion":"2025-06-18","capabilities":{},
-           "clientInfo":{"name":"inspector","version":"0.15.0"}}}
-```
-
-Response:
-
-```json
-{"jsonrpc":"2.0","id":1,"result":{
-  "protocolVersion":"2025-06-18",
-  "capabilities":{"tools":{}},
-  "serverInfo":{"name":"Test OData API","version":"1.0.0"}}}
-```
+The server registers no MCP resources or resource templates, and advertises no `resources`
+capability — so resource requests are rejected by the SDK. Reads that an MCP server might otherwise
+expose as resources (individual-by-id, paginated collection, `/$count`) are served by the
+`list_<Set>`, `get_<Set>`, and `count_<Set>` tools instead.
 
 ## Common Error Cases
 
-The server returns spec-compliant JSON-RPC error objects instead of crashing the transport with an
-HTTP 500:
+Bad requests come back as protocol or tool errors rather than crashing the transport. The cases
+worth knowing about as a gem consumer:
 
-- **Unknown method** → JSON-RPC `-32601` (method not found).
-- **Unknown tool, or a `create_`/`update_`/`delete_` on a set lacking that capability** →
-  JSON-RPC `-32602` (invalid params) — such tools are simply not registered.
-- **`resources/list`, `resources/templates/list`, or `resources/read`** → rejected with a JSON-RPC
-  error: the server is tools-only and no longer advertises the `resources` capability.
-- **OData-level errors during a `list_`/`get_`/`count_`/`create_`/... tool call** (e.g. a `$search`
-  parse error, an `InvalidQueryOptionError`, or a `ResourceNotFoundError` for a missing `get_` key)
-  → returned as a tool-error result (`isError: true`) whose content carries the error message,
-  rather than crashing the transport.
-- **`OdataDuty::InvalidMcpIdentifierError`** → raised by `to_mcp_server` itself (before a server
-  is returned), when the Anthropic Messages API's identifier constraints would be violated:
-  either an entity property name reaching a tool's input schema is over 64 characters or
-  outside its allowed character set (e.g. non-ASCII), or an entity-set name pushes a generated
-  tool name (e.g. `list_<Set>`) over 64 characters or outside its allowed character set. For
-  example, a `PersonType` with a
-  `日本語` property raises:
+- **An argument the input schema rejects** — the SDK validates `tools/call` arguments *before* your
+  handler runs and returns a tool error. This covers `odata_select` given a string instead of an
+  array or naming a property outside its `enum`, and a negative `odata_top`/`odata_skip`. So
+  `UnknownPropertyError` is not reachable through the MCP `$select` at all; it remains reachable
+  through the REST `$select`, and through `odata_filter` naming a property the entity type doesn't
+  have.
+- **A query option your set doesn't support** — cannot raise `NoImplementationError` through MCP.
+  The argument is never advertised, and an agent that sends it anyway has it forwarded verbatim
+  into `context.query_options` and ignored rather than translated into the OData option. It
+  remains reachable over REST, and through `odata_filter` for a property/operator with no matching
+  hook or an `or` expression on a set without `od_filter_or`.
+- **A tool that doesn't exist** — including a `create_`/`update_`/`delete_` on a set lacking that
+  capability, since such tools are simply never registered.
+- **OData errors during a call** — a `$search` parse failure, an `InvalidQueryOptionError`, a
+  `ResourceNotFoundError` for a missing `get_` key — are returned as tool errors carrying the
+  message.
+- **`OdataDuty::InvalidMcpIdentifierError`** — raised by `to_mcp_server` itself, before a server is
+  returned, when a name in your schema cannot be a valid MCP identifier: a property name that
+  reaches a tool's input schema, or an entity-set name that makes a generated tool name (e.g.
+  `list_<Set>`) too long or non-conforming. This is a schema-definition bug, so it surfaces at
+  build time rather than per request. For example, a `PersonType` with a `日本語` property raises:
 
   ```
   OdataDuty::InvalidMcpIdentifierError:

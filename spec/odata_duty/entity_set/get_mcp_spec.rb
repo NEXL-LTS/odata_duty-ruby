@@ -59,9 +59,24 @@ class GetMcpIntegerSet < OdataDuty::EntitySet
   end
 end
 
+class GetMcpReservedNameEntity < OdataDuty::EntityType
+  property_ref 'odata_skiptoken', String
+  property 'name', String
+end
+
+class GetMcpReservedNameSet < OdataDuty::EntitySet
+  entity_type GetMcpReservedNameEntity
+  name 'Tokens'
+  url 'Tokens'
+
+  def individual(id)
+    OpenStruct.new(odata_skiptoken: id, name: "row-#{id}")
+  end
+end
+
 class GetMcpSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
-  entity_sets [GetMcpWidgetSet, GetMcpWriteOnlySet, GetMcpIntegerSet]
+  entity_sets [GetMcpWidgetSet, GetMcpWriteOnlySet, GetMcpIntegerSet, GetMcpReservedNameSet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'MCP get tool' do
@@ -94,8 +109,10 @@ RSpec.describe OdataDuty::EntitySet, 'MCP get tool' do
       expect(get_tool['inputSchema']['required']).to eq(['id'])
       expect(get_tool['inputSchema']['properties']).to eq(
         'id' => { 'type' => 'string', 'readOnly' => true },
-        'odata_select' => { 'type' => 'string',
-                            'description' => 'Comma-separated properties to return' }
+        'odata_select' => { 'type' => 'array',
+                            'description' => ExpectedMcpDescriptions::SELECT,
+                            'items' => { 'type' => 'string',
+                                         'enum' => %w[id name sku] } }
       )
     end
 
@@ -120,11 +137,28 @@ RSpec.describe OdataDuty::EntitySet, 'MCP get tool' do
     end
 
     it 'projects only the selected properties when odata_select is given' do
-      request_payload['params']['arguments']['odata_select'] = 'name'
+      request_payload['params']['arguments']['odata_select'] = ['name']
       body = Oj.load(call(request_payload)['result']['content'][0]['text'])
 
       expect(body).to include('name' => 'First')
       expect(body).not_to have_key('sku')
+    end
+
+    it 'joins a multi-element odata_select into the comma-separated $select query option' do
+      request_payload['params']['arguments']['odata_select'] = %w[name sku]
+      result = call(request_payload)['result']
+      body = Oj.load(result['content'][0]['text'])
+
+      expect(result['isError']).to be(false)
+      expect(body).to include('name' => 'First', 'sku' => 'SKU-1')
+    end
+
+    it 'rejects an odata_select naming a property outside the advertised enum' do
+      request_payload['params']['arguments']['odata_select'] = ['nonexistent']
+      result = call(request_payload)['result']
+
+      expect(result['isError']).to be(true)
+      expect(result['content'][0]['text']).to start_with('Invalid arguments:')
     end
 
     it 'surfaces a missing key as a tool error' do
@@ -132,6 +166,16 @@ RSpec.describe OdataDuty::EntitySet, 'MCP get tool' do
       result = call(request_payload)['result']
 
       expect(result['isError']).to be(true)
+    end
+
+    it 'looks up a key property named like a reserved odata_ alias as the key' do
+      request_payload['params']['name'] = 'get_Tokens'
+      request_payload['params']['arguments'] = { 'odata_skiptoken' => '1' }
+      result = call(request_payload)['result']
+
+      expect(result['isError']).to be(false)
+      expect(Oj.load(result['content'][0]['text']))
+        .to include('odata_skiptoken' => '1', 'name' => 'row-1')
     end
 
     it 'surfaces an uncoercible key as a tool error' do

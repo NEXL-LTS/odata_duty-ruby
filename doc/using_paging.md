@@ -36,6 +36,9 @@ same parsing and dispatch serves both DSLs, so the equivalent hooks work on an
   more data beyond what it's returning. If so, it calls `od_next_link_skiptoken(value)` with the
   token for the *next* page. OdataDuty then adds `@odata.nextLink` to the response, which is the
   same request URL with `$skiptoken` set to that value—ready for the client to follow.
+- **Reachable over MCP too:** `list_<Set>` advertises `odata_top`, `odata_skip`, and
+  `odata_skiptoken` arguments—each one only when the matching hook exists—so an agent can page a
+  collection through the MCP server as well as over REST. See *Paging over MCP* below.
 
 ## Implementing the hooks
 
@@ -262,7 +265,9 @@ While implementing paging, note the following error scenarios:
   If the client supplies `$top`, `$skip`, or `$skiptoken` (with a *valid* value, for `$top`/`$skip`)
   and your entity set does not implement the corresponding hook, OdataDuty raises
   `NoImplementationError` (`"$top not implemented for #{class}"`, `"$skip not implemented for
-  #{class}"`, or `"$skiptoken not implemented for #{class}"`).
+  #{class}"`, or `"$skiptoken not implemented for #{class}"`). This is a REST-only case: over MCP
+  the corresponding `odata_*` argument is not advertised, and one sent anyway is forwarded
+  verbatim into `context.query_options` and ignored rather than applied.
 
 - **`$skiptoken` is not validated as numeric:**
   Unlike `$top`/`$skip`, `$skiptoken` is an opaque token as far as OdataDuty is concerned—any string
@@ -277,6 +282,32 @@ While implementing paging, note the following error scenarios:
 GET /People?$filter=status eq 'active'&$top=10
 GET /People?$select=name,email&$skip=20&$top=10
 ```
+
+## Paging over MCP
+
+The same three hooks drive what the [MCP](using_mcp.md) `list_<Set>` tool advertises. `odata_top`
+appears only when the set defines `od_top`, `odata_skip` only with `od_skip`, and `odata_skiptoken`
+only with `od_skiptoken`—so an agent is never invited to page a set that cannot. `odata_skiptoken`
+is a coined alias for OData's `$skiptoken`, following the same `odata_<option>` convention as the
+other query-option arguments, and is translated back before execution.
+
+That closes the server-driven loop for an agent: a `list_<Set>` call returns the collection JSON
+including `@odata.nextLink`, and the agent takes that link's `$skiptoken` value and passes it as
+`odata_skiptoken` on its next `list_<Set>` call—exactly what a REST client does by following the
+URL. Continuing the 102-record `LargeCollection` example above:
+
+```
+list_LargeCollection {}
+  -> {"value": [ …50 records… ],
+      "@odata.nextLink": "http://localhost:3000/api/LargeCollection?%24skiptoken=50"}
+list_LargeCollection {"odata_skiptoken": "50"}
+  -> GET /LargeCollection?$skiptoken=50   (records 51–100, plus a nextLink carrying 100)
+```
+
+`odata_top` and `odata_skip` are advertised as integers with `"minimum": 0`, so the MCP SDK rejects
+a negative value against the tool's input schema—returning a tool-error result whose text starts
+`"Invalid arguments: "`—rather than letting it reach the `InvalidQueryOptionError` described under
+*Common Error Cases*. The REST path is unchanged and still raises there.
 
 ## Summary
 
@@ -300,5 +331,11 @@ GET /People?$select=name,email&$skip=20&$top=10
   validated.
 
 - **Not implemented:**
-  Supplying `$top`, `$skip`, or `$skiptoken` against a set that doesn't implement the matching hook
-  raises `NoImplementationError`.
+  Supplying `$top`, `$skip`, or `$skiptoken` over REST against a set that doesn't implement the
+  matching hook raises `NoImplementationError`. Over MCP the argument is not advertised, and one
+  sent anyway is ignored rather than applied.
+
+- **MCP:**
+  `list_<Set>` exposes `odata_top`/`odata_skip`/`odata_skiptoken`, each gated on its hook, so an
+  agent can follow a `@odata.nextLink`'s `$skiptoken` value by passing it as `odata_skiptoken` —
+  see [`doc/using_mcp.md`](using_mcp.md).
