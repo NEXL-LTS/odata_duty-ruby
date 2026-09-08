@@ -151,8 +151,9 @@ valid tool-schema property keys. Each is translated back to its OData spelling b
 calling `list_People` with `{"odata_filter": "name eq 'Alice'"}` runs the exact same round trip as
 `GET /People?$filter=name eq 'Alice'`.
 
-**Each option is advertised only when your set defines the hook that serves it**, so an agent is
-never offered an option that could only answer with `NoImplementationError`:
+**Each option is advertised only when your set defines the public hook that serves it**, so an
+agent is never offered an option that could only answer with `NoImplementationError`. A hook
+declared `private` or `protected` doesn't count — execution cannot reach it either:
 
 | Argument | OData | Advertised when the set/resolver defines |
 | --- | --- | --- |
@@ -204,12 +205,16 @@ actually speak, composed in this order:
 1. A fixed intro naming the `odata_*` aliasing.
 2. The `$filter` grammar — the supported operators, that `and` and `or` cannot be mixed, that
    parenthesised grouping and functions like `contains()` are unsupported, and how literals are
-   spelled. Included only when at least one set in the schema supports filtering.
-3. The `$search` grammar — only when at least one set defines `od_search`.
-4. How to page with `odata_skiptoken` — only when at least one set defines `od_skiptoken`.
+   spelled.
+3. The `$search` grammar.
+4. How to page with `odata_skiptoken`.
 5. An unconditional line naming `$orderby`, `$expand`, `$apply`, `$compute` and `$count=true` as
    unsupported.
 6. A closing line noting that each tool advertises only the options its own set supports.
+
+Lines 2, 3 and 4 appear only when some set in the schema actually exposes that option on a read
+tool — meaning it implements `collection` *and* the public hook behind the option. A schema whose
+only filterable set is write-only gets no `$filter` grammar, because no tool would accept one.
 
 This is what stops a model from confidently emitting `contains(name,'ali') and (a or b)` — OData
 that is perfectly valid in general, but not in this dialect. You write none of it: the text is
@@ -239,10 +244,11 @@ worth knowing about as a gem consumer:
   `UnknownPropertyError` is not reachable through the MCP `$select` at all; it remains reachable
   through the REST `$select`, and through `odata_filter` naming a property the entity type doesn't
   have.
-- **A query option your set doesn't support** — cannot raise `NoImplementationError` through MCP,
-  because the argument was never advertised to be passed. It remains reachable over REST, and
-  through `odata_filter` for a property/operator with no matching hook or an `or` expression on a
-  set without `od_filter_or`.
+- **A query option your set doesn't support** — cannot raise `NoImplementationError` through MCP.
+  The argument is never advertised, and an agent that sends it anyway has it forwarded verbatim
+  into `context.query_options` and ignored rather than translated into the OData option. It
+  remains reachable over REST, and through `odata_filter` for a property/operator with no matching
+  hook or an `or` expression on a set without `od_filter_or`.
 - **A tool that doesn't exist** — including a `create_`/`update_`/`delete_` on a set lacking that
   capability, since such tools are simply never registered.
 - **OData errors during a call** — a `$search` parse failure, an `InvalidQueryOptionError`, a

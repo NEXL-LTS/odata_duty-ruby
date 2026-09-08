@@ -45,9 +45,16 @@ module OdataDuty
 
     def option_lines(schema)
       supported = OPTION_LINES.filter_map do |line, predicate|
-        line if schema.endpoints.any? { |endpoint| endpoint.public_send(predicate) }
+        line if schema.endpoints.any? { |endpoint| advertises?(endpoint, predicate) }
       end
       supported + [UNSUPPORTED_LINE]
+    end
+
+    # `$filter` and `$search` reach a set through its `list_`/`count_` tools and paging through
+    # `list_`, all of which need a `collection` method — so a set without one advertises no
+    # query options at all, whatever hooks it defines.
+    def advertises?(endpoint, predicate)
+      endpoint.supports_collection? && endpoint.public_send(predicate)
     end
   end
 end

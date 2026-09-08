@@ -210,6 +210,14 @@ RSpec.describe OdataDuty::EntitySet, 'MCP count tool' do
       expect(result['content'][0]['text']).to eq('1')
     end
 
+    it 'ignores an odata_select the count tool never advertised' do
+      request_payload['params']['arguments'] = { 'odata_select' => 'name' }
+      response = call(request_payload)
+
+      expect(response).not_to have_key('error')
+      expect(response['result']['content'][0]['text']).to eq('3')
+    end
+
     it 'surfaces a malformed odata_search as a tool error' do
       request_payload['params']['arguments'] = { 'odata_search' => 'apple AND orange OR peach' }
       result = call(request_payload)['result']

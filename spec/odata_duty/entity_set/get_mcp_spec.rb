@@ -59,9 +59,24 @@ class GetMcpIntegerSet < OdataDuty::EntitySet
   end
 end
 
+class GetMcpReservedNameEntity < OdataDuty::EntityType
+  property_ref 'odata_skiptoken', String
+  property 'name', String
+end
+
+class GetMcpReservedNameSet < OdataDuty::EntitySet
+  entity_type GetMcpReservedNameEntity
+  name 'Tokens'
+  url 'Tokens'
+
+  def individual(id)
+    OpenStruct.new(odata_skiptoken: id, name: "row-#{id}")
+  end
+end
+
 class GetMcpSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
-  entity_sets [GetMcpWidgetSet, GetMcpWriteOnlySet, GetMcpIntegerSet]
+  entity_sets [GetMcpWidgetSet, GetMcpWriteOnlySet, GetMcpIntegerSet, GetMcpReservedNameSet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'MCP get tool' do
@@ -151,6 +166,16 @@ RSpec.describe OdataDuty::EntitySet, 'MCP get tool' do
       result = call(request_payload)['result']
 
       expect(result['isError']).to be(true)
+    end
+
+    it 'looks up a key property named like a reserved odata_ alias as the key' do
+      request_payload['params']['name'] = 'get_Tokens'
+      request_payload['params']['arguments'] = { 'odata_skiptoken' => '1' }
+      result = call(request_payload)['result']
+
+      expect(result['isError']).to be(false)
+      expect(Oj.load(result['content'][0]['text']))
+        .to include('odata_skiptoken' => '1', 'name' => 'row-1')
     end
 
     it 'surfaces an uncoercible key as a tool error' do

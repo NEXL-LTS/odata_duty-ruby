@@ -20,6 +20,24 @@ class SchemaBuilderMcpInstructionsFullResolver < SchemaBuilderMcpInstructionsRes
   end
 end
 
+class SchemaBuilderMcpInstructionsIndividualOnlyResolver < OdataDuty::SetResolver
+  def individual(id)
+    OpenStruct.new(id: id)
+  end
+
+  def od_filter_eq(_property_name, _value)
+    []
+  end
+
+  def od_search(_expression)
+    []
+  end
+
+  def od_skiptoken(_skiptoken)
+    []
+  end
+end
+
 class SchemaBuilderMcpInstructionsFilterResolver < SchemaBuilderMcpInstructionsResolver
   def od_filter_eq(_property_name, _value)
     []
@@ -92,6 +110,12 @@ module OdataDuty
       expect(text).to include(ExpectedMcpInstructions::SEARCH_LINE)
       expect(text).not_to include(ExpectedMcpInstructions::FILTER_LINE,
                                   ExpectedMcpInstructions::PAGING_LINE)
+    end
+
+    it 'omits the query-option lines when only a set without a collection supports them' do
+      schema = build_schema('SchemaBuilderMcpInstructionsIndividualOnlyResolver')
+
+      expect(instructions_for(schema)).to eq(ExpectedMcpInstructions::NO_OPTIONS)
     end
 
     it 'describes paging only when a set defines od_skiptoken' do

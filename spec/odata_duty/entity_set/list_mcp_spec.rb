@@ -90,6 +90,32 @@ class ListMcpPrivateFilterSet < OdataDuty::EntitySet
   end
 end
 
+class ListMcpProtectedHooksSet < OdataDuty::EntitySet
+  include ListMcpWidgetRecords
+
+  entity_type ListMcpWidgetEntity
+  name 'ProtectedHooks'
+  url 'ProtectedHooks'
+
+  protected
+
+  def od_top(top)
+    @records = @records[0...top.to_i]
+  end
+
+  def od_skip(skip)
+    @records = @records[skip.to_i..]
+  end
+
+  def od_skiptoken(skiptoken)
+    @records = @records.drop_while { |r| r.id <= skiptoken.to_s }
+  end
+
+  def od_search(_expression)
+    @records
+  end
+end
+
 class ListMcpTopOnlySet < OdataDuty::EntitySet
   include ListMcpWidgetRecords
 
@@ -139,8 +165,8 @@ end
 class ListMcpSchema < OdataDuty::Schema
   base_url 'http://localhost:3000/api'
   entity_sets [ListMcpSearchableSet, ListMcpPlainSet, ListMcpFilterOrOnlySet,
-               ListMcpPrivateFilterSet, ListMcpTopOnlySet, ListMcpSkipOnlySet,
-               ListMcpSkiptokenOnlySet, ListMcpWriteOnlySet]
+               ListMcpPrivateFilterSet, ListMcpProtectedHooksSet, ListMcpTopOnlySet,
+               ListMcpSkipOnlySet, ListMcpSkiptokenOnlySet, ListMcpWriteOnlySet]
 end
 
 RSpec.describe OdataDuty::EntitySet, 'MCP list tool' do
@@ -202,6 +228,12 @@ RSpec.describe OdataDuty::EntitySet, 'MCP list tool' do
 
     it 'ignores a private od_filter_ hook when deciding whether to advertise odata_filter' do
       list_tool = tool('list_PrivateFilters')
+
+      expect(list_tool['inputSchema']['properties'].keys).to eq(%w[odata_select])
+    end
+
+    it 'ignores protected paging and search hooks, which execution cannot reach' do
+      list_tool = tool('list_ProtectedHooks')
 
       expect(list_tool['inputSchema']['properties'].keys).to eq(%w[odata_select])
     end

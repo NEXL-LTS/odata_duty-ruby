@@ -36,6 +36,12 @@ class GetMcpIntegerResolver < OdataDuty::SetResolver
   end
 end
 
+class GetMcpReservedNameResolver < OdataDuty::SetResolver
+  def individual(id)
+    OpenStruct.new(odata_skiptoken: id, name: "row-#{id}")
+  end
+end
+
 module OdataDuty
   RSpec.describe SchemaBuilder::EntitySet, 'MCP get tool' do
     subject(:schema) do
@@ -49,12 +55,18 @@ module OdataDuty
           et.property_ref 'id', Integer
           et.property 'name', String
         end
+        tokens = s.add_entity_type(name: 'GetMcpTokenEntity') do |et|
+          et.property_ref 'odata_skiptoken', String
+          et.property 'name', String
+        end
 
         s.add_entity_set(name: 'People', entity_type: entity, resolver: 'GetMcpReadResolver')
         s.add_entity_set(name: 'WriteOnly', entity_type: entity,
                          resolver: 'GetMcpWriteOnlyResolver')
         s.add_entity_set(name: 'Numbers', entity_type: numbers,
                          resolver: 'GetMcpIntegerResolver')
+        s.add_entity_set(name: 'Tokens', entity_type: tokens,
+                         resolver: 'GetMcpReservedNameResolver')
       end
     end
 
@@ -144,6 +156,16 @@ module OdataDuty
         result = call(request_payload)['result']
 
         expect(result['isError']).to be(true)
+      end
+
+      it 'looks up a key property named like a reserved odata_ alias as the key' do
+        request_payload['params']['name'] = 'get_Tokens'
+        request_payload['params']['arguments'] = { 'odata_skiptoken' => '1' }
+        result = call(request_payload)['result']
+
+        expect(result['isError']).to be(false)
+        expect(Oj.load(result['content'][0]['text']))
+          .to include('odata_skiptoken' => '1', 'name' => 'row-1')
       end
 
       it 'surfaces an uncoercible key as a tool error' do

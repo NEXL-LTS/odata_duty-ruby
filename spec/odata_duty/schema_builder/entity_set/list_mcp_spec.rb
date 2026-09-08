@@ -69,6 +69,28 @@ class ListMcpPrivateFilterResolver < OdataDuty::SetResolver
   end
 end
 
+class ListMcpProtectedHooksResolver < OdataDuty::SetResolver
+  include ListMcpBuilderRecords
+
+  protected
+
+  def od_top(top)
+    @records = @records[0...top.to_i]
+  end
+
+  def od_skip(skip)
+    @records = @records[skip.to_i..]
+  end
+
+  def od_skiptoken(skiptoken)
+    @records = @records.drop_while { |r| r.id <= skiptoken.to_s }
+  end
+
+  def od_search(_expression)
+    @records
+  end
+end
+
 class ListMcpTopOnlyResolver < OdataDuty::SetResolver
   include ListMcpBuilderRecords
 
@@ -116,6 +138,8 @@ module OdataDuty
                          resolver: 'ListMcpFilterOrOnlyResolver')
         s.add_entity_set(name: 'PrivateFilters', entity_type: entity,
                          resolver: 'ListMcpPrivateFilterResolver')
+        s.add_entity_set(name: 'ProtectedHooks', entity_type: entity,
+                         resolver: 'ListMcpProtectedHooksResolver')
         s.add_entity_set(name: 'Tops', entity_type: entity,
                          resolver: 'ListMcpTopOnlyResolver')
         s.add_entity_set(name: 'Skips', entity_type: entity,
@@ -185,6 +209,12 @@ module OdataDuty
 
       it 'ignores a private od_filter_ hook when deciding whether to advertise odata_filter' do
         list_tool = tool('list_PrivateFilters')
+
+        expect(list_tool['inputSchema']['properties'].keys).to eq(%w[odata_select])
+      end
+
+      it 'ignores protected paging and search hooks, which execution cannot reach' do
+        list_tool = tool('list_ProtectedHooks')
 
         expect(list_tool['inputSchema']['properties'].keys).to eq(%w[odata_select])
       end

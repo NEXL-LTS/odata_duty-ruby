@@ -128,12 +128,12 @@ module OdataDuty
         raise ResourceNotFoundError, "No such entity #{id}" unless result
       end
 
-      def supports_search? = entity_set.method_defined?(:od_search)
+      def supports_search? = entity_set.public_method_defined?(:od_search)
       def supports_filter_or? = entity_set.method_defined?(:od_filter_or)
       def supports_filter? = CapabilityHooks.filterable?(entity_set)
-      def supports_top? = entity_set.method_defined?(:od_top)
-      def supports_skip? = entity_set.method_defined?(:od_skip)
-      def supports_skiptoken? = entity_set.method_defined?(:od_skiptoken)
+      def supports_top? = entity_set.public_method_defined?(:od_top)
+      def supports_skip? = entity_set.public_method_defined?(:od_skip)
+      def supports_skiptoken? = entity_set.public_method_defined?(:od_skiptoken)
       def supports_collection? = entity_set.method_defined?(:collection)
       def supports_individual? = entity_set.method_defined?(:individual)
       def supports_count? = entity_set.method_defined?(:count)

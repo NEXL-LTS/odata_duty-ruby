@@ -74,6 +74,28 @@ class McpInstructionsSkiptokenSet < OdataDuty::EntitySet
   end
 end
 
+class McpInstructionsIndividualOnlySet < OdataDuty::EntitySet
+  entity_type McpInstructionsEntity
+  name 'IndividualOnlys'
+  url 'IndividualOnlys'
+
+  def individual(id)
+    OpenStruct.new(id: id)
+  end
+
+  def od_filter_eq(_property_name, _value)
+    []
+  end
+
+  def od_search(_expression)
+    []
+  end
+
+  def od_skiptoken(_skiptoken)
+    []
+  end
+end
+
 class McpInstructionsDescribedSchema < OdataDuty::Schema
   namespace 'McpInstructionsSpace'
   description 'Attendee records for the spring conference.'
@@ -103,6 +125,12 @@ class McpInstructionsSkiptokenSchema < OdataDuty::Schema
   namespace 'McpInstructionsSpace'
   base_url 'http://localhost:3000/api'
   entity_sets [McpInstructionsSkiptokenSet]
+end
+
+class McpInstructionsIndividualOnlySchema < OdataDuty::Schema
+  namespace 'McpInstructionsSpace'
+  base_url 'http://localhost:3000/api'
+  entity_sets [McpInstructionsIndividualOnlySet]
 end
 
 RSpec.describe OdataDuty::Schema, 'MCP instructions' do
@@ -140,6 +168,11 @@ RSpec.describe OdataDuty::Schema, 'MCP instructions' do
     expect(text).to include(ExpectedMcpInstructions::SEARCH_LINE)
     expect(text).not_to include(ExpectedMcpInstructions::FILTER_LINE,
                                 ExpectedMcpInstructions::PAGING_LINE)
+  end
+
+  it 'omits the query-option lines when only a set without a collection supports them' do
+    expect(instructions_for(McpInstructionsIndividualOnlySchema))
+      .to eq(ExpectedMcpInstructions::NO_OPTIONS)
   end
 
   it 'describes paging only when a set defines od_skiptoken' do

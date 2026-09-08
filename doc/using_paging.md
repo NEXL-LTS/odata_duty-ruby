@@ -266,7 +266,8 @@ While implementing paging, note the following error scenarios:
   and your entity set does not implement the corresponding hook, OdataDuty raises
   `NoImplementationError` (`"$top not implemented for #{class}"`, `"$skip not implemented for
   #{class}"`, or `"$skiptoken not implemented for #{class}"`). This is a REST-only case: over MCP
-  the corresponding `odata_*` argument is not advertised at all, so it cannot be passed.
+  the corresponding `odata_*` argument is not advertised, and one sent anyway is forwarded
+  verbatim into `context.query_options` and ignored rather than applied.
 
 - **`$skiptoken` is not validated as numeric:**
   Unlike `$top`/`$skip`, `$skiptoken` is an opaque token as far as OdataDuty is concerned—any string
@@ -331,7 +332,8 @@ a negative value against the tool's input schema—returning a tool-error result
 
 - **Not implemented:**
   Supplying `$top`, `$skip`, or `$skiptoken` over REST against a set that doesn't implement the
-  matching hook raises `NoImplementationError`. Over MCP the argument is simply not advertised.
+  matching hook raises `NoImplementationError`. Over MCP the argument is not advertised, and one
+  sent anyway is ignored rather than applied.
 
 - **MCP:**
   `list_<Set>` exposes `odata_top`/`odata_skip`/`odata_skiptoken`, each gated on its hook, so an

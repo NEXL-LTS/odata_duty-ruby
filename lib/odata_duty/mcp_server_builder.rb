@@ -103,8 +103,10 @@ module OdataDuty
     # (`[]` vs `fetch`/`dig`); the key is always present, so no public-API test distinguishes them.
     def define_tool(server, schema, action, url_for:, **tool_args)
       McpIdentifierValidator.validate_tool_name!(tool_args[:name])
+      properties = tool_args[:input_schema].fetch('properties')
+      spellings = McpToolArguments.spellings_for(properties.keys)
       server.define_tool(**tool_args) do |server_context:, **args|
-        query_options = McpToolArguments.query_options_for(action, args)
+        query_options = McpToolArguments.query_options_for(action, args, spellings)
         McpServerBuilder.run_tool(action, url: url_for.call(args), schema: schema,
                                           context: server_context[:context],
                                           query_options: query_options)
