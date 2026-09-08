@@ -349,8 +349,8 @@ author.
     description too would duplicate prose in the text an agent reads most.
   - **Schema → nothing else in MCP**: `serverInfo.description` exists in the `mcp` gem but is
     silently dropped (and can raise `ArgumentError` from `MCP::Server#validate!`) for negotiated
-    protocol versions at or below `2025-06-18`. `instructions` is emitted at every protocol version,
-    so it is the sole schema-level MCP target.
+    protocol versions at or below `2025-06-18`. `instructions` is emitted from `2025-03-26`
+    onwards (the SDK drops it on `2024-11-05`), so it is the sole schema-level MCP target.
 
 ## Summary
 

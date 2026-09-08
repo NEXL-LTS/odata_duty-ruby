@@ -25,7 +25,7 @@ list current** — see `/build` for when to update it.
 - **Descriptions** — `description:` on schema, entity/complex/enum type, enum member, property (incl. `property_ref`), and entity set; renders into `$metadata` (`Core.Description`), `$oas2` (`info`/definitions/properties/operation `summary`+`description`), and MCP (tool descriptions, input-schema property descriptions, server `instructions`) — `doc/using_descriptions.md`.
 - **Init args** — pass per-request data into `od_after_init` — `doc/using_init_args.md`.
 - **Request context** — the `context` object in resolver hooks (delegation, `od_full_url`, `query_options`, `base_url`, `current`), plus `od_context`/`object` in class-DSL property methods — `doc/using_context.md`.
-- **MCP server** — tools-only over JSON-RPC; reads inferred as `list_/get_/count_<Set>` tools, writes as `create_/update_/delete_<Set>`, no resources; read tools advertise only the `odata_*` query options their set's hooks can serve, and `instructions` always carries a generated description of the supported dialect — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
+- **MCP server** — tools-only over JSON-RPC; reads inferred as `list_/get_/count_<Set>` tools, writes as `create_/update_/delete_<Set>`, no resources; read tools advertise only the `odata_*` query options their set's hooks can serve, and `instructions` carries a generated description of the supported dialect — `doc/using_mcp.md`, `doc/mcp_crash_course.md`.
 - **Rails generators** — `install` and `entity_set` — `doc/entity_set_generator.md`.
 
 ## Commands
